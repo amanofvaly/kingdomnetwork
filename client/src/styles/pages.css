@@ -39,12 +39,12 @@
 .feature svg { color: var(--green-700); }
 .feature h4 { margin-top: var(--s-1); }
 
-.band-ink { background: var(--bg-ink); color: var(--ink-inverse); padding-block: var(--s-9); }
+.band-ink { background: linear-gradient(135deg, #3157a4 0%, #51419a 100%); color: var(--ink-inverse); padding-block: var(--s-9); }
 .band-ink h2, .band-ink h4 { color: #fff; }
 .for-churches { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 0.86fr); gap: var(--s-8); align-items: center; }
 .tick-list { display: flex; flex-direction: column; gap: var(--s-3); }
 .tick-list li { display: flex; align-items: center; gap: var(--s-3); color: rgba(255,255,255,.82); font-size: var(--text-base); }
-.tick-list svg { color: var(--green-500); flex: none; }
+.tick-list svg { color: #ffd16a; flex: none; }
 @media (max-width: 900px) { .for-churches { grid-template-columns: 1fr; } }
 
 /* ===========================================================================
@@ -359,19 +359,23 @@
 /* ===========================================================================
    Outcome hero + tiles
    =========================================================================== */
-.outcome-hero { position: relative; background: var(--bg-ink); color: #fff; overflow: hidden; }
-.outcome-hero .media { position: absolute; inset: 0; border-radius: 0; }
-.outcome-hero .media img { width: 100%; height: 100%; object-fit: cover; opacity: .58; }
-/* A scrim rather than a flat opacity, so the photograph stays readable and the
-   type keeps its contrast on the left where the copy sits. */
+.outcome-hero { position: relative; background: linear-gradient(120deg, #fff7df 0%, #fffdf8 56%, #eef3ff 100%); color: var(--ink); overflow: hidden; }
+.outcome-hero .media { position: absolute; inset: 0 0 0 56%; border-radius: 0; }
+.outcome-hero .media img { width: 100%; height: 100%; object-fit: cover; opacity: .82; }
 .outcome-hero .media::after {
   content: ''; position: absolute; inset: 0;
-  background:
-    linear-gradient(90deg, rgba(12,20,16,.94) 0%, rgba(12,20,16,.78) 46%, rgba(12,20,16,.35) 100%),
-    linear-gradient(to top, rgba(12,20,16,.6), rgba(12,20,16,0) 60%);
+  background: linear-gradient(90deg, #fffdf8 0%, rgba(255,253,248,.35) 42%, rgba(255,253,248,.08) 100%);
 }
 .outcome-hero-inner { position: relative; padding-block: var(--s-8); }
-.outcome-hero h1 { color: #fff; }
+.outcome-hero h1 { color: var(--ink); }
+.outcome-hero .lede { color: var(--ink-2); }
+.outcome-hero .eyebrow { color: var(--green-700); }
+.outcome-meta { color: var(--ink-2); font-weight: 500; }
+@media (max-width: 700px) {
+  .outcome-hero .media { inset: 0; opacity: .13; }
+  .outcome-hero .media::after { background: linear-gradient(90deg, #fffaf0 0%, rgba(255,250,240,.78) 100%); }
+  .outcome-hero-inner { padding-block: var(--s-7); }
+}
 
 /* ===========================================================================
    Search + header suggest
@@ -439,13 +443,6 @@
 /* ===========================================================================
    Home — commerce first
    =========================================================================== */
-.offer-bar {
-  background: var(--green-900); color: #fff;
-  font-size: var(--text-sm); text-align: center; padding: 9px var(--gutter);
-}
-.offer-bar a { text-decoration: underline; text-underline-offset: 3px; font-weight: 500; }
-
-
 .rail-head { display: flex; align-items: baseline; justify-content: space-between; gap: var(--s-4); margin-bottom: var(--s-4); }
 .rail-head h2 { font-size: var(--text-2xl); }
 @media (max-width: 620px) {
@@ -462,57 +459,41 @@
 }
 .church-chip:hover { border-color: var(--ink); }
 
-/* ===========================================================================
-   Home — photographic banner, then product
-   =========================================================================== */
+/* Home hero */
 .hero-banner {
-  position: relative;
-  min-height: 340px;
-  display: flex;
-  align-items: center;
-  background: var(--bg-ink);
-  overflow: hidden;
+  position: relative; display: flex; align-items: center; overflow: hidden;
+  background: radial-gradient(circle at 8% 12%, rgba(255,193,89,.34), transparent 30%), linear-gradient(135deg, #fff8df 0%, #fffdf7 52%, #eef3ff 100%);
 }
-.hero-banner-img {
-  position: absolute; inset: 0;
-  width: 100%; height: 100%; object-fit: cover; object-position: 60% 45%;
-}
-.hero-banner::after {
-  content: ''; position: absolute; inset: 0;
-  background: linear-gradient(90deg, rgba(10,17,14,.93) 0%, rgba(10,17,14,.86) 34%, rgba(10,17,14,.42) 72%, rgba(10,17,14,.2) 100%);
-}
-.hero-banner-inner { position: relative; z-index: 1; padding-block: var(--s-7); }
-.hero-copy { max-width: 610px; display: flex; flex-direction: column; gap: var(--s-4); }
+.hero-banner-inner { display: grid; grid-template-columns: minmax(0,.92fr) minmax(420px,1.08fr); gap: clamp(36px,6vw,88px); align-items: center; padding-block: clamp(48px,6vw,84px); }
+.hero-copy { max-width: 620px; display: flex; flex-direction: column; gap: var(--s-5); }
 .hero-banner h1 {
-  color: #fff;
-  font-size: clamp(2.2rem, 4.6vw, 3.5rem);
-  line-height: 1.04;
-  letter-spacing: -0.035em;
+  color: var(--ink); font-size: clamp(2.8rem,5vw,4.8rem); line-height: .98; letter-spacing: -.055em; max-width: 12ch;
 }
-.hero-eyebrow { color: rgba(255,255,255,.62); }
-.hero-sub { color: rgba(255,255,255,.8); font-size: var(--text-lg); line-height: 1.5; margin: 0; max-width: 46ch; }
-.hero-banner .hero-search { height: 58px; padding-right: 6px; box-shadow: 0 8px 30px rgba(0,0,0,.28); }
+.hero-eyebrow { color: var(--green-700); }
+.hero-sub { color: var(--ink-2); font-size: clamp(1rem,1.5vw,1.2rem); line-height: 1.55; margin: 0; max-width: 48ch; }
+.hero-banner .hero-search { height: 60px; padding-right: 6px; border-color: #bdb4d0; box-shadow: 0 12px 32px rgba(45,39,91,.12); }
 .hero-banner .hero-search .btn { margin-left: auto; }
+.hero-actions { display: flex; flex-wrap: wrap; gap: var(--s-5); }
+.hero-link { display: inline-flex; align-items: center; gap: 7px; color: var(--green-700); font-weight: 600; }
+.hero-link:hover { text-decoration: underline; text-underline-offset: 4px; }
+.hero-visual { position: relative; min-height: 430px; margin-right: calc(var(--gutter) * -.35); }
+.hero-visual::before { content: ''; position: absolute; width: 62%; height: 78%; right: -5%; top: -7%; background: #ffcb61; border-radius: 42% 58% 38% 62% / 54% 42% 58% 46%; transform: rotate(7deg); }
+.hero-visual img { position: absolute; inset: 0 5% 0 0; width: 95%; height: 100%; object-fit: cover; border-radius: 44% 56% 48% 52% / 38% 42% 58% 62%; box-shadow: var(--shadow-lg); }
+.hero-proof { position: absolute; left: -34px; bottom: 28px; display: flex; align-items: center; gap: 12px; width: min(300px,72%); padding: 16px 18px; background: #fff; border: 1px solid var(--line); border-radius: 14px; box-shadow: var(--shadow-md); color: var(--green-700); }
+.hero-proof span { display: flex; flex-direction: column; color: var(--ink); line-height: 1.3; }
+.hero-proof small { color: var(--ink-2); margin-top: 3px; }
 
-/* On a phone the banner is the photograph first. The scrim only weights the
-   lower half, so faces stay visible and the headline still holds contrast.
-   The supporting paragraph goes — the priced cards underneath say it better. */
 @media (max-width: 720px) {
-  .hero-banner { min-height: 440px; align-items: flex-end; }
-  .hero-banner-img { object-position: 58% 32%; }
-  .hero-banner::after {
-    background: linear-gradient(180deg,
-      rgba(10,17,14,.18) 0%,
-      rgba(10,17,14,.42) 34%,
-      rgba(10,17,14,.88) 72%,
-      rgba(10,17,14,.96) 100%);
-  }
-  .hero-banner-inner { padding-block: var(--s-6) var(--s-5); }
-  .hero-copy { gap: var(--s-3); }
-  .hero-banner h1 { font-size: clamp(2rem, 9vw, 2.6rem); }
-  .wide-only { display: none; }
+  .hero-banner-inner { grid-template-columns: 1fr; gap: var(--s-6); padding-block: var(--s-7); }
+  .hero-copy { gap: var(--s-4); }
+  .hero-banner h1 { font-size: clamp(2.45rem,11.5vw,3.3rem); max-width: 11ch; }
   .hero-banner .hero-search { height: 52px; padding-right: 5px; }
   .hero-banner .hero-search input { min-width: 0; }
+  .hero-actions { gap: var(--s-4); font-size: var(--text-sm); }
+  .hero-visual { min-height: 290px; margin: 0; }
+  .hero-visual img { inset: 0; width: 100%; border-radius: 24px 64px 24px 64px; }
+  .hero-visual::before { width: 70%; height: 90%; right: -8%; top: -8%; }
+  .hero-proof { left: 14px; bottom: -18px; width: calc(100% - 28px); }
 }
 
 /* Below this the word on the button costs more than it earns. */
@@ -524,8 +505,7 @@
 /* Outcome navigation, carried by photographs. */
 .outcome-rail {
   display: grid; grid-template-columns: repeat(5, minmax(0, 1fr));
-  gap: var(--s-3);
-  padding-block: var(--s-5);
+  gap: var(--s-3); padding-block: var(--s-6);
 }
 .outcome-card {
   display: flex; flex-direction: column;
@@ -533,19 +513,30 @@
   overflow: hidden; background: var(--bg);
   transition: border-color .15s, box-shadow .15s;
 }
-.outcome-card:hover { border-color: var(--ink); box-shadow: var(--shadow-sm); }
+.outcome-card:nth-child(2) { background: var(--gold-50); }
+.outcome-card:nth-child(3) { background: var(--coral-soft); }
+.outcome-card:nth-child(4) { background: var(--aqua-soft); }
+.outcome-card:nth-child(5) { background: var(--green-50); }
+.outcome-card:hover { border-color: var(--green-600); box-shadow: var(--shadow-md); transform: translateY(-2px); }
 .outcome-card .media { aspect-ratio: 16 / 9; border-radius: 0; }
 .outcome-card:hover .media img { transform: scale(1.05); }
 .outcome-card-body { display: flex; flex-direction: column; gap: 2px; padding: var(--s-3) var(--s-4) var(--s-4); }
 .outcome-card-name { font-weight: 600; font-size: var(--text-base); letter-spacing: -0.012em; }
-.outcome-card-price { margin-top: 6px; font-size: var(--text-xs); color: var(--ink-3); }
+.outcome-card-price { margin-top: 6px; font-size: var(--text-xs); color: var(--ink-2); }
 .outcome-card-price b {
   font-family: var(--font-display); font-size: var(--text-lg);
   letter-spacing: -0.025em; color: var(--ink); margin-left: 2px;
 }
 
 @media (max-width: 1000px) { .outcome-rail { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
-@media (max-width: 620px) { .outcome-rail { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 620px) {
+  .outcome-rail { display: flex; overflow-x: auto; padding-right: var(--gutter); scroll-snap-type: x proximity; scrollbar-width: none; }
+  .outcome-rail::-webkit-scrollbar { display: none; }
+  .outcome-card { width: 185px; flex: 0 0 185px; scroll-snap-align: start; }
+  .band-tight .grid-4 { display: flex; overflow-x: auto; gap: var(--s-4); margin-right: calc(var(--gutter) * -1); padding-right: var(--gutter); scroll-snap-type: x proximity; scrollbar-width: none; }
+  .band-tight .grid-4::-webkit-scrollbar { display: none; }
+  .band-tight .grid-4 > .offer-card { flex: 0 0 78vw; max-width: 300px; scroll-snap-align: start; }
+}
 
 /* ===========================================================================
    Comparison row — the church leads, because the title is the constant

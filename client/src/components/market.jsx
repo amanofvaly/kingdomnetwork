@@ -38,7 +38,8 @@ export const OfferingCard = ({ offering: o, showOutcome = false }) => {
     <article className="card offer-card">
       {badge && <span className="flag badge-bestseller">{badge}</span>}
       <Link to={`/listing/${o.slug}`} className="media media-3x2" tabIndex={-1} aria-hidden="true">
-        <img src={o.coverImage} alt="" loading="lazy" width={800} height={534} />
+        <img src={o.coverImage} alt="" loading="lazy" width={800} height={534}
+          onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = '/media/scenes/books-colorful.webp'; }} />
       </Link>
       <div className="card-body">
         {church && (
@@ -117,7 +118,8 @@ export const OfferingRow = ({ offering: o, onAdd, owned }) => {
   return (
     <article className="offer-row">
       <Link to={`/listing/${o.slug}`} className="media" tabIndex={-1} aria-hidden="true">
-        <img src={o.coverImage} alt="" loading="lazy" />
+        <img src={o.coverImage} alt="" loading="lazy"
+          onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = '/media/scenes/books-colorful.webp'; }} />
       </Link>
 
       <div className="offer-row-main">

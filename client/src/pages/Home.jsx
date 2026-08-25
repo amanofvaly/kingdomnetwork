@@ -1,37 +1,28 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { ArrowRight, BadgeCheck, Plane, Search } from 'lucide-react';
+import { ArrowRight, BadgeCheck, Building2, Compass, Plane, Search, ShieldCheck } from 'lucide-react';
 
 import { OfferingCard } from '../components/market.jsx';
 import { ErrorState, SkeletonGrid } from '../components/ui.jsx';
 import { useApi } from '../lib/useAsync.js';
-import { compact, money, plural } from '../lib/format.js';
+import { compact, money } from '../lib/format.js';
 
 /**
  * A photographic banner with the offer on it, the way a storefront opens.
  * Search sits inside it because this is a marketplace, not a brochure.
  */
-const Hero = ({ data }) => {
+const Hero = () => {
   const navigate = useNavigate();
   const [term, setTerm] = useState('');
 
   return (
     <section className="hero-banner">
-      <img className="hero-banner-img" src="/media/scenes/congregation-gathering.webp" alt="" fetchPriority="high" />
       <div className="wrap hero-banner-inner">
         <div className="hero-copy">
-          <span className="eyebrow hero-eyebrow">
-            {data ? (
-              <>
-                {plural(data.totals.listings, 'listing')} · {plural(data.totals.churches, 'church', 'churches')}
-                <span className="wide-only"> · {compact(data.totals.issued)} credentials issued</span>
-              </>
-            ) : '\u00a0'}
-          </span>
-          <h1>Get ordained.<br />Get certified.<br />Get invited.</h1>
-          <p className="hero-sub wide-only">
-            Churches worldwide issue the title, sign the certificate and write the invitation.
-            Compare what each one asks, and what it costs.
+          <span className="eyebrow hero-eyebrow">Church-issued learning and credentials</span>
+          <h1>Grow your ministry with a church you trust.</h1>
+          <p className="hero-sub">
+            Find courses, ordination pathways, certificates and ministry invitations from churches around the world.
           </p>
           <form
             className="search hero-search"
@@ -40,12 +31,23 @@ const Hero = ({ data }) => {
           >
             <Search size={19} strokeWidth={1.8} color="var(--ink-3)" />
             <input value={term} onChange={(e) => setTerm(e.target.value)} type="search"
-              placeholder="Ordination, chaplaincy, Houston…" aria-label="Search the marketplace" />
+              placeholder="What are you looking for?" aria-label="Search the marketplace" />
             <button type="submit" className="btn btn-primary hero-search-btn" aria-label="Search">
               <Search size={17} strokeWidth={2} />
               <span className="btn-label">Search</span>
             </button>
           </form>
+          <div className="hero-actions">
+            <Link to="/certification" className="hero-link"><Compass size={17} /> Browse credentials</Link>
+            <Link to="/churches" className="hero-link"><Building2 size={17} /> Explore churches</Link>
+          </div>
+        </div>
+        <div className="hero-visual">
+          <img src="/media/scenes/classroom-students.webp" alt="Students learning together in a classroom" fetchPriority="high" />
+          <div className="hero-proof">
+            <ShieldCheck size={22} />
+            <span><b>Issued by churches</b><small>Requirements and issuer shown before you enrol</small></span>
+          </div>
         </div>
       </div>
     </section>
@@ -62,8 +64,7 @@ const OutcomeRail = ({ outcomes }) => (
         </span>
         <span className="outcome-card-body">
           <span className="outcome-card-name">{o.name}</span>
-          <span className="xs dim">{plural(o.count, 'listing')}</span>
-          <span className="outcome-card-price">from <b>{o.fromPrice != null ? money(o.fromPrice) : '—'}</b></span>
+          <span className="outcome-card-price">Explore from <b>{o.fromPrice != null ? money(o.fromPrice) : '—'}</b></span>
         </span>
       </Link>
     ))}
@@ -95,16 +96,12 @@ export const Home = () => {
 
   return (
     <>
-      <div className="offer-bar">
-        Launch pricing across the marketplace. <Link to="/certification">Certificates from {money(19)}</Link>, ordination from {money(29)}.
-      </div>
-
       <Hero data={data} />
       {data && <OutcomeRail outcomes={data.outcomes} />}
 
       <Rail
-        title="Most issued this month"
-        sub="What ministers across the marketplace are actually buying."
+        title="Popular right now"
+        sub="Start with the pathways people are choosing most."
         to="/search" toLabel="Browse everything"
         items={data?.featured ?? []} loading={loading}
       />

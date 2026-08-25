@@ -9,7 +9,7 @@
 
 .band { padding-block: var(--s-8); }
 .band-tight { padding-block: var(--s-7); }
-.band-warm { background: var(--bg-warm); }
+.band-warm { background: linear-gradient(180deg, var(--bg-warm), #fffdf8); }
 .band-sunken { background: var(--bg-sunken); }
 .band-green { background: var(--bg-green); color: var(--ink-inverse); }
 .band-green h1, .band-green h2, .band-green h3 { color: var(--ink-inverse); }
@@ -326,7 +326,7 @@
 /* ===========================================================================
    Footer
    =========================================================================== */
-.footer { background: var(--bg-ink); color: var(--ink-inverse-2); padding-block: var(--s-8) var(--s-6); margin-top: auto; }
+.footer { background: #24204a; color: var(--ink-inverse-2); padding-block: var(--s-8) var(--s-6); margin-top: auto; }
 .footer h5 { color: #fff; font-size: var(--text-sm); margin-bottom: var(--s-3); }
 .footer a { color: var(--ink-inverse-2); font-size: var(--text-sm); line-height: 2; transition: color .15s; }
 .footer a:hover { color: #fff; }

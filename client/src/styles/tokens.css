@@ -6,39 +6,44 @@
 :root {
   /* --- surfaces --- */
   --bg: #ffffff;
-  --bg-warm: #fbf9f5;
-  --bg-sunken: #f5f2ec;
-  --bg-green: #0c3b2e;
-  --bg-ink: #14171a;
+  --bg-warm: #fff9ed;
+  --bg-sunken: #f5f2ff;
+  --bg-green: #3157a4;
+  --bg-ink: #24204a;
 
   /* --- text --- */
-  --ink: #14171a;
-  --ink-2: #4c535c;
-  --ink-3: #7c848e;
+  --ink: #211e3b;
+  --ink-2: #57546c;
+  --ink-3: #77738a;
   --ink-inverse: #ffffff;
   --ink-inverse-2: rgba(255, 255, 255, 0.72);
 
   /* --- lines --- */
-  --line: #e6e2da;
-  --line-strong: #d2ccc0;
+  --line: #e6e1f0;
+  --line-strong: #cec7dc;
   --line-inverse: rgba(255, 255, 255, 0.16);
 
   /* --- brand --- */
-  --green-900: #0c3b2e;
-  --green-700: #14563f;
-  --green-600: #1a6a4e;
-  --green-500: #23815f;
-  --green-100: #d6e8e0;
-  --green-50: #edf5f1;
+  --green-900: #263f82;
+  --green-700: #3157a4;
+  --green-600: #3f68bd;
+  --green-500: #587bd0;
+  --green-100: #dce6ff;
+  --green-50: #eef3ff;
 
   /* credential + verification accents */
-  --gold-700: #7d5c17;
-  --gold-600: #9a7326;
-  --gold-100: #f2e6cb;
-  --gold-50: #faf4e7;
+  --gold-700: #865900;
+  --gold-600: #b87800;
+  --gold-100: #ffe1a3;
+  --gold-50: #fff4d6;
 
-  --red-600: #a63d28;
-  --red-50: #fbefeb;
+  --red-600: #bd3f59;
+  --red-50: #fff0f3;
+
+  --coral: #e86852;
+  --coral-soft: #fff0ea;
+  --aqua: #1e8d91;
+  --aqua-soft: #e8f8f7;
 
   /* --- type --- */
   --font-display: 'Geist Variable', 'Geist', system-ui, sans-serif;
@@ -73,13 +78,13 @@
   --r-full: 999px;
 
   /* --- depth: used sparingly, for things that genuinely float --- */
-  --shadow-sm: 0 1px 2px rgba(20, 23, 26, 0.06);
-  --shadow-md: 0 4px 16px rgba(20, 23, 26, 0.08);
-  --shadow-lg: 0 12px 40px rgba(20, 23, 26, 0.14);
+  --shadow-sm: 0 2px 8px rgba(45, 39, 91, 0.08);
+  --shadow-md: 0 10px 28px rgba(45, 39, 91, 0.12);
+  --shadow-lg: 0 20px 50px rgba(45, 39, 91, 0.18);
 
   --header-h: 68px;
   --page-max: 1280px;
   --gutter: clamp(16px, 4vw, 48px);
 
-  --focus: 0 0 0 3px rgba(26, 106, 78, 0.32);
+  --focus: 0 0 0 3px rgba(63, 104, 189, 0.3);
 }
