@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 import {
-  Award, BadgeCheck, BookOpen, ClipboardCheck, FileCheck2, Layers, MapPin, Plane, Zap,
+  Award, BadgeCheck, BookOpen, ClipboardCheck, FileCheck2, Layers, MapPin, Plane, ShoppingBag, Zap,
 } from 'lucide-react';
 
 import { compact, money, plural } from '../lib/format.js';
@@ -31,7 +31,7 @@ export const OutcomeIcon = ({ name, size = 18, ...rest }) => {
 };
 
 /** The marketplace card. Price is the loudest thing on it after the title. */
-export const OfferingCard = ({ offering: o, showOutcome = false }) => {
+export const OfferingCard = ({ offering: o, showOutcome = false, onAdd, added = false }) => {
   const church = o.church;
   const badge = o.badge && o.badge !== ACQUISITION[o.acquisition]?.label ? o.badge : null;
   return (
@@ -75,6 +75,11 @@ export const OfferingCard = ({ offering: o, showOutcome = false }) => {
           </span>
           <span className="xs dim num">{compact(o.issuedCount ?? 0)} issued</span>
         </div>
+        {onAdd && (
+          <button type="button" className="btn btn-outline btn-sm btn-block card-buy" disabled={added} onClick={() => onAdd(o)}>
+            <ShoppingBag size={14} /> {added ? 'In basket' : 'Add to basket'}
+          </button>
+        )}
       </div>
     </article>
   );

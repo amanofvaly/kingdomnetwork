@@ -1,29 +1,36 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { ArrowRight, BadgeCheck, Building2, Compass, Plane, Search, ShieldCheck } from 'lucide-react';
+import { ArrowRight, BadgeCheck, Plane, Search } from 'lucide-react';
 
 import { OfferingCard } from '../components/market.jsx';
 import { ErrorState, SkeletonGrid } from '../components/ui.jsx';
 import { useApi } from '../lib/useAsync.js';
+import { useCart } from '../lib/cart.jsx';
 import { compact, money } from '../lib/format.js';
 
 /**
  * A photographic banner with the offer on it, the way a storefront opens.
  * Search sits inside it because this is a marketplace, not a brochure.
  */
-const Hero = () => {
+const Hero = ({ data }) => {
   const navigate = useNavigate();
   const [term, setTerm] = useState('');
+  const { add } = useCart();
+  const featured = data?.featured?.[0];
+
+  const buy = () => {
+    if (!featured) return;
+    add({ kind: 'offering', slug: featured.slug });
+    navigate('/checkout');
+  };
 
   return (
-    <section className="hero-banner">
-      <div className="wrap hero-banner-inner">
+    <section className="market-hero">
+      <div className="wrap market-hero-inner">
         <div className="hero-copy">
-          <span className="eyebrow hero-eyebrow">Church-issued learning and credentials</span>
-          <h1>Grow your ministry with a church you trust.</h1>
-          <p className="hero-sub">
-            Find courses, ordination pathways, certificates and ministry invitations from churches around the world.
-          </p>
+          <span className="eyebrow">Kingdom Network marketplace</span>
+          <h1>Find your next ministry step.</h1>
+          <p className="hero-sub">Compare church-issued courses, credentials, ordination pathways and invitations.</p>
           <form
             className="search hero-search"
             role="search"
@@ -37,41 +44,55 @@ const Hero = () => {
               <span className="btn-label">Search</span>
             </button>
           </form>
-          <div className="hero-actions">
-            <Link to="/certification" className="hero-link"><Compass size={17} /> Browse credentials</Link>
-            <Link to="/churches" className="hero-link"><Building2 size={17} /> Explore churches</Link>
+          <div className="hero-categories" aria-label="Popular categories">
+            {data?.outcomes?.map((o) => <Link key={o.slug} to={`/${o.slug}`}>{o.name}</Link>)}
           </div>
         </div>
-        <div className="hero-visual">
-          <img src="/media/scenes/classroom-students.webp" alt="Students learning together in a classroom" fetchPriority="high" />
-          <div className="hero-proof">
-            <ShieldCheck size={22} />
-            <span><b>Issued by churches</b><small>Requirements and issuer shown before you enrol</small></span>
-          </div>
-        </div>
+
+        {featured && (
+          <article className="hero-product">
+            <Link to={`/listing/${featured.slug}`} className="hero-product-media">
+              <img src={featured.coverImage} alt="" fetchPriority="high"
+                onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = '/media/scenes/books-colorful.webp'; }} />
+            </Link>
+            <div className="hero-product-body">
+              <span className="eyebrow">Featured pathway</span>
+              <div className="hero-product-issuer">
+                <span className="monogram monogram-sm">{featured.church?.monogram}</span>
+                <span>{featured.church?.shortName ?? featured.church?.name}</span>
+                {featured.church?.verified && <BadgeCheck size={14} />}
+              </div>
+              <h2><Link to={`/listing/${featured.slug}`}>{featured.title}</Link></h2>
+              <p>{featured.subtitle}</p>
+              <div className="hero-product-buy">
+                <div><span className="price-big">{money(featured.price, featured.currency)}</span>{featured.compareAtPrice > featured.price && <span className="price-was">{money(featured.compareAtPrice, featured.currency)}</span>}</div>
+                <div className="hero-product-actions">
+                  <button type="button" className="btn btn-primary" onClick={buy}>Buy now</button>
+                  <Link to={`/listing/${featured.slug}`} className="btn btn-outline">View details</Link>
+                </div>
+              </div>
+            </div>
+          </article>
+        )}
       </div>
     </section>
   );
 };
 
-/** Outcome navigation, carried by photographs rather than icons. */
 const OutcomeRail = ({ outcomes }) => (
-  <div className="wrap outcome-rail">
+  <nav className="wrap browse-row" aria-label="Browse the marketplace">
+    <span className="browse-row-label">Browse</span>
     {outcomes.map((o) => (
-      <Link key={o.slug} to={`/${o.slug}`} className="outcome-card">
-        <span className="media">
-          <img src={`${o.coverImage.replace('.webp', '@800.webp')}`} alt="" loading="lazy" />
-        </span>
-        <span className="outcome-card-body">
-          <span className="outcome-card-name">{o.name}</span>
-          <span className="outcome-card-price">Explore from <b>{o.fromPrice != null ? money(o.fromPrice) : '—'}</b></span>
-        </span>
+      <Link key={o.slug} to={`/${o.slug}`}>
+        <span>{o.name}</span>
+        <small>from {o.fromPrice != null ? money(o.fromPrice) : '—'}</small>
       </Link>
     ))}
-  </div>
+    <Link to="/churches"><span>Churches</span><small>Meet the issuers</small></Link>
+  </nav>
 );
 
-const Rail = ({ title, sub, to, toLabel, items, loading, cols = 'grid-4' }) => (
+const Rail = ({ title, sub, to, toLabel, items, loading, cols = 'grid-4', onAdd, has }) => (
   <section className="band band-tight">
     <div className="wrap">
       <div className="rail-head">
@@ -83,7 +104,7 @@ const Rail = ({ title, sub, to, toLabel, items, loading, cols = 'grid-4' }) => (
       </div>
       {loading ? <SkeletonGrid count={4} cols={cols} /> : (
         <div className={`grid ${cols}`}>
-          {items.map((o) => <OfferingCard key={o.slug} offering={o} showOutcome />)}
+          {items.map((o) => <OfferingCard key={o.slug} offering={o} showOutcome onAdd={onAdd} added={has?.('offering', o.slug)} />)}
         </div>
       )}
     </div>
@@ -92,6 +113,7 @@ const Rail = ({ title, sub, to, toLabel, items, loading, cols = 'grid-4' }) => (
 
 export const Home = () => {
   const { data, error, loading, reload } = useApi('/home');
+  const { add, has } = useCart();
   if (error) return <div className="wrap band"><ErrorState error={error} onRetry={reload} /></div>;
 
   return (
@@ -104,6 +126,7 @@ export const Home = () => {
         sub="Start with the pathways people are choosing most."
         to="/search" toLabel="Browse everything"
         items={data?.featured ?? []} loading={loading}
+        onAdd={(o) => add({ kind: 'offering', slug: o.slug })} has={has}
       />
 
       {!loading && data.churches.length > 0 && (
