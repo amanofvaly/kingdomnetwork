@@ -1,0 +1,39 @@
+{
+  "name": "kingdom-network",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Kingdom Network \u2014 monolithic MERN application (single server, single repo).",
+  "type": "module",
+  "main": "server/index.js",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "dev": "concurrently -n server,client -c blue,magenta \"npm:dev:server\" \"npm:dev:client\"",
+    "dev:server": "nodemon server/index.js",
+    "dev:client": "npm --prefix client run dev",
+    "build": "npm --prefix client install && npm --prefix client run build",
+    "start": "cross-env NODE_ENV=production node server/index.js",
+    "postinstall": "npm --prefix client install",
+    "lint": "npm --prefix client run lint",
+    "seed": "node server/scripts/seed.js",
+    "seed:all": "node server/scripts/seed.js --all"
+  },
+  "dependencies": {
+    "bcryptjs": "^3.0.3",
+    "compression": "^1.8.1",
+    "cookie-parser": "^1.4.7",
+    "cors": "^2.8.5",
+    "dotenv": "^17.2.3",
+    "express": "^5.1.0",
+    "helmet": "^8.1.0",
+    "jsonwebtoken": "^9.0.3",
+    "mongoose": "^8.20.1",
+    "morgan": "^1.10.1"
+  },
+  "devDependencies": {
+    "concurrently": "^9.2.1",
+    "cross-env": "^10.1.0",
+    "nodemon": "^3.1.10"
+  }
+}

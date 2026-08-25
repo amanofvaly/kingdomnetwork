@@ -1,0 +1,99 @@
+/* ---------------------------------------------------------------------------
+   Kingdom Network — design tokens
+   Nohemi is the display face and appears only at heading scale.
+   Geist carries every other role at normal weights.
+   --------------------------------------------------------------------------- */
+
+@font-face {
+  font-family: 'Nohemi';
+  src: url('/fonts/Nohemi-Medium.woff2') format('woff2');
+  font-weight: 500;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Nohemi';
+  src: url('/fonts/Nohemi-SemiBold.woff2') format('woff2');
+  font-weight: 600;
+  font-display: swap;
+}
+
+:root {
+  /* --- surfaces --- */
+  --bg: #ffffff;
+  --bg-warm: #fbf9f5;
+  --bg-sunken: #f5f2ec;
+  --bg-green: #0c3b2e;
+  --bg-ink: #14171a;
+
+  /* --- text --- */
+  --ink: #14171a;
+  --ink-2: #4c535c;
+  --ink-3: #7c848e;
+  --ink-inverse: #ffffff;
+  --ink-inverse-2: rgba(255, 255, 255, 0.72);
+
+  /* --- lines --- */
+  --line: #e6e2da;
+  --line-strong: #d2ccc0;
+  --line-inverse: rgba(255, 255, 255, 0.16);
+
+  /* --- brand --- */
+  --green-900: #0c3b2e;
+  --green-700: #14563f;
+  --green-600: #1a6a4e;
+  --green-500: #23815f;
+  --green-100: #d6e8e0;
+  --green-50: #edf5f1;
+
+  /* credential + verification accents */
+  --gold-700: #7d5c17;
+  --gold-600: #9a7326;
+  --gold-100: #f2e6cb;
+  --gold-50: #faf4e7;
+
+  --red-600: #a63d28;
+  --red-50: #fbefeb;
+
+  /* --- type --- */
+  --font-display: 'Nohemi', 'Geist Variable', system-ui, sans-serif;
+  --font-body: 'Geist Variable', 'Geist', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-mono: 'Geist Mono Variable', ui-monospace, 'SF Mono', monospace;
+
+  --text-xs: 0.75rem;     /* 12 */
+  --text-sm: 0.8125rem;   /* 13 */
+  --text-base: 0.9375rem; /* 15 */
+  --text-md: 1rem;        /* 16 */
+  --text-lg: 1.125rem;    /* 18 */
+  --text-xl: 1.375rem;    /* 22 */
+  --text-2xl: 1.75rem;    /* 28 */
+  --text-3xl: 2.25rem;    /* 36 */
+  --text-4xl: clamp(2.25rem, 4.2vw, 3.5rem);
+
+  /* --- spacing --- */
+  --s-1: 4px;
+  --s-2: 8px;
+  --s-3: 12px;
+  --s-4: 16px;
+  --s-5: 24px;
+  --s-6: 32px;
+  --s-7: 48px;
+  --s-8: 64px;
+  --s-9: 96px;
+
+  /* --- shape --- */
+  --r-sm: 4px;
+  --r-md: 6px;
+  --r-lg: 10px;
+  --r-full: 999px;
+
+  /* --- depth: used sparingly, for things that genuinely float --- */
+  --shadow-sm: 0 1px 2px rgba(20, 23, 26, 0.06);
+  --shadow-md: 0 4px 16px rgba(20, 23, 26, 0.08);
+  --shadow-lg: 0 12px 40px rgba(20, 23, 26, 0.14);
+
+  --header-h: 68px;
+  --page-max: 1280px;
+  --gutter: clamp(16px, 4vw, 48px);
+
+  --focus: 0 0 0 3px rgba(26, 106, 78, 0.32);
+}

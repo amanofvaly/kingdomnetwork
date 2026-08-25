@@ -1,0 +1,156 @@
+{
+  "title": "Choose Kingdom Network’s visual world",
+  "question": "Each direction keeps marketplace clarity while giving ministry credentials a distinct identity. Choose one, or re-roll.",
+  "options": [
+    {
+      "id": "assigned",
+      "label": "The Living Score",
+      "kicker": "THE ROLL",
+      "lineage": "choral scores, service orders, and conductor’s marks",
+      "thesis": "Every calling becomes a legible progression, with courses and credentials joining like voices toward one earned title.",
+      "palette": ["#F5F0E6", "#18251E", "#B8892E", "#A5422D"],
+      "materials": ["uncoated score paper", "brass rule", "vermilion annotation"],
+      "viewport": "A typographic marketplace opens as four horizontal pathway staves; products, prerequisites, issuing churches, and prices align in one glance beside a direct search.",
+      "risk": "The score grammar must remain immediately shoppable, never precious or ceremonial.",
+      "raised": [
+        {"from": "Lexicon Shoulder", "raise": "Guide words always show the first and last outcomes currently in view."},
+        {"from": "Tanaka Planes", "raise": "One monumental seal-shaped field gives the first viewport graphic authority."},
+        {"from": "Shader Portal", "raise": "Motion belongs to the joining of pathway steps, not decorative entrances."},
+        {"from": "VU Bridge", "raise": "Repeated offerings share a strict visual ruler for rapid price and requirement comparison."},
+        {"from": "Bioluminescent Wake", "raise": "The selected pathway retains a visible trace as people browse."},
+        {"from": "Jacquard Brocade", "raise": "Every final credential remains traceable to its exact prerequisites."}
+      ],
+      "wireframe": {"cols": 12, "rows": 10, "regions": [
+        {"label": "quiet nav + search", "x": 0, "y": 0, "w": 12, "h": 1},
+        {"label": "outcome thesis", "x": 0, "y": 1, "w": 5, "h": 4, "accent": true},
+        {"label": "pathway score", "x": 5, "y": 1, "w": 7, "h": 6},
+        {"label": "browse three ways", "x": 0, "y": 7, "w": 12, "h": 3}
+      ]}
+    },
+    {
+      "id": "model-pick",
+      "label": "The Ministry Register",
+      "kicker": "IMPECCABLE’S PICK",
+      "lineage": "official registries, embossed seals, and archival ledgers",
+      "thesis": "A trusted public register where offerings are products, issuers are accountable, and every credential has provenance.",
+      "palette": ["#F2EBDD", "#102E27", "#C18C3A", "#7B2F2A"],
+      "materials": ["cotton ledger stock", "blind emboss", "registry ink"],
+      "viewport": "A bold credential finder sits beside an oversized live register entry, followed immediately by compact listings and verified issuer marks.",
+      "risk": "It is the most familiar fit for credentials and can feel institutional if commerce loses its pace.",
+      "wireframe": {"cols": 12, "rows": 10, "regions": [
+        {"label": "navigation", "x": 0, "y": 0, "w": 12, "h": 1},
+        {"label": "find your next credential", "x": 0, "y": 1, "w": 6, "h": 5, "accent": true},
+        {"label": "live register specimen", "x": 6, "y": 1, "w": 6, "h": 5},
+        {"label": "market listings", "x": 0, "y": 6, "w": 12, "h": 4}
+      ]}
+    },
+    {
+      "id": "challenger-lexicon",
+      "label": "The Calling Lexicon",
+      "verdict": "competitive",
+      "lineage": "nineteenth-century lexicon pages",
+      "thesis": "Ministry outcomes become precise entries, each granted the exact apparatus its path requires.",
+      "palette": ["#F1E7D1", "#15120F", "#C6432D", "#255C48", "#244B87"],
+      "materials": ["engraving ink", "warm uncoated stock", "bordered colour plates"],
+      "viewport": "A shoulder index names Credentials, Courses, Invitations, and Churches while a dense, highly legible result field begins immediately.",
+      "case": "It matches product clarity and gives complex prerequisites superb structure; it identifies with scholarship more than living ministry.",
+      "risk": "Dense editorial rhythm can slow the urgent buyer unless price and action remain visually dominant.",
+      "hero": "https://impeccable.style/worlds/cards/rw-lexicon-shoulder-and-plate-hero.webp",
+      "board": "https://impeccable.style/worlds/cards/rw-lexicon-shoulder-and-plate.webp",
+      "wireframe": {"cols": 12, "rows": 10, "regions": [
+        {"label": "guide words", "x": 0, "y": 0, "w": 12, "h": 1},
+        {"label": "thumb index", "x": 0, "y": 1, "w": 2, "h": 9, "accent": true},
+        {"label": "entries", "x": 2, "y": 1, "w": 6, "h": 9},
+        {"label": "credential plate", "x": 8, "y": 1, "w": 4, "h": 5}
+      ]}
+    },
+    {
+      "id": "challenger-tanaka",
+      "label": "The Commissioned Figure",
+      "verdict": "declined",
+      "lineage": "Ikko Tanaka geometric plane posters",
+      "thesis": "Courses and credentials compose one ministerial identity from a few exact planes.",
+      "palette": ["#F4EBD8", "#D34831", "#243B79", "#D2A52B", "#171717"],
+      "materials": ["flat printed planes", "quiet paper", "unoutlined geometry"],
+      "viewport": "A monumental human figure assembles from pathway products while search and pricing sit on the same strict grid.",
+      "case": "Audience identification is strong, but a monumental figure gives fewer listings and prerequisite details room to breathe.",
+      "kept": "Commit one unmistakable graphic field instead of decorating a standard marketplace.",
+      "risk": "Product discovery could become secondary to the poster moment.",
+      "hero": "https://impeccable.style/worlds/cards/tanaka-plane-portrait-hero.webp"
+    },
+    {
+      "id": "challenger-shader",
+      "label": "The Calling Portal",
+      "verdict": "declined",
+      "lineage": "experiential shader studios",
+      "thesis": "The marketplace opens as a living field that responds to a seeker’s direction.",
+      "palette": ["#071D18", "#27D3A2", "#F3C969"],
+      "materials": ["living pixels", "film grain", "incandescent trace"],
+      "viewport": "An atmospheric full-screen field carries one enormous outcome question and thin category wayfinding.",
+      "case": "Memorable but weaker at price comparison, low-bandwidth access, and the sober trust required for official documents.",
+      "kept": "Make interaction express the mechanism instead of scattering hover effects.",
+      "risk": "Performance and atmosphere would compete with trust and immediate commerce.",
+      "hero": "https://impeccable.style/worlds/cards/webgl-shader-portal-hero.webp"
+    },
+    {
+      "id": "challenger-vu",
+      "label": "The Readiness Bridge",
+      "verdict": "declined",
+      "lineage": "recording desk VU meter bridges",
+      "thesis": "Each credential path shows exactly how close a learner is to readiness.",
+      "palette": ["#F1E5C8", "#191713", "#8B3A2C", "#5A3A24"],
+      "materials": ["meter glass", "walnut", "steel"],
+      "viewport": "A long row of outcome meters compares progress, time, price, and issuing church at once.",
+      "case": "Excellent comparison mechanics, but the recording-studio world misidentifies both ministry and trust.",
+      "kept": "Give repeated offerings one strict ruler so comparison is effortless.",
+      "risk": "It can turn sacred formation into instrumentation.",
+      "hero": "https://impeccable.style/worlds/cards/signals-instruments-vu-meter-bridge-hero.webp"
+    },
+    {
+      "id": "challenger-wake",
+      "label": "The Illuminated Way",
+      "verdict": "declined",
+      "lineage": "bioluminescent nocturnal wakes",
+      "thesis": "Every explored calling leaves a luminous trail toward the credential it unlocks.",
+      "palette": ["#020A10", "#38CFEF", "#76E7D7", "#F4F7E9"],
+      "materials": ["night water", "living light", "fading trace"],
+      "viewport": "Touch or pointer movement connects courses, churches, and credentials across a dark pathway map.",
+      "case": "The journey metaphor is strong, but darkness and animation weaken catalog scanning and low-bandwidth delivery.",
+      "kept": "Keep the user’s explored pathway visibly connected across browsing modes.",
+      "risk": "A beautiful path could obscure the exact product and price.",
+      "hero": "https://impeccable.style/worlds/cards/reefs-bioluminescent-nocturnal-plankton-wake-stars-hero.webp"
+    },
+    {
+      "id": "challenger-jacquard",
+      "label": "The Woven Credential",
+      "verdict": "declined",
+      "lineage": "jacquard brocade and punched instructions",
+      "thesis": "Many exact learning decisions weave into one final church-issued credential.",
+      "palette": ["#111A39", "#D5A83E", "#EFE3C6", "#080B16"],
+      "materials": ["midnight silk", "gold weft", "punch-card stock"],
+      "viewport": "A gold credential motif resolves as prerequisite rows are completed beside a compact marketplace index.",
+      "case": "It explains composable credentials beautifully, but does not naturally explain direct products or invitation letters.",
+      "kept": "Make every issued outcome traceable to the exact prerequisites beneath it.",
+      "risk": "The textile metaphor can overwhelm the breadth of the marketplace.",
+      "hero": "https://impeccable.style/worlds/cards/textiles-weave-drape-fashion-jacquard-punched-brocade-hero.webp"
+    }
+  ],
+  "reroll": {"registers": ["safer", "bolder"]},
+  "buildPath": {"value": "code", "toggle": true},
+  "canon": true,
+  "canonCard": {
+    "label": "The polished marketplace standard",
+    "thesis": "A familiar course-and-credential marketplace, executed with clear search, category rails, product cards, and partner logos.",
+    "palette": ["#FFFFFF", "#17251F", "#C69232"],
+    "materials": ["clean grid", "editorial ministry photography"],
+    "viewport": "A conventional split hero leads into horizontal product rails and a church acquisition band.",
+    "risk": "Immediately usable, but visually interchangeable with education marketplaces.",
+    "wireframe": {"cols": 12, "rows": 10, "regions": [
+      {"label": "navigation", "x": 0, "y": 0, "w": 12, "h": 1},
+      {"label": "headline + search", "x": 0, "y": 1, "w": 6, "h": 4, "accent": true},
+      {"label": "photo", "x": 6, "y": 1, "w": 6, "h": 4},
+      {"label": "product cards", "x": 0, "y": 5, "w": 12, "h": 5}
+    ]}
+  },
+  "steer": true
+}
