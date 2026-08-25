@@ -2,7 +2,8 @@ import { finalise } from './helpers.js';
 import { addLessonContent } from './lesson-content.js';
 import { churches } from './churches.js';
 import { instructors } from './instructors.js';
-import { pathways } from './pathways.js';
+import { offerings } from './offerings.js';
+import { outcomes } from './outcomes.js';
 import { reviews } from './reviews.js';
 import { africaCourses } from './courses/africa.js';
 import { usMinistryCourses } from './courses/ministries-us.js';
@@ -24,4 +25,4 @@ export const categories = [
   { slug: 'chaplaincy', name: 'Chaplaincy' },
 ];
 
-export { churches, instructors, pathways, reviews };
+export { churches, instructors, offerings, outcomes, reviews };

@@ -5,12 +5,11 @@ import {
   Headphones, Infinity as InfinityIcon, PlayCircle, ShoppingBag, Signal, Sparkles, Users,
 } from 'lucide-react';
 
-import { CourseCard } from '../components/cards.jsx';
 import { Avatar, Breadcrumbs, ErrorState, Monogram, Price, Spinner, Stars, Verified } from '../components/ui.jsx';
 import { useApi } from '../lib/useAsync.js';
 import { useCart } from '../lib/cart.jsx';
 import { useAuth } from '../lib/auth.jsx';
-import { compact, duration, hours, monthsAgo, plural } from '../lib/format.js';
+import { compact, duration, hours, money, monthsAgo, plural } from '../lib/format.js';
 
 const KIND_ICON = { video: PlayCircle, audio: Headphones, reading: FileText, quiz: Sparkles, assignment: Award };
 
@@ -59,8 +58,9 @@ export const CourseDetail = () => {
   if (loading) return <div className="wrap band"><Spinner label="Loading course" /></div>;
   if (error) return <div className="wrap band"><ErrorState error={error} onRetry={reload} /></div>;
 
-  const { course, church, instructors, reviews, reviewBreakdown, related, pathways } = data;
+  const { course, church, instructors, reviews, reviewBreakdown, unlocks } = data;
   const owned = entitlements?.courses.some((c) => c.slug === course.slug);
+  const primary = unlocks?.[0];
   const inCart = has('course', course.slug);
   const totalReviews = reviews.length || 1;
 
@@ -196,26 +196,26 @@ export const CourseDetail = () => {
               </section>
             )}
 
-            {pathways?.length > 0 && (
+            {unlocks?.length > 0 && (
               <section className="stack stack-4">
                 <div>
-                  <h2 style={{ fontSize: 'var(--text-2xl)' }}>Part of a larger credential</h2>
-                  <p className="small muted">This course counts as a stage in {plural(pathways.length, 'pathway')} that ends in a church-issued title.</p>
+                  <h2 style={{ fontSize: 'var(--text-2xl)' }}>What this course unlocks</h2>
+                  <p className="small muted">
+                    {plural(unlocks.length, 'credential')} name this course as a requirement. Buying the credential
+                    includes the course.
+                  </p>
                 </div>
-                <div className="stack stack-3">
-                  {pathways.map((p) => (
-                    <Link key={p.slug} to={`/pathways/${p.slug}`} className="card" style={{ flexDirection: 'row', alignItems: 'center', gap: 'var(--s-4)', padding: 'var(--s-4)' }}>
+                <div className="grid grid-2">
+                  {unlocks.map((u) => (
+                    <Link key={u.slug} to={`/listing/${u.slug}`} className="card" style={{ flexDirection: 'row', alignItems: 'center', gap: 'var(--s-4)', padding: 'var(--s-3)' }}>
                       <span className="media" style={{ width: 84, aspectRatio: '3/2', flex: 'none' }}>
-                        <img src={p.coverImage} alt="" loading="lazy" />
+                        <img src={u.coverImage} alt="" loading="lazy" />
                       </span>
-                      <span className="grow">
-                        <span className="strong" style={{ display: 'block' }}>{p.title}</span>
-                        <span className="small muted">{p.subtitle}</span>
+                      <span className="grow" style={{ minWidth: 0 }}>
+                        <span className="small strong clamp-1" style={{ display: 'block' }}>{u.title}</span>
+                        <span className="xs dim">{u.award?.title ?? u.outcome}</span>
                       </span>
-                      <span className="row" style={{ gap: 10, flex: 'none' }}>
-                        <span className="tag tag-gold"><Award size={12} />{p.award?.kind}</span>
-                        <Price amount={p.price} />
-                      </span>
+                      <span className="price-big" style={{ flex: 'none' }}>{money(u.price)}</span>
                     </Link>
                   ))}
                 </div>
@@ -310,19 +310,24 @@ export const CourseDetail = () => {
 
                 {owned ? (
                   <Link to={`/learn/${course.slug}`} className="btn btn-primary btn-lg btn-block">
-                    <PlayCircle size={18} /> Continue learning
+                    <PlayCircle size={18} /> Continue
                   </Link>
+                ) : primary ? (
+                  <div className="stack stack-3">
+                    <Link to={`/listing/${primary.slug}`} className="btn btn-primary btn-lg btn-block">
+                      Get {primary.award?.title ?? primary.title}
+                    </Link>
+                    <p className="xs dim" style={{ margin: 0 }}>
+                      This course is included with that credential. It is not sold separately.
+                    </p>
+                  </div>
                 ) : (
                   <div className="stack stack-3">
                     <button type="button" className="btn btn-primary btn-lg btn-block" onClick={buy}>
                       {inCart ? 'Go to basket' : 'Enrol now'}
                     </button>
-                    <button
-                      type="button"
-                      className="btn btn-outline btn-block"
-                      disabled={inCart}
-                      onClick={() => add({ kind: 'course', slug: course.slug })}
-                    >
+                    <button type="button" className="btn btn-outline btn-block" disabled={inCart}
+                      onClick={() => add({ kind: 'course', slug: course.slug })}>
                       <ShoppingBag size={16} /> {inCart ? 'In your basket' : 'Add to basket'}
                     </button>
                   </div>
@@ -351,22 +356,6 @@ export const CourseDetail = () => {
         </div>
       </div>
 
-      {related.length > 0 && (
-        <section className="band band-sunken">
-          <div className="wrap">
-            <div className="section-head">
-              <div>
-                <h2 style={{ fontSize: 'var(--text-2xl)' }}>More in {course.category}</h2>
-                <p>Other courses in this subject, from across the marketplace.</p>
-              </div>
-              <Link to={`/courses?category=${encodeURIComponent(course.category)}`} className="link">See all</Link>
-            </div>
-            <div className="grid grid-4">
-              {related.map((c) => <CourseCard key={c.slug} course={c} />)}
-            </div>
-          </div>
-        </section>
-      )}
     </>
   );
 };

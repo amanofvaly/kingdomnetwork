@@ -2,19 +2,21 @@
 
 ## The idea
 
-A marketplace where the seller is a church and the product is ministry authority.
+A marketplace where the seller is a church and the product is ministry standing.
 It should read like a serious commerce platform: light, photographic, and dense
 with real information. Trust comes from naming the issuer everywhere and showing
 the people behind it, not from ornament.
 
+Commerce is on every surface. The homepage opens with priced products, not an
+argument. Every card carries a price at display scale with the old price struck
+through. Listings can be added to the basket from the grid, the comparison row
+and the detail page. Nothing on the site is more than two clicks from a purchase.
+
 ## Type
 
-Two faces, each doing one job.
+One face doing all the jobs.
 
-**Nohemi** — display only. Headings, the wordmark, large numerals. Weights 500 and
-600. Never below 17px, never for body copy, labels or buttons.
-
-**Geist** — everything else. Body, labels, metadata, buttons, navigation, forms.
+**Geist** — used across the application. Display, body, labels, metadata, buttons, navigation, forms.
 Weights 400 and 500; 600 for emphasis inside a paragraph. Loaded as a variable font.
 
 ```
@@ -98,9 +100,24 @@ arrives — nothing in the code assumes a particular file.
 `24px` horizontal padding. Variants: `primary` (green), `dark`, `outline`,
 `ghost`, and the two inverse variants for dark bands.
 
-**Cards** are a flat white box with a hairline border: image, then category, title,
-issuer, rating, a metadata row, and a footer holding price and credential type.
-The footer is pushed down with `margin-top: auto` so prices align across a row.
+**Cards** are a flat white box with a hairline border. The issuing church leads —
+monogram, name, country, verification mark — then the title, then how it is
+issued, then the price. `.price-big` is Geist at `--text-xl`, which makes it the
+second-loudest thing on the card after the title. The footer is pushed down with
+`margin-top: auto` so prices align across a row.
+
+**The comparison row** (`.offer-row`) is the outcome pages' unit: image, the
+listing and its issuer, and a buy column carrying price, discount, issue count
+and two actions. Many churches sell the same outcome, so the row exists to be
+scanned down a column.
+
+**Acquisition tags** say how a credential is obtained — issued instantly, short
+assessment, coursework, requires credentials, church review. One per listing,
+always visible, never repeated by a badge saying the same thing.
+
+**The document is the hero on a listing page.** The certificate or letter renders
+live in an iframe with the buyer's name written into it and a watermark across
+it. The name field sits above the document so the instruction is read first.
 
 **The purchase card** is sticky and lifts into the warm header band by a negative
 margin so the header never leaves a dead half-width column.
@@ -115,6 +132,12 @@ run 4-up on wide screens, 3-up under 1080px, 2-up under 820px, 1-up under 560px.
 
 Detail pages are a two-column grid with a 372px sidebar; the catalogue uses a
 248px filter rail. Both collapse to one column at 1000px and 900px respectively.
+
+## Merchandising marks
+
+`badge` is the church-or-platform label on a card: Editors' pick, Most requested,
+Senior office, Requires alignment. Gold on gold-50, used sparingly — a listing
+carries at most one, and never one that repeats its acquisition tag.
 
 ## Voice
 

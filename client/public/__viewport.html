@@ -1,0 +1,30 @@
+<!doctype html>
+<meta charset="utf-8" />
+<title>Viewport harness</title>
+<style>
+  html, body { margin: 0; background: #2b2f33; font: 12px/1.4 system-ui; color: #cfd4d9; }
+  .wrap { display: flex; gap: 24px; padding: 16px; align-items: flex-start; justify-content: center; }
+  .col { display: flex; flex-direction: column; gap: 6px; align-items: center; }
+  iframe { border: 0; background: #fff; display: block; }
+</style>
+<div class="wrap" id="wrap"></div>
+<script>
+  const q = new URLSearchParams(location.search);
+  const path = q.get('p') || '/';
+  const sizes = (q.get('w') || '390x844').split(',').map((s) => s.split('x').map(Number));
+  document.getElementById('wrap').innerHTML = sizes
+    .map(([w, h], i) => `<div class="col"><span>${w} wide</span><iframe id="f${i}" width="${w}" height="${h}" src="${path}"></iframe></div>`)
+    .join('');
+  // Same origin, so grow each frame to its content and let the outer page
+  // scroll. Pass grow=0 to keep the frame at its stated height instead, which
+  // is what you need to see anything position: fixed.
+  if (q.get('grow') !== '0') {
+    sizes.forEach((_, i) => {
+      const f = document.getElementById('f' + i);
+      const grow = () => {
+        try { f.height = f.contentDocument.documentElement.scrollHeight; } catch {}
+      };
+      f.addEventListener('load', () => { grow(); setTimeout(grow, 800); setTimeout(grow, 2000); });
+    });
+  }
+</script>

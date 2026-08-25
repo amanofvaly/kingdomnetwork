@@ -1,21 +1,7 @@
 /* ---------------------------------------------------------------------------
    Kingdom Network — design tokens
-   Nohemi is the display face and appears only at heading scale.
-   Geist carries every other role at normal weights.
+   Geist is the primary typeface used across the application.
    --------------------------------------------------------------------------- */
-
-@font-face {
-  font-family: 'Nohemi';
-  src: url('/fonts/Nohemi-Medium.woff2') format('woff2');
-  font-weight: 500;
-  font-display: swap;
-}
-@font-face {
-  font-family: 'Nohemi';
-  src: url('/fonts/Nohemi-SemiBold.woff2') format('woff2');
-  font-weight: 600;
-  font-display: swap;
-}
 
 :root {
   /* --- surfaces --- */
@@ -55,7 +41,7 @@
   --red-50: #fbefeb;
 
   /* --- type --- */
-  --font-display: 'Nohemi', 'Geist Variable', system-ui, sans-serif;
+  --font-display: 'Geist Variable', 'Geist', system-ui, sans-serif;
   --font-body: 'Geist Variable', 'Geist', system-ui, -apple-system, 'Segoe UI', sans-serif;
   --font-mono: 'Geist Mono Variable', ui-monospace, 'SF Mono', monospace;
 

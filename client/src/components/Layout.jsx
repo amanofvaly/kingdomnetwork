@@ -1,41 +1,114 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import {
-  BookOpen, ChevronDown, IdCard, LogOut, Menu, Search, ShoppingBag, User, X,
+  BookOpen, ChevronDown, Compass, IdCard, LogOut, Menu, Search, ShoppingBag, User, X,
 } from 'lucide-react';
+
+import { api } from '../lib/api.js';
+import { money } from '../lib/format.js';
 
 import { useAuth } from '../lib/auth.jsx';
 import { useCart } from '../lib/cart.jsx';
 import { Avatar } from './ui.jsx';
 
 const NAV = [
-  { to: '/courses', label: 'Courses' },
-  { to: '/pathways', label: 'Pathways' },
+  { to: '/ordination', label: 'Ordination' },
+  { to: '/certification', label: 'Certificates' },
+  { to: '/invitation-letter', label: 'Invitations' },
   { to: '/churches', label: 'Churches' },
 ];
 
 const SearchField = ({ compactMode }) => {
   const navigate = useNavigate();
   const [term, setTerm] = useState('');
+  const [hits, setHits] = useState(null);
+  const [open, setOpen] = useState(false);
+  const box = useRef(null);
+
+  useEffect(() => {
+    if (term.trim().length < 2) { setHits(null); return undefined; }
+    const controller = new AbortController();
+    const t = setTimeout(() => {
+      api.get(`/suggest?q=${encodeURIComponent(term.trim())}`, { signal: controller.signal })
+        .then(setHits)
+        .catch(() => {});
+    }, 180);
+    return () => { clearTimeout(t); controller.abort(); };
+  }, [term]);
+
+  useEffect(() => {
+    const onDown = (e) => { if (!box.current?.contains(e.target)) setOpen(false); };
+    document.addEventListener('mousedown', onDown);
+    return () => document.removeEventListener('mousedown', onDown);
+  }, []);
+
+  const go = (to) => { setOpen(false); setTerm(''); navigate(to); };
+  const any = hits && (hits.outcomes.length || hits.offerings.length || hits.churches.length);
 
   return (
-    <form
-      className="search"
-      role="search"
-      onSubmit={(e) => {
-        e.preventDefault();
-        if (term.trim()) navigate(`/courses?q=${encodeURIComponent(term.trim())}`);
-      }}
-    >
-      <Search size={17} strokeWidth={1.8} color="var(--ink-3)" />
-      <input
-        type="search"
-        value={term}
-        onChange={(e) => setTerm(e.target.value)}
-        placeholder={compactMode ? 'Search' : 'Search courses, credentials and churches'}
-        aria-label="Search the marketplace"
-      />
-    </form>
+    <div ref={box} style={{ position: 'relative', width: '100%' }}>
+      <form
+        className="search"
+        role="search"
+        onSubmit={(e) => { e.preventDefault(); if (term.trim()) go(`/search?q=${encodeURIComponent(term.trim())}`); }}
+      >
+        <Search size={17} strokeWidth={1.8} color="var(--ink-3)" />
+        <input
+          type="search"
+          value={term}
+          onChange={(e) => { setTerm(e.target.value); setOpen(true); }}
+          onFocus={() => setOpen(true)}
+          placeholder={compactMode ? 'Search credentials, churches, destinations' : 'Search the marketplace'}
+          aria-label="Search the marketplace"
+        />
+      </form>
+
+      {open && any && (
+        <div className="suggest" role="listbox">
+          {hits.outcomes.length > 0 && (
+            <>
+              <div className="suggest-group">Browse</div>
+              {hits.outcomes.map((o) => (
+                <button key={o.slug} type="button" className="suggest-item" onClick={() => go(`/${o.slug}`)}>
+                  <Compass size={16} color="var(--ink-3)" />
+                  <span className="small">{o.verb} <span className="dim">· {o.name}</span></span>
+                </button>
+              ))}
+            </>
+          )}
+          {hits.offerings.length > 0 && (
+            <>
+              <div className="suggest-group">Listings</div>
+              {hits.offerings.map((o) => (
+                <button key={o.slug} type="button" className="suggest-item" onClick={() => go(`/listing/${o.slug}`)}>
+                  <span className="monogram monogram-sm">{o.church?.monogram ?? '·'}</span>
+                  <span className="small grow clamp-1">
+                    {o.title}
+                    <span className="dim"> · {o.church?.shortName ?? ''}</span>
+                  </span>
+                  <span className="price small strong">{money(o.price)}</span>
+                </button>
+              ))}
+            </>
+          )}
+          {hits.churches.length > 0 && (
+            <>
+              <div className="suggest-group">Churches</div>
+              {hits.churches.map((c) => (
+                <button key={c.slug} type="button" className="suggest-item" onClick={() => go(`/churches/${c.slug}`)}>
+                  <span className="monogram monogram-sm">{c.monogram}</span>
+                  <span className="small grow clamp-1">{c.name}<span className="dim"> · {c.country}</span></span>
+                </button>
+              ))}
+            </>
+          )}
+          <button type="button" className="suggest-item" onClick={() => go(`/search?q=${encodeURIComponent(term.trim())}`)}>
+            <Search size={16} color="var(--ink-3)" />
+            <span className="small">See all results for “{term.trim()}”</span>
+          </button>
+        </div>
+      )}
+    </div>
   );
 };
 
@@ -66,7 +139,7 @@ const AccountMenu = () => {
             <div className="strong small">{user.name}</div>
             <div className="xs dim">{user.email}</div>
           </div>
-          <Link to="/dashboard" onClick={() => setOpen(false)}><BookOpen size={16} /> My learning</Link>
+          <Link to="/dashboard" onClick={() => setOpen(false)}><BookOpen size={16} /> My account</Link>
           <Link to="/passport" onClick={() => setOpen(false)}><IdCard size={16} /> Minister passport</Link>
           <Link to="/account" onClick={() => setOpen(false)}><User size={16} /> Account</Link>
           <Link to="/orders" onClick={() => setOpen(false)}><ShoppingBag size={16} /> Orders</Link>
@@ -161,7 +234,7 @@ const Header = () => {
 
             {ready && (user ? (
               <>
-                <Link to="/dashboard" className="btn btn-ghost btn-sm hide-on-narrow">My learning</Link>
+                <Link to="/passport" className="btn btn-ghost btn-sm hide-on-narrow">My passport</Link>
                 <AccountMenu />
               </>
             ) : (
@@ -192,25 +265,25 @@ const Footer = () => (
             <span className="brand-name" style={{ color: '#fff' }}>Kingdom Network</span>
           </Link>
           <p className="small" style={{ maxWidth: '34ch', color: 'var(--ink-inverse-2)' }}>
-            Church-issued courses, credentials and ordination pathways, and the platform churches use to teach and issue them.
+            A marketplace for church-issued ordination, credentials and invitations. Churches set their own titles, requirements and prices.
           </p>
         </div>
         <div>
           <h5>Learn</h5>
           <ul>
-            <li><Link to="/courses">All courses</Link></li>
-            <li><Link to="/pathways">Credential pathways</Link></li>
-            <li><Link to="/churches">Churches</Link></li>
-            <li><Link to="/verify">Verify a credential</Link></li>
+            <li><Link to="/ordination">Ordination</Link></li>
+            <li><Link to="/certification">Certificates</Link></li>
+            <li><Link to="/ministry-license">Licences</Link></li>
+            <li><Link to="/church-affiliation">Affiliation</Link></li>
           </ul>
         </div>
         <div>
-          <h5>Subjects</h5>
+          <h5>More</h5>
           <ul>
-            <li><Link to="/courses?category=Pastoral+Ministry">Pastoral ministry</Link></li>
-            <li><Link to="/courses?category=Biblical+Studies">Biblical studies</Link></li>
-            <li><Link to="/courses?category=Preaching+%26+Teaching">Preaching</Link></li>
-            <li><Link to="/courses?category=Counselling+%26+Care">Counselling and care</Link></li>
+            <li><Link to="/invitation-letter">Invitation letters</Link></li>
+            <li><Link to="/courses">Coursework</Link></li>
+            <li><Link to="/churches">Church directory</Link></li>
+            <li><Link to="/verify">Verify a credential</Link></li>
           </ul>
         </div>
         <div>
@@ -218,15 +291,15 @@ const Footer = () => (
           <ul>
             <li><Link to="/signup">Create an account</Link></li>
             <li><Link to="/login">Sign in</Link></li>
-            <li><Link to="/dashboard">My learning</Link></li>
+            <li><Link to="/dashboard">My account</Link></li>
             <li><Link to="/passport">Minister passport</Link></li>
           </ul>
         </div>
         <div>
           <h5>For churches</h5>
           <ul>
-            <li><Link to="/teach">Teach on Kingdom Network</Link></li>
-            <li><Link to="/churches">Partner directory</Link></li>
+            <li><Link to="/teach">List on Kingdom Network</Link></li>
+            <li><Link to="/churches">Church directory</Link></li>
           </ul>
         </div>
       </div>

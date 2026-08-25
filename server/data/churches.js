@@ -19,7 +19,7 @@ export const churches = [
     foundedYear: 1998,
     coverImage: '/media/scenes/congregation-gathering.webp',
     coverAlt: 'A congregation gathered under warm string lights during an evening service',
-    portraitImage: '/media/scenes/worship-crowd.webp',
+    portraitImage: '/media/scenes/hands-raised-dark.webp',
     verified: true,
     about:
       'Faith Life Church trains pastors, evangelists and lay leaders across Uganda and the wider Great Lakes region. Teaching runs in two tracks: a residential cohort in Kampala and a distance track built for leaders who serve rural congregations while holding other work.',
@@ -60,8 +60,8 @@ export const churches = [
     region: 'North America',
     website: 'therockwoi.com',
     foundedYear: 2002,
-    coverImage: '/media/scenes/worship-crowd.webp',
-    coverAlt: 'A large worship gathering with hands raised toward a lit stage',
+    coverImage: '/media/scenes/audience-seated.webp',
+    coverAlt: 'A seated congregation facing the platform during a service',
     portraitImage: '/media/scenes/auditorium-crowd.webp',
     verified: true,
     about:

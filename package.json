@@ -2,7 +2,7 @@
   "name": "kingdom-network",
   "version": "1.0.0",
   "private": true,
-  "description": "Kingdom Network \u2014 monolithic MERN application (single server, single repo).",
+  "description": "Kingdom Network — monolithic MERN application (single server, single repo).",
   "type": "module",
   "main": "server/index.js",
   "engines": {
@@ -29,7 +29,8 @@
     "helmet": "^8.1.0",
     "jsonwebtoken": "^9.0.3",
     "mongoose": "^8.20.1",
-    "morgan": "^1.10.1"
+    "morgan": "^1.10.1",
+    "pdfkit": "^0.20.1"
   },
   "devDependencies": {
     "concurrently": "^9.2.1",

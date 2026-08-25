@@ -126,7 +126,7 @@ export const Courses = () => {
 
               <label className="row small muted" style={{ gap: 8 }}>
                 Sort
-                <select className="select" style={{ minHeight: 38, width: 'auto' }} value={sort} onChange={(e) => update({ sort: e.target.value })}>
+                <select className="select select-sm" value={sort} onChange={(e) => update({ sort: e.target.value })}>
                   {SORTS.map((s) => <option key={s.value} value={s.value}>{s.label}</option>)}
                 </select>
               </label>

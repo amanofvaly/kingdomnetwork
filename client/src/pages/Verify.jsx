@@ -6,7 +6,7 @@ import { Monogram, Spinner } from '../components/ui.jsx';
 import { useApi } from '../lib/useAsync.js';
 import { dateLong } from '../lib/format.js';
 
-const KIND_LABEL = { certificate: 'Certificate', ordination: 'Ordination', affiliation: 'Affiliation', 'invitation-letter': 'Invitation letter' };
+const KIND_LABEL = { certificate: 'Certificate', ordination: 'Ordination', license: 'Licence', affiliation: 'Affiliation', 'invitation-letter': 'Invitation letter' };
 
 export const Verify = () => {
   const { code } = useParams();
@@ -81,6 +81,9 @@ export const Verify = () => {
                 <span className="dim">Type</span><span>{KIND_LABEL[data.kind] ?? data.kind}</span>
               </div>
               <div className="row-between small"><span className="dim">Issued</span><span>{dateLong(data.issuedAt)}</span></div>
+              {data.expiresAt && <div className="row-between small"><span className="dim">Valid until</span><span>{dateLong(data.expiresAt)}</span></div>}
+              {data.destinationCity && <div className="row-between small"><span className="dim">Invited to</span><span>{data.destinationCity}</span></div>}
+              {data.purpose && <div className="row-between small"><span className="dim">Purpose</span><span style={{ textAlign: 'right', maxWidth: '60%' }}>{data.purpose}</span></div>}
               <div className="row-between small"><span className="dim">Credential ID</span><span className="cred-id">{data.credentialId}</span></div>
             </div>
           </div>
@@ -88,8 +91,8 @@ export const Verify = () => {
 
         <div className="notice">
           <span>
-            Kingdom Network records what a church issues. The standards behind a credential, and its
-            recognition by any other body, are matters for the issuing ministry.
+            Kingdom Network records what a church issues and makes it checkable. The standards behind a credential,
+            and whether any other body recognises it, are matters for the issuing ministry.
           </span>
         </div>
       </div>

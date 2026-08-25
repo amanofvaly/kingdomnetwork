@@ -1,7 +1,8 @@
 import { Link, useParams } from 'react-router-dom';
 import { Calendar, ExternalLink, GraduationCap, MapPin, Users } from 'lucide-react';
 
-import { CourseCard, PathwayCard } from '../components/cards.jsx';
+import { CourseCard } from '../components/cards.jsx';
+import { OfferingCard } from '../components/market.jsx';
 import { Breadcrumbs, ErrorState, Monogram, Spinner, Stars, Verified } from '../components/ui.jsx';
 import { useApi } from '../lib/useAsync.js';
 import { compact, plural } from '../lib/format.js';
@@ -13,7 +14,7 @@ export const ChurchDetail = () => {
   if (loading) return <div className="wrap band"><Spinner label="Loading church" /></div>;
   if (error) return <div className="wrap band"><ErrorState error={error} onRetry={reload} /></div>;
 
-  const { church, courses, pathways, faculty } = data;
+  const { church, listings, courses, faculty } = data;
 
   return (
     <>
@@ -68,7 +69,7 @@ export const ChurchDetail = () => {
                 ))}
               </div>
               <Link to={`/courses?church=${church.slug}`} className="btn btn-primary btn-block btn-sm">
-                Browse {plural(courses.length, 'course')}
+                Browse {plural(listings.length, 'listing')}
               </Link>
             </div>
           </div>
@@ -121,31 +122,33 @@ export const ChurchDetail = () => {
         </section>
       )}
 
-      {courses.length > 0 && (
+      {listings.length > 0 && (
         <section className="band band-tight band-sunken">
           <div className="wrap stack stack-5">
-            <div className="section-head" style={{ marginBottom: 0 }}>
+            <div className="rail-head">
               <div>
-                <h2 style={{ fontSize: 'var(--text-2xl)' }}>Courses from this church</h2>
-                <p>{plural(courses.length, 'course')} currently published.</p>
+                <h2 style={{ fontSize: 'var(--text-2xl)' }}>What this church issues</h2>
+                <p className="small muted" style={{ margin: '4px 0 0' }}>
+                  {plural(listings.length, 'listing')}, each with its own requirements and price set by the ministry.
+                </p>
               </div>
             </div>
-            <div className="grid grid-3">
-              {courses.map((c) => <CourseCard key={c.slug} course={c} />)}
+            <div className="grid grid-4">
+              {listings.map((o) => <OfferingCard key={o.slug} offering={o} showOutcome />)}
             </div>
           </div>
         </section>
       )}
 
-      {pathways.length > 0 && (
+      {courses.length > 0 && (
         <section className="band band-tight">
           <div className="wrap stack stack-5">
             <div>
-              <h2 style={{ fontSize: 'var(--text-2xl)' }}>Credential pathways</h2>
-              <p className="small muted">Programmes that end in a title issued by {church.shortName ?? church.name}.</p>
+              <h2 style={{ fontSize: 'var(--text-2xl)' }}>Coursework</h2>
+              <p className="small muted">Courses this church teaches, unlocked by the credentials that require them.</p>
             </div>
-            <div className="grid grid-3">
-              {pathways.map((p) => <PathwayCard key={p.slug} pathway={p} />)}
+            <div className="grid grid-4">
+              {courses.map((c) => <CourseCard key={c.slug} course={{ ...c, church }} />)}
             </div>
           </div>
         </section>

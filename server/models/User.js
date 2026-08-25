@@ -11,7 +11,8 @@ const userSchema = new mongoose.Schema(
       trim: true,
       match: [/^\S+@\S+\.\S+$/, 'Enter a valid email address'],
     },
-    passwordHash: { type: String, required: true, select: false },
+    // Absent for accounts created at checkout, which never set one.
+    passwordHash: { type: String, select: false },
 
     role: { type: String, enum: ['learner', 'church', 'admin'], default: 'learner' },
     churchSlug: { type: String, default: null },

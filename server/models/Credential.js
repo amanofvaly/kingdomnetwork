@@ -7,9 +7,18 @@ const credentialSchema = new mongoose.Schema(
 
     kind: {
       type: String,
-      enum: ['certificate', 'ordination', 'affiliation', 'invitation-letter'],
+      enum: ['certificate', 'ordination', 'license', 'affiliation', 'invitation-letter'],
       default: 'certificate',
     },
+    // The listing this was issued against.
+    offeringSlug: { type: String, index: true },
+    postNominal: String,
+    // Invitation letters carry where they invite the holder to.
+    destinationCountry: String,
+    destinationCity: String,
+    purpose: String,
+    // Requirements still outstanding before the church will issue.
+    outstanding: [String],
     title: { type: String, required: true },
     holderName: String,
 
@@ -18,7 +27,7 @@ const credentialSchema = new mongoose.Schema(
     courseSlug: String,
     pathwaySlug: String,
 
-    status: { type: String, enum: ['in-progress', 'issued', 'revoked'], default: 'issued' },
+    status: { type: String, enum: ['in-progress', 'in-review', 'issued', 'revoked'], default: 'issued' },
     issuedAt: { type: Date, default: Date.now },
     expiresAt: Date,
     verifyCode: { type: String, index: true },

@@ -3,9 +3,9 @@ import mongoose from 'mongoose';
 const enrollmentSchema = new mongoose.Schema(
   {
     userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true, index: true },
-    kind: { type: String, enum: ['course', 'pathway'], default: 'course' },
+    kind: { type: String, enum: ['course', 'offering'], default: 'course' },
     courseSlug: { type: String, index: true },
-    pathwaySlug: { type: String, index: true },
+    offeringSlug: { type: String, index: true },
     churchSlug: String,
     orderRef: String,
 
@@ -28,8 +28,8 @@ enrollmentSchema.index(
   { unique: true, partialFilterExpression: { courseSlug: { $type: 'string' } } },
 );
 enrollmentSchema.index(
-  { userId: 1, pathwaySlug: 1 },
-  { unique: true, partialFilterExpression: { pathwaySlug: { $type: 'string' } } },
+  { userId: 1, offeringSlug: 1 },
+  { unique: true, partialFilterExpression: { offeringSlug: { $type: 'string' } } },
 );
 
 export const Enrollment = mongoose.model('Enrollment', enrollmentSchema);

@@ -35,6 +35,45 @@ export const signup = asyncHandler(async (req, res) => {
   res.status(201).json({ success: true, data: { token: signToken(user), user: user.toPublic() } });
 });
 
+/**
+ * Checkout account. A buyer pays with a name, an email and a phone number and
+ * the account is created behind the purchase — asking for a password before
+ * anyone has bought anything loses more sales than it prevents fraud.
+ * Returning buyers with a password still sign in normally.
+ */
+export const guest = asyncHandler(async (req, res) => {
+  const { name, email, phone, country } = req.body ?? {};
+  if (!name?.trim()) return res.status(400).json({ success: false, message: 'Enter your full name.' });
+  if (!/^\S+@\S+\.\S+$/.test(email ?? '')) return res.status(400).json({ success: false, message: 'Enter a valid email address.' });
+
+  const existing = await User.findOne({ email: email.toLowerCase().trim() }).select('+passwordHash');
+  if (existing) {
+    if (existing.passwordHash) {
+      return res.status(409).json({
+        success: false,
+        message: 'An account already uses that email. Sign in to continue.',
+      });
+    }
+    // A previous checkout account. Keep going with it.
+    if (phone?.trim()) existing.phone = phone.trim();
+    if (country?.trim()) existing.country = country.trim();
+    await existing.save();
+    return res.json({ success: true, data: { token: signToken(existing), user: existing.toPublic() } });
+  }
+
+  const avatar = AVATARS[Math.floor(Math.random() * AVATARS.length)];
+  const user = await User.create({
+    name: name.trim(),
+    email: email.toLowerCase().trim(),
+    phone: phone?.trim() || undefined,
+    country: country?.trim() || undefined,
+    role: 'learner',
+    avatar: `/media/people/${avatar}@200.webp`,
+  });
+
+  res.status(201).json({ success: true, data: { token: signToken(user), user: user.toPublic() } });
+});
+
 export const login = asyncHandler(async (req, res) => {
   const { email, password } = req.body ?? {};
   if (!email || !password) {
@@ -42,6 +81,12 @@ export const login = asyncHandler(async (req, res) => {
   }
 
   const user = await User.findOne({ email: email.toLowerCase().trim() }).select('+passwordHash');
+  if (user && !user.passwordHash) {
+    return res.status(409).json({
+      success: false,
+      message: 'That email was used at checkout without a password. Set one from your account page, or check out again with the same email.',
+    });
+  }
   if (!user || !(await verifyPassword(password, user.passwordHash))) {
     return res.status(401).json({ success: false, message: 'That email and password do not match.' });
   }

@@ -2,7 +2,7 @@ import mongoose from 'mongoose';
 
 const itemSchema = new mongoose.Schema(
   {
-    kind: { type: String, enum: ['course', 'pathway'], required: true },
+    kind: { type: String, enum: ['course', 'offering'], required: true },
     slug: { type: String, required: true },
     title: String,
     image: String,
@@ -10,6 +10,8 @@ const itemSchema = new mongoose.Schema(
     churchName: String,
     price: Number,
     compareAtPrice: Number,
+    type: String,
+    outcome: String,
   },
   { _id: false },
 );

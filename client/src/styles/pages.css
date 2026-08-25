@@ -1,49 +1,3 @@
-/* ===========================================================================
-   Home — hero
-   =========================================================================== */
-.hero { background: var(--bg-warm); border-bottom: 1px solid var(--line); overflow: hidden; }
-.hero-inner {
-  display: grid; grid-template-columns: minmax(0, 1.02fr) minmax(0, 1fr);
-  gap: var(--s-8); align-items: center;
-  padding-block: clamp(48px, 6vw, 88px);
-}
-.hero-copy { max-width: 620px; }
-.hero-copy h1 { font-size: clamp(2.4rem, 4.6vw, 3.75rem); }
-.hero-search { height: 56px; box-shadow: var(--shadow-sm); }
-.hero-search .btn { margin-left: auto; }
-
-.hero-stats { display: flex; flex-wrap: wrap; gap: var(--s-6); padding-top: var(--s-2); }
-.hero-stats li { display: flex; flex-direction: column; }
-.hero-stats strong { font-family: var(--font-display); font-size: var(--text-2xl); font-weight: 600; letter-spacing: -0.03em; line-height: 1.1; }
-.hero-stats span { font-size: var(--text-xs); color: var(--ink-3); }
-
-.hero-art { position: relative; aspect-ratio: 1 / 0.94; }
-.hero-art-main { position: absolute; inset: 0 0 12% 14%; border-radius: var(--r-lg); box-shadow: var(--shadow-md); }
-.hero-art-a { position: absolute; left: 0; bottom: 0; width: 46%; aspect-ratio: 3/2; border: 5px solid var(--bg-warm); box-shadow: var(--shadow-md); }
-.hero-art-b { position: absolute; right: 2%; top: 6%; width: 27%; aspect-ratio: 4/5; border: 5px solid var(--bg-warm); box-shadow: var(--shadow-md); }
-.hero-art figure { margin: 0; }
-
-@media (max-width: 980px) {
-  .hero-inner { grid-template-columns: 1fr; gap: var(--s-6); }
-  .hero-art { aspect-ratio: 16 / 10; max-width: 640px; }
-  .hero-art-main { inset: 0 6% 14% 10%; }
-}
-
-/* Below this the layered collage cannot hold its offsets inside the gutter,
-   so it collapses to the single lead photograph. */
-@media (max-width: 700px) {
-  .hero-art { aspect-ratio: 4 / 3; max-width: none; }
-  .hero-art-main { inset: 0; box-shadow: none; }
-  .hero-art-a, .hero-art-b { display: none; }
-}
-
-@media (max-width: 560px) {
-  .hero-search { height: auto; flex-wrap: wrap; padding: var(--s-3); }
-  .hero-search input { flex-basis: calc(100% - 44px); }
-  .hero-search .btn { width: 100%; margin-left: 0; }
-  .hero-stats { gap: var(--s-5); }
-}
-
 /* horizontal chip rail */
 .chip-scroll { display: flex; gap: var(--s-2); overflow-x: auto; padding-bottom: 4px; scrollbar-width: none; }
 .chip-scroll::-webkit-scrollbar { display: none; }
@@ -113,7 +67,16 @@
 .filter-item.is-on .box { background: var(--green-700); border-color: var(--green-700); color: #fff; }
 .filter-item .n { margin-left: auto; font-size: var(--text-xs); color: var(--ink-3); font-variant-numeric: tabular-nums; }
 
-.results-bar { display: flex; align-items: center; justify-content: space-between; gap: var(--s-4); flex-wrap: wrap; margin-bottom: var(--s-5); }
+.results-bar { display: flex; align-items: center; gap: var(--s-3) var(--s-4); flex-wrap: wrap; margin-bottom: var(--s-5); }
+.sort-control { margin-left: auto; }
+/* Filters and sort stay on one line on a phone; the count sits between them
+   and any active filter pills drop to their own row. */
+@media (max-width: 620px) {
+  .results-bar { display: grid; grid-template-columns: auto 1fr auto; align-items: center; }
+  .sort-control { margin-left: 0; justify-self: end; }
+  .results-count { justify-self: start; }
+  .active-filters { grid-column: 1 / -1; }
+}
 .active-filters { display: flex; flex-wrap: wrap; gap: var(--s-2); }
 .pill-clear { display: inline-flex; align-items: center; gap: 6px; height: 30px; padding: 0 10px; border-radius: var(--r-full); background: var(--green-50); color: var(--green-700); font-size: var(--text-xs); font-weight: 500; }
 .pill-clear:hover { background: var(--green-100); }
@@ -127,9 +90,13 @@
 .filters-toggle { display: none; }
 @media (max-width: 900px) {
   .catalogue { grid-template-columns: 1fr; }
+  /* Collapsed by default on a phone — nobody wants to scroll past the whole
+     filter rail to reach the first listing. */
   .filters { position: static; display: none; padding: var(--s-5); border: 1px solid var(--line); border-radius: var(--r-lg); }
   .filters.is-open { display: flex; }
   .filters-toggle { display: inline-flex; }
+  .catalogue > div { display: flex; flex-direction: column; }
+  .catalogue > aside { order: 2; }
 }
 
 /* ===========================================================================
@@ -138,6 +105,11 @@
 .detail-head { background: var(--bg-warm); border-bottom: 1px solid var(--line); padding-block: var(--s-6) var(--s-7); }
 .detail-grid { display: grid; grid-template-columns: minmax(0, 1fr) 372px; gap: var(--s-7); align-items: start; }
 .detail-main { min-width: 0; }
+
+/* `align-items: start` shrinks the column to its content, which leaves a
+   sticky child no distance to travel — it scrolls away with its own box.
+   The buy column has to span the row for the card inside it to stick. */
+.detail-grid > aside { align-self: stretch; }
 
 .buy-card {
   position: sticky; top: calc(var(--header-h) + var(--s-4));
@@ -264,8 +236,8 @@
 }
 .credential.is-issued { background: linear-gradient(150deg, #fefcf7 0%, #faf4e7 100%); border-color: var(--gold-100); }
 .credential .cred-id { font-family: var(--font-mono); font-size: var(--text-xs); letter-spacing: .02em; color: var(--ink-3); }
-.credential .seal { position: absolute; top: -30px; right: -30px; width: 132px; height: 132px; border-radius: 50%; background: var(--gold-50); opacity: .8; }
-.credential > * { position: relative; }
+.credential > *:not(.seal) { position: relative; }
+.credential .seal { position: absolute; top: -30px; right: -30px; width: 132px; height: 132px; border-radius: 50%; background: var(--gold-50); opacity: .8; pointer-events: none; }
 
 .passport-head { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: var(--s-5); align-items: center; }
 @media (max-width: 700px) { .passport-head { grid-template-columns: auto minmax(0, 1fr); } }
@@ -318,3 +290,316 @@
 @media (max-width: 900px) { .auth-split { grid-template-columns: 1fr; } .auth-art { display: none; } }
 
 @media (max-width: 620px) { .hide-on-narrow { display: none !important; } }
+
+/* ===========================================================================
+   Marketplace — listings
+   =========================================================================== */
+.price-big {
+  font-family: var(--font-display);
+  font-size: var(--text-xl);
+  font-weight: 600;
+  letter-spacing: -0.03em;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+.price-xl { font-size: var(--text-3xl); }
+
+.offer-card { position: relative; }
+.offer-card .media { border-radius: 0; }
+.offer-card:hover .media img { transform: scale(1.035); }
+.offer-card .flag { position: absolute; top: var(--s-3); left: var(--s-3); z-index: 1; }
+.offer-title { font-size: var(--text-md); font-weight: 600; line-height: 1.3; letter-spacing: -0.012em; }
+.offer-foot { display: flex; align-items: baseline; justify-content: space-between; gap: var(--s-3); margin-top: auto; padding-top: var(--s-3); }
+.issuer { color: var(--ink-2); }
+.issuer:hover { color: var(--ink); }
+
+/* comparison row */
+.offer-row {
+  display: grid; grid-template-columns: 168px minmax(0, 1fr) 210px;
+  gap: var(--s-5); padding: var(--s-5) 0; border-top: 1px solid var(--line);
+}
+.offer-row:first-child { border-top: none; }
+.offer-row > .media { aspect-ratio: 4 / 3; }
+.offer-row-main { display: flex; flex-direction: column; gap: var(--s-2); min-width: 0; }
+.offer-row-buy { display: flex; flex-direction: column; gap: var(--s-3); }
+.offer-price { display: flex; align-items: baseline; justify-content: flex-end; flex-wrap: wrap; gap: 6px 8px; }
+.offer-issued { flex-basis: 100%; text-align: right; }
+.offer-actions { display: flex; flex-direction: column; gap: var(--s-2); }
+
+/* The buy column drops under the listing, so the two actions sit side by side
+   instead of eating two full-width rows. */
+@media (max-width: 900px) {
+  .offer-row { grid-template-columns: 140px minmax(0, 1fr); }
+  .offer-row-buy { grid-column: 1 / -1; }
+  .offer-price { justify-content: flex-start; }
+  .offer-issued { flex-basis: auto; text-align: left; margin-left: auto; }
+  .offer-actions { display: grid; grid-template-columns: 1fr 1fr; }
+  .offer-actions.is-single { grid-template-columns: 1fr; }
+}
+
+/* Fully stacked, so the listing becomes a card. Without a container the image,
+   the detail and the buttons read as three unrelated blocks. */
+@media (max-width: 620px) {
+  .offer-row {
+    grid-template-columns: 1fr;
+    gap: 0;
+    padding: 0;
+    margin-bottom: var(--s-4);
+    background: var(--bg);
+    border: 1px solid var(--line);
+    border-radius: var(--r-lg);
+    overflow: hidden;
+  }
+  .offer-row:first-child { border-top: 1px solid var(--line); }
+  .offer-row > .media { aspect-ratio: 16 / 9; border-radius: 0; }
+  .offer-row-main { padding: var(--s-4) var(--s-4) 0; }
+  .offer-row-buy { padding: var(--s-4); gap: var(--s-3); }
+}
+
+/* ===========================================================================
+   Outcome hero + tiles
+   =========================================================================== */
+.outcome-hero { position: relative; background: var(--bg-ink); color: #fff; overflow: hidden; }
+.outcome-hero .media { position: absolute; inset: 0; border-radius: 0; }
+.outcome-hero .media img { width: 100%; height: 100%; object-fit: cover; opacity: .58; }
+/* A scrim rather than a flat opacity, so the photograph stays readable and the
+   type keeps its contrast on the left where the copy sits. */
+.outcome-hero .media::after {
+  content: ''; position: absolute; inset: 0;
+  background:
+    linear-gradient(90deg, rgba(12,20,16,.94) 0%, rgba(12,20,16,.78) 46%, rgba(12,20,16,.35) 100%),
+    linear-gradient(to top, rgba(12,20,16,.6), rgba(12,20,16,0) 60%);
+}
+.outcome-hero-inner { position: relative; padding-block: var(--s-8); }
+.outcome-hero h1 { color: #fff; }
+
+/* ===========================================================================
+   Search + header suggest
+   =========================================================================== */
+.suggest {
+  position: absolute; top: calc(100% + 6px); left: 0; right: 0; z-index: 80;
+  background: var(--bg); border: 1px solid var(--line); border-radius: var(--r-lg);
+  box-shadow: var(--shadow-lg); padding: var(--s-2); max-height: 60vh; overflow-y: auto;
+}
+.suggest-group { padding: var(--s-2) var(--s-3) 4px; font-size: var(--text-xs); font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--ink-3); }
+.suggest-item { display: flex; align-items: center; gap: var(--s-3); width: 100%; padding: 8px var(--s-3); border-radius: var(--r-sm); text-align: left; }
+.suggest-item:hover, .suggest-item.is-active { background: var(--bg-sunken); }
+.suggest-item .price { font-size: var(--text-sm); margin-left: auto; }
+
+/* ===========================================================================
+   Listing detail — the document is the hero
+   =========================================================================== */
+.doc-stage {
+  position: relative; border-radius: var(--r-lg); overflow: hidden;
+  background: var(--bg-sunken); border: 1px solid var(--line);
+  display: grid; place-items: center; padding: var(--s-4);
+}
+.doc-stage iframe, .doc-stage embed, .doc-stage object { width: 100%; border: none; display: block; background: #fff; }
+.doc-stage.landscape iframe { aspect-ratio: 297 / 210; }
+.doc-stage.portrait iframe { aspect-ratio: 210 / 297; max-width: 460px; }
+.doc-name { display: flex; gap: var(--s-2); }
+.doc-name .input { flex: 1; }
+
+.req-list { display: flex; flex-direction: column; gap: var(--s-3); }
+.req {
+  display: grid; grid-template-columns: 26px minmax(0, 1fr) auto; gap: var(--s-3);
+  align-items: center; padding: var(--s-3) var(--s-4);
+  border: 1px solid var(--line); border-radius: var(--r-md); background: var(--bg);
+}
+.req.is-met { background: var(--green-50); border-color: var(--green-100); }
+.req-dot { display: grid; place-items: center; width: 22px; height: 22px; border-radius: 50%; border: 1.5px solid var(--line-strong); color: var(--ink-3); }
+.req.is-met .req-dot { background: var(--green-600); border-color: var(--green-600); color: #fff; }
+
+/* ===========================================================================
+   Passport
+   =========================================================================== */
+.cred-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: var(--s-5); }
+
+.cred {
+  position: relative; overflow: hidden; display: flex; flex-direction: column; gap: var(--s-3);
+  border: 1px solid var(--line); border-radius: var(--r-lg); padding: var(--s-5); background: var(--bg);
+}
+.cred.issued { background: linear-gradient(158deg, #fffdf8 0%, #f8f1e2 100%); border-color: var(--gold-100); }
+.cred.issued::before { content: ''; position: absolute; inset-inline: 0; top: 0; height: 4px; background: linear-gradient(90deg, var(--green-700), var(--gold-600), var(--green-700)); }
+.cred.letter.issued { background: linear-gradient(158deg, #f7fbf9 0%, #e9f3ee 100%); border-color: var(--green-100); }
+.cred .cred-id { font-family: var(--font-mono); font-size: var(--text-xs); letter-spacing: .02em; color: var(--ink-3); }
+/* Lift the content above the seal without re-positioning the seal itself —
+   `.cred > *` and `.cred-seal` have equal specificity, so excluding it here
+   stops the seal being pulled back into the flow. */
+.cred > *:not(.cred-seal) { position: relative; }
+.cred-seal { position: absolute; top: -26px; right: -26px; width: 120px; height: 120px; border-radius: 50%; background: rgba(154,115,38,.08); pointer-events: none; }
+
+/* ===========================================================================
+   Assessment
+   =========================================================================== */
+.q { padding: var(--s-5) 0; border-top: 1px solid var(--line); }
+.q:first-child { border-top: none; padding-top: 0; }
+.q-num { display: grid; place-items: center; width: 26px; height: 26px; border-radius: 50%; background: var(--bg-sunken); font-size: var(--text-sm); font-weight: 600; flex: none; }
+
+/* ===========================================================================
+   Home — commerce first
+   =========================================================================== */
+.offer-bar {
+  background: var(--green-900); color: #fff;
+  font-size: var(--text-sm); text-align: center; padding: 9px var(--gutter);
+}
+.offer-bar a { text-decoration: underline; text-underline-offset: 3px; font-weight: 500; }
+
+
+.rail-head { display: flex; align-items: baseline; justify-content: space-between; gap: var(--s-4); margin-bottom: var(--s-4); }
+.rail-head h2 { font-size: var(--text-2xl); }
+@media (max-width: 620px) {
+  .rail-head { flex-direction: column; align-items: flex-start; gap: var(--s-2); }
+  .section-head { gap: var(--s-3); }
+}
+
+.church-strip { display: flex; gap: var(--s-3); overflow-x: auto; padding-bottom: 4px; scrollbar-width: none; }
+.church-strip::-webkit-scrollbar { display: none; }
+.church-chip {
+  display: flex; align-items: center; gap: 10px; flex: none;
+  padding: 10px var(--s-4); border: 1px solid var(--line); border-radius: var(--r-lg);
+  background: var(--bg); transition: border-color .15s;
+}
+.church-chip:hover { border-color: var(--ink); }
+
+/* ===========================================================================
+   Home — photographic banner, then product
+   =========================================================================== */
+.hero-banner {
+  position: relative;
+  min-height: 340px;
+  display: flex;
+  align-items: center;
+  background: var(--bg-ink);
+  overflow: hidden;
+}
+.hero-banner-img {
+  position: absolute; inset: 0;
+  width: 100%; height: 100%; object-fit: cover; object-position: 60% 45%;
+}
+.hero-banner::after {
+  content: ''; position: absolute; inset: 0;
+  background: linear-gradient(90deg, rgba(10,17,14,.93) 0%, rgba(10,17,14,.86) 34%, rgba(10,17,14,.42) 72%, rgba(10,17,14,.2) 100%);
+}
+.hero-banner-inner { position: relative; z-index: 1; padding-block: var(--s-7); }
+.hero-copy { max-width: 610px; display: flex; flex-direction: column; gap: var(--s-4); }
+.hero-banner h1 {
+  color: #fff;
+  font-size: clamp(2.2rem, 4.6vw, 3.5rem);
+  line-height: 1.04;
+  letter-spacing: -0.035em;
+}
+.hero-eyebrow { color: rgba(255,255,255,.62); }
+.hero-sub { color: rgba(255,255,255,.8); font-size: var(--text-lg); line-height: 1.5; margin: 0; max-width: 46ch; }
+.hero-banner .hero-search { height: 58px; padding-right: 6px; box-shadow: 0 8px 30px rgba(0,0,0,.28); }
+.hero-banner .hero-search .btn { margin-left: auto; }
+
+/* On a phone the banner is the photograph first. The scrim only weights the
+   lower half, so faces stay visible and the headline still holds contrast.
+   The supporting paragraph goes — the priced cards underneath say it better. */
+@media (max-width: 720px) {
+  .hero-banner { min-height: 440px; align-items: flex-end; }
+  .hero-banner-img { object-position: 58% 32%; }
+  .hero-banner::after {
+    background: linear-gradient(180deg,
+      rgba(10,17,14,.18) 0%,
+      rgba(10,17,14,.42) 34%,
+      rgba(10,17,14,.88) 72%,
+      rgba(10,17,14,.96) 100%);
+  }
+  .hero-banner-inner { padding-block: var(--s-6) var(--s-5); }
+  .hero-copy { gap: var(--s-3); }
+  .hero-banner h1 { font-size: clamp(2rem, 9vw, 2.6rem); }
+  .wide-only { display: none; }
+  .hero-banner .hero-search { height: 52px; padding-right: 5px; }
+  .hero-banner .hero-search input { min-width: 0; }
+}
+
+/* Below this the word on the button costs more than it earns. */
+@media (max-width: 460px) {
+  .hero-search-btn .btn-label { display: none; }
+  .hero-search-btn { padding-inline: var(--s-4); }
+}
+
+/* Outcome navigation, carried by photographs. */
+.outcome-rail {
+  display: grid; grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: var(--s-3);
+  padding-block: var(--s-5);
+}
+.outcome-card {
+  display: flex; flex-direction: column;
+  border: 1px solid var(--line); border-radius: var(--r-md);
+  overflow: hidden; background: var(--bg);
+  transition: border-color .15s, box-shadow .15s;
+}
+.outcome-card:hover { border-color: var(--ink); box-shadow: var(--shadow-sm); }
+.outcome-card .media { aspect-ratio: 16 / 9; border-radius: 0; }
+.outcome-card:hover .media img { transform: scale(1.05); }
+.outcome-card-body { display: flex; flex-direction: column; gap: 2px; padding: var(--s-3) var(--s-4) var(--s-4); }
+.outcome-card-name { font-weight: 600; font-size: var(--text-base); letter-spacing: -0.012em; }
+.outcome-card-price { margin-top: 6px; font-size: var(--text-xs); color: var(--ink-3); }
+.outcome-card-price b {
+  font-family: var(--font-display); font-size: var(--text-lg);
+  letter-spacing: -0.025em; color: var(--ink); margin-left: 2px;
+}
+
+@media (max-width: 1000px) { .outcome-rail { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+@media (max-width: 620px) { .outcome-rail { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+
+/* ===========================================================================
+   Comparison row — the church leads, because the title is the constant
+   =========================================================================== */
+.offer-row-church { display: flex; flex-direction: column; gap: 2px; color: inherit; }
+.offer-row-name {
+  display: block;
+  font-family: var(--font-display);
+  font-size: var(--text-lg);
+  font-weight: 600;
+  letter-spacing: -0.022em;
+  line-height: 1.2;
+}
+.offer-row-church:hover .offer-row-name { text-decoration: underline; text-underline-offset: 3px; }
+
+.offer-spec {
+  display: flex; flex-wrap: wrap; gap: var(--s-5);
+  margin: 2px 0 0; padding-top: var(--s-3);
+  border-top: 1px solid var(--line);
+}
+.offer-spec > div { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
+.offer-spec dt { font-size: var(--text-xs); color: var(--ink-3); }
+.offer-spec dd { margin: 0; font-size: var(--text-sm); color: var(--ink); }
+
+@media (max-width: 620px) { .offer-spec { gap: var(--s-4); } }
+
+/* ===========================================================================
+   Mobile purchase bar
+   The sticky buy column only exists above 1000px. Below it the card is static
+   and lands at the foot of a long page, so the purchase lives here instead.
+   =========================================================================== */
+.buy-bar { display: none; }
+
+@media (max-width: 1000px) {
+  .buy-bar {
+    display: flex; align-items: center; gap: var(--s-4);
+    position: fixed; inset-inline: 0; bottom: 0; z-index: 70;
+    padding: var(--s-3) var(--gutter) calc(var(--s-3) + env(safe-area-inset-bottom, 0px));
+    background: rgba(255, 255, 255, .96);
+    backdrop-filter: saturate(180%) blur(12px);
+    border-top: 1px solid var(--line);
+    box-shadow: 0 -6px 24px rgba(20, 23, 26, .1);
+  }
+  .buy-bar-price { display: flex; align-items: baseline; flex-wrap: wrap; gap: 4px 8px; flex: none; }
+  .buy-bar-price .tag { flex-basis: 100%; }
+  .buy-bar-actions { display: flex; align-items: center; gap: var(--s-2); flex: 1; min-width: 0; }
+  .buy-bar-add { flex: none; width: 48px; padding: 0; }
+  .buy-bar > .btn { flex: 1; }
+
+  /* Clear the bar so it never covers the end of the page. */
+  .shell > main { padding-bottom: 88px; }
+}
+
+@media (max-width: 420px) {
+  .buy-bar { gap: var(--s-3); padding-inline: var(--s-4); }
+  .buy-bar-price .tag { display: none; }
+}

@@ -3,11 +3,11 @@
 import mongoose from 'mongoose';
 
 import { env } from '../config/env.js';
-import { churches, instructors, courses, pathways, reviews, categories } from '../data/index.js';
+import { churches, instructors, courses, offerings, outcomes, reviews, categories } from '../data/index.js';
 import { Church } from '../models/Church.js';
 import { Instructor } from '../models/Instructor.js';
 import { Course } from '../models/Course.js';
-import { Pathway } from '../models/Pathway.js';
+import { Offering } from '../models/Offering.js';
 import { Review } from '../models/Review.js';
 import { User } from '../models/User.js';
 import { Order } from '../models/Order.js';
@@ -24,7 +24,7 @@ const run = async () => {
     Church.deleteMany({}),
     Instructor.deleteMany({}),
     Course.deleteMany({}),
-    Pathway.deleteMany({}),
+    Offering.deleteMany({}),
     Review.deleteMany({}),
   ]);
 
@@ -42,7 +42,7 @@ const run = async () => {
   await Church.insertMany(churches);
   await Instructor.insertMany(instructors);
   await Course.insertMany(courses);
-  await Pathway.insertMany(pathways);
+  await Offering.insertMany(offerings);
   await Review.insertMany(dated);
 
   const lectures = courses.reduce(
@@ -55,7 +55,7 @@ const run = async () => {
       `churches      ${churches.length}`,
       `instructors   ${instructors.length}`,
       `courses       ${courses.length}  (${lectures} lectures)`,
-      `pathways      ${pathways.length}`,
+      `offerings     ${offerings.length}  (${outcomes.length} outcomes)`,
       `reviews       ${dated.length}`,
       `categories    ${categories.length}`,
     ].join('\n'),
