@@ -115,9 +115,9 @@
 .category-copy { position: relative; z-index: 2; display: flex; flex-direction: column; gap: 2px; padding: 16px 16px 0; color: #fff; }
 .category-copy b { font-size: var(--text-md); line-height: 1.2; }
 .category-copy small { color: rgba(255,255,255,.82); }
-.category-image { position: absolute; inset: 52px 0 0; overflow: hidden; }
-.category-image::after { content: ''; position: absolute; inset: 0; background: linear-gradient(180deg,currentColor 0%,transparent 38%); opacity: .32; }
-.category-image img { width: 100%; height: 100%; object-fit: cover; mix-blend-mode: luminosity; opacity: .92; }
+.category-image { position: absolute; inset: 0; overflow: hidden; }
+.category-image::after { content: ''; position: absolute; inset: 0; background: linear-gradient(180deg,currentColor 0%,currentColor 28%,transparent 72%); opacity: .88; }
+.category-image img { width: 100%; height: 100%; object-fit: cover; mix-blend-mode: luminosity; opacity: .72; }
 .category-tone-1 { background: linear-gradient(135deg,#ff7c57,#ed4d78); color: #ed4d78; }
 .category-tone-2 { background: linear-gradient(135deg,#7b57e8,#b443d4); color: #b443d4; }
 .category-tone-3 { background: linear-gradient(135deg,#148d91,#24b9ac); color: #24b9ac; }
@@ -597,6 +597,7 @@
   background: var(--bg); transition: border-color .15s;
 }
 .church-chip:hover { border-color: var(--ink); }
+
 
 /* Home hero */
 .hero-banner {
