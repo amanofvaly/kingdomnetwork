@@ -41,11 +41,24 @@ app.use('/api', apiRoutes);
 // ---------------------------------------------------------------------------
 // Static client — the monolith can always serve the latest built SPA.
 // ---------------------------------------------------------------------------
-app.use(express.static(clientDist, { maxAge: env.isProduction ? '1y' : 0, index: false }));
+app.use(express.static(clientDist, {
+  index: false,
+  etag: true,
+  setHeaders: (res, filePath) => {
+    const isHashedBuildAsset = filePath.includes(`${path.sep}assets${path.sep}`);
+    res.setHeader(
+      'Cache-Control',
+      env.isProduction && isHashedBuildAsset
+        ? 'public, max-age=31536000, immutable'
+        : 'public, max-age=0, must-revalidate',
+    );
+  },
+}));
 
 // Anything that is not /api/* falls through to the SPA entry point so
 // client-side routing works on a hard refresh.
 app.get(/^\/(?!api\/).*/, (req, res) => {
+  res.setHeader('Cache-Control', 'no-cache');
   res.sendFile(path.join(clientDist, 'index.html'));
 });
 
