@@ -755,6 +755,9 @@
   .issuer-banner-copy { width: 100%; padding: 25px 21px; gap: 10px; justify-content: flex-start; }
   .issuer-banner h3 { font-size: 35px; max-width: 10ch; }
   .issuer-stack { width: 67%; height: 44%; right: 5%; top: auto; bottom: 4%; }
+  .issuer-layout-1 .issuer-stack, .issuer-layout-2 .issuer-stack { top: auto; bottom: 4%; }
+  .issuer-layout-3 .issuer-stack, .issuer-layout-4 .issuer-stack { top: 4%; bottom: auto; }
+  .issuer-layout-3 .issuer-banner-copy, .issuer-layout-4 .issuer-banner-copy { justify-content: flex-end; }
   .issuer-stack-front strong { font-size: 25px; }.issuer-stack-front small { font-size: 9px; }
   .issuer-track { display: none; }
   .issuer-swipe-cue { position: absolute; z-index: 8; right: -9px; top: 50%; display: grid; place-items: center; width: 42px; height: 42px; border-radius: 50%; background: #fff; color: #151515; box-shadow: 0 5px 18px rgba(0,0,0,.2); pointer-events: none; }
