@@ -10,7 +10,7 @@ import { money } from '../lib/format.js';
 
 // Imported (not referenced from /public) so Vite fingerprints it: a new filename
 // on every edit means the swap goes live immediately, past every cache.
-import heroFeatured from '../assets/hero-featured-pastoral-care.jpg';
+import heroFeatured from '../assets/hero-featured-henry.jpg';
 
 /**
  * A photographic banner with the offer on it, the way a storefront opens.
