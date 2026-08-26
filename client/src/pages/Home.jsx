@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { ArrowRight, BadgeCheck, Plane, Search } from 'lucide-react';
+import { ArrowRight, BadgeCheck, ChevronRight, Plane, Search } from 'lucide-react';
 
 import { OfferingCard } from '../components/market.jsx';
 import { ErrorState, SkeletonGrid } from '../components/ui.jsx';
@@ -50,28 +50,11 @@ const Hero = ({ data }) => {
         </div>
 
         {featured && (
-          <article className="hero-product">
-            <Link to={`/listing/${featured.slug}`} className="hero-product-media">
-              <img src={featured.coverImage} alt="" fetchPriority="high"
-                onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = '/media/scenes/books-colorful.webp'; }} />
-            </Link>
-            <div className="hero-product-body">
-              <span className="eyebrow">Featured pathway</span>
-              <div className="hero-product-issuer">
-                <span className="monogram monogram-sm">{featured.church?.monogram}</span>
-                <span>{featured.church?.shortName ?? featured.church?.name}</span>
-                {featured.church?.verified && <BadgeCheck size={14} />}
-              </div>
-              <h2><Link to={`/listing/${featured.slug}`}>{featured.title}</Link></h2>
-              <p>{featured.subtitle}</p>
-              <div className="hero-product-buy">
-                <div><span className="price-big">{money(featured.price, featured.currency)}</span>{featured.compareAtPrice > featured.price && <span className="price-was">{money(featured.compareAtPrice, featured.currency)}</span>}</div>
-                <div className="hero-product-actions">
-                  <button type="button" className="btn btn-primary" onClick={buy}>Buy now</button>
-                  <Link to={`/listing/${featured.slug}`} className="btn btn-outline">View details</Link>
-                </div>
-              </div>
-            </div>
+          <article className="hero-feature-banner">
+            <img src="/media/hero-featured-pastoral-care.jpg"
+              alt="Featured Pastoral Care Certificate from Seminole Assembly, $40" fetchPriority="high" />
+            <button type="button" className="hero-hotspot hero-hotspot-buy" onClick={buy} aria-label="Buy Pastoral Care Certificate now" />
+            <Link to={`/listing/${featured.slug}`} className="hero-hotspot hero-hotspot-details" aria-label="View Pastoral Care Certificate details" />
           </article>
         )}
       </div>
@@ -80,16 +63,29 @@ const Hero = ({ data }) => {
 };
 
 const OutcomeRail = ({ outcomes }) => (
-  <nav className="wrap browse-row" aria-label="Browse the marketplace">
-    <span className="browse-row-label">Browse</span>
-    {outcomes.map((o) => (
-      <Link key={o.slug} to={`/${o.slug}`}>
-        <span>{o.name}</span>
-        <small>from {o.fromPrice != null ? money(o.fromPrice) : '—'}</small>
-      </Link>
-    ))}
-    <Link to="/churches"><span>Churches</span><small>Meet the issuers</small></Link>
-  </nav>
+  <section className="category-showcase">
+    <div className="wrap">
+      <h2>Explore ministry pathways</h2>
+      <div className="category-track-wrap">
+        <nav className="category-track" aria-label="Ministry pathways">
+          {outcomes.map((o, index) => (
+            <Link key={o.slug} to={`/${o.slug}`} className={`category-tile category-tone-${index + 1}`}>
+              <span className="category-copy">
+                <b>{o.name}</b>
+                <small>Explore from {o.fromPrice != null ? money(o.fromPrice) : '—'}</small>
+              </span>
+              <span className="category-image"><img src={o.coverImage} alt="" loading="eager" /></span>
+            </Link>
+          ))}
+          <Link to="/churches" className="category-tile category-tone-6">
+            <span className="category-copy"><b>Churches</b><small>Meet the issuers</small></span>
+            <span className="category-image"><img src="/media/scenes/congregation-gathering.webp" alt="" loading="eager" /></span>
+          </Link>
+        </nav>
+        <span className="category-next" aria-hidden="true"><ChevronRight size={25} strokeWidth={2.5} /></span>
+      </div>
+    </div>
+  </section>
 );
 
 const Rail = ({ title, sub, to, toLabel, items, loading, cols = 'grid-4', onAdd, has }) => (

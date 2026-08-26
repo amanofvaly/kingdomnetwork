@@ -1,15 +1,15 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { CreditCard, Landmark, Lock, Smartphone, Users, Wallet } from 'lucide-react';
+import { ArrowLeft, Check, CreditCard, Lock, Smartphone, Wallet } from 'lucide-react';
 
 import { ErrorState, Spinner } from '../components/ui.jsx';
 import { api, ApiError, setToken } from '../lib/api.js';
 import { useApi } from '../lib/useAsync.js';
 import { useAuth } from '../lib/auth.jsx';
 import { useCart } from '../lib/cart.jsx';
-import { money, plural } from '../lib/format.js';
+import { money } from '../lib/format.js';
 
-const ICONS = { smartphone: Smartphone, 'credit-card': CreditCard, wallet: Wallet, landmark: Landmark };
+const ICONS = { smartphone: Smartphone, 'credit-card': CreditCard };
 
 export const Checkout = () => {
   const { items, clear } = useCart();
@@ -25,6 +25,8 @@ export const Checkout = () => {
   const [errors, setErrors] = useState({});
   const [busy, setBusy] = useState(false);
   const [failure, setFailure] = useState(null);
+  const [mobileStep, setMobileStep] = useState(1);
+  const paymentSection = useRef(null);
 
   useEffect(() => {
     if (user) setDetails((d) => ({ ...d, name: d.name || user.name, email: d.email || user.email, phone: d.phone || user.phone || '', country: d.country || user.country || '' }));
@@ -67,6 +69,20 @@ export const Checkout = () => {
     return Object.keys(next).length === 0;
   };
 
+  const continueToPayment = () => {
+    const next = {};
+    if (!details.name.trim()) next.name = 'Enter the name that goes on your documents.';
+    if (!details.phone.trim()) next.phone = 'Enter a phone number so the church can reach you.';
+    if (!/^\S+@\S+\.\S+$/.test(details.email)) next.email = 'Enter a valid email address.';
+    setErrors(next);
+    if (Object.keys(next).length) {
+      requestAnimationFrame(() => document.querySelector('[aria-invalid="true"]')?.focus());
+      return;
+    }
+    setMobileStep(2);
+    requestAnimationFrame(() => paymentSection.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }));
+  };
+
   const submit = async (e) => {
     e.preventDefault();
     setFailure(null);
@@ -94,21 +110,45 @@ export const Checkout = () => {
   };
 
   return (
-    <div className="wrap band-tight stack stack-6">
-      <div className="stack stack-2">
-        <h1 style={{ fontSize: 'var(--text-3xl)' }}>Checkout</h1>
-        <p className="muted" style={{ margin: 0 }}>{plural(priced.items.length, 'item')} · {money(priced.total)}</p>
+    <div className="wrap band-tight stack stack-6 checkout-page">
+      <div className="checkout-heading">
+        <Link to="/cart" className="checkout-back"><ArrowLeft size={16} /> Back to basket</Link>
+        <h1>Complete your purchase</h1>
+        <p>Review your order, add your details, then choose how to pay.</p>
+        <ol className="checkout-steps" aria-label="Checkout progress">
+          <li className={mobileStep === 1 ? 'is-current' : 'is-done'}><span>{mobileStep === 2 ? <Check size={13} /> : '1'}</span> Your details</li>
+          <li className={mobileStep === 2 ? 'is-current' : ''}><span>2</span> Payment</li>
+          <li><span><Check size={13} /></span> Confirmation</li>
+        </ol>
       </div>
 
-      <form className="two-col" onSubmit={submit} noValidate>
+      <section className="checkout-mobile-order" aria-label="Your order">
+        {priced.items.map((i) => (
+          <div key={`${i.kind}-${i.slug}`} className="checkout-mobile-item">
+            <span className="media"><img src={i.image} alt="" /></span>
+            <span className="grow">
+              <span className="xs dim">You are buying</span>
+              <b>{i.title}</b>
+              <small>{i.churchName}</small>
+            </span>
+            <strong>{money(i.price)}</strong>
+          </div>
+        ))}
+        <div className="checkout-mobile-total"><span>Total due</span><strong>{money(priced.total)}</strong></div>
+      </section>
+
+      <form className="two-col checkout-form" onSubmit={submit} noValidate>
         <div className="stack stack-6">
-          <section className="stack stack-4">
-            <div>
-              <h3>Your details</h3>
+          <section className={`stack stack-4 checkout-section checkout-step-details ${mobileStep === 2 ? 'mobile-step-hidden' : ''}`}>
+            <div className="checkout-section-head">
+              <span>1</span>
+              <div>
+                <h3>Your details</h3>
               <p className="small muted" style={{ margin: '4px 0 0' }}>
-                Your full name is printed on every document a church issues to you, so check the spelling.
-                {!user && ' We create your account from this — there is no password to set.'}
+                  Used for your account and any documents the church issues.
+                  {!user && ' No password is required.'}
               </p>
+              </div>
             </div>
             <div className="grid grid-2">
               <div className="field">
@@ -140,10 +180,17 @@ export const Checkout = () => {
                 Already have an account? <Link to="/login" state={{ from: '/checkout' }} className="link xs">Sign in</Link>.
               </p>
             )}
+            <button type="button" className="btn btn-primary btn-lg checkout-mobile-continue" onClick={continueToPayment}>
+              Continue to payment
+            </button>
           </section>
 
-          <section className="stack stack-4">
-            <h3>How would you like to pay?</h3>
+          <section ref={paymentSection} className={`stack stack-4 checkout-section checkout-step-payment ${mobileStep === 1 ? 'mobile-step-hidden' : ''}`}>
+            <div className="checkout-section-head">
+              <span>2</span>
+              <h3>Choose how to pay</h3>
+              <button type="button" className="checkout-edit-details" onClick={() => setMobileStep(1)}>Edit details</button>
+            </div>
             <div className="pay-grid" role="radiogroup" aria-label="Payment method">
               {methods.map((m) => {
                 const Icon = ICONS[m.icon] ?? Wallet;
@@ -167,12 +214,14 @@ export const Checkout = () => {
 
             {selected && (
               <div className="panel panel-warm stack stack-4">
-                <p className="small muted" style={{ margin: 0 }}>{selected.blurb}</p>
+                {selected.id !== 'mpesa' && <p className="small muted" style={{ margin: 0 }}>{selected.blurb}</p>}
                 <div className="field">
                   <label htmlFor="account">{selected.fieldLabel}</label>
                   <input id="account" className="input" value={account} placeholder={selected.placeholder}
                     aria-invalid={!!errors.account} onChange={(e) => setAccount(e.target.value)} autoComplete="off" />
-                  {errors.account ? <span className="err">{errors.account}</span> : <span className="hint">{selected.patternHint}</span>}
+                  {errors.account
+                    ? <span className="err">{errors.account}</span>
+                    : selected.id !== 'mpesa' && <span className="hint">{selected.patternHint}</span>}
                 </div>
                 {selected.extraFields?.length > 0 && (
                   <div className="grid grid-2">
@@ -186,13 +235,12 @@ export const Checkout = () => {
                     ))}
                   </div>
                 )}
-                <div className="notice">
-                  <Lock size={15} />
-                  <span>
-                    Payments run against a simulator while gateway credentials are set up. No money moves, and only
-                    the last four characters of what you enter are kept on the order.
-                  </span>
-                </div>
+                {selected.id !== 'mpesa' && (
+                  <div className="notice">
+                    <Lock size={15} />
+                    <span>Payment details are securely handled and only the last four characters are stored.</span>
+                  </div>
+                )}
               </div>
             )}
           </section>
@@ -225,13 +273,10 @@ export const Checkout = () => {
             )}
             <div className="total-row grand"><span>Total</span><span className="num">{money(priced.total)}</span></div>
           </div>
-          <button type="submit" className="btn btn-primary btn-lg btn-block" disabled={busy}>
+          <button type="submit" className={`btn btn-primary btn-lg btn-block checkout-pay ${mobileStep === 1 ? 'mobile-step-hidden' : ''}`} disabled={busy}>
             {busy ? <><span className="spinner" /> Processing…</> : <>Pay {money(priced.total)}</>}
           </button>
-          <div className="notice" style={{ padding: 'var(--s-3)' }}>
-            <Users size={15} />
-            <span className="xs">Ministers in 14 countries were issued credentials through Kingdom Network this week.</span>
-          </div>
+          <p className="checkout-secure"><Lock size={13} /> Secure checkout · You can review before payment is confirmed</p>
         </aside>
       </form>
     </div>

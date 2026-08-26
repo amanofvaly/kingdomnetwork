@@ -80,7 +80,7 @@ export const OrderConfirmation = () => {
                   <span>
                     {c.status === 'in-review'
                       ? `${c.churchName} is reviewing your submission and will sign it.`
-                      : `${plural((c.outstanding ?? []).length, 'requirement')} outstanding. Your dashboard shows exactly what.`}
+                      : `${plural((c.outstanding ?? []).length, 'requirement')} remaining. Your dashboard lists what you need to complete.`}
                   </span>
                 </div>
                 {(c.outstanding ?? []).includes('assessment') && (

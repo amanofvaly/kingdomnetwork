@@ -43,29 +43,43 @@ const download = async (credential) => {
   URL.revokeObjectURL(url);
 };
 
-const Blockers = ({ blockers }) => (
-  <div className="stack stack-2" style={{ paddingTop: 'var(--s-3)', borderTop: '1px solid var(--line)' }}>
-    <span className="xs dim">Waiting on</span>
+const Blockers = ({ blockers, credentialId }) => (
+  <div className="stack stack-3" style={{ paddingTop: 'var(--s-3)', borderTop: '1px solid var(--line)' }}>
+    <span className="xs dim">What you need to do</span>
     {blockers.map((b, i) => {
       if (b.kind === 'assessment') {
-        return <span key={i} className="row small" style={{ gap: 8 }}><FileCheck2 size={14} /> The assessment</span>;
+        return (
+          <div key={i} className="row-between" style={{ gap: 12, flexWrap: 'wrap' }}>
+            <span className="row small" style={{ gap: 8 }}><FileCheck2 size={14} /> Pass the required assessment</span>
+            <Link to={`/assessment/${credentialId}`} className="btn btn-primary btn-sm">Take assessment</Link>
+          </div>
+        );
       }
       if (b.kind === 'course') {
         return (
-          <div key={i} className="stack stack-1">
-            <Link to={`/learn/${b.slug}`} className="row small" style={{ gap: 8 }}>
-              <Clock size={14} /> <span className="grow clamp-1">{b.course?.title ?? b.slug}</span>
-              <span className="xs dim num">{b.progress}%</span>
-            </Link>
+          <div key={i} className="stack stack-2">
+            <div className="row-between" style={{ gap: 12, flexWrap: 'wrap' }}>
+              <span className="row small grow" style={{ gap: 8, minWidth: 0 }}>
+                <Clock size={14} /> <span className="grow clamp-1">Finish {b.course?.title ?? b.slug}</span>
+                <span className="xs dim num">{b.progress}%</span>
+              </span>
+              <Link to={`/learn/${b.slug}`} className="btn btn-outline btn-sm">
+                {b.progress > 0 ? 'Continue course' : 'Start course'}
+              </Link>
+            </div>
             <div className="progress"><span style={{ width: `${b.progress}%` }} /></div>
           </div>
         );
       }
       return (
-        <Link key={i} to={`/listing/${b.slug}`} className="row small" style={{ gap: 8 }}>
-          <Award size={14} /> <span className="grow clamp-1">{b.offering?.title ?? b.slug}</span>
-          {b.offering && <span className="xs dim">{money(b.offering.price)}</span>}
-        </Link>
+        <div key={i} className="row-between" style={{ gap: 12, flexWrap: 'wrap' }}>
+          <span className="row small grow" style={{ gap: 8 }}>
+            <Award size={14} /> Obtain {b.offering?.title ?? b.slug}
+          </span>
+          <Link to={`/listing/${b.slug}`} className="btn btn-outline btn-sm">
+            View required credential{b.offering ? ` · ${money(b.offering.price)}` : ''}
+          </Link>
+        </div>
       );
     })}
   </div>
@@ -129,16 +143,38 @@ const CredentialCard = ({ credential: c }) => {
         </div>
       ) : (
         <>
-          <Blockers blockers={c.blockers ?? []} />
-          {(c.blockers ?? []).some((b) => b.kind === 'assessment') && (
-            <Link to={`/assessment/${c.credentialId}`} className="btn btn-primary btn-sm btn-block">
-              Take the assessment
-            </Link>
-          )}
+          <Blockers blockers={c.blockers ?? []} credentialId={c.credentialId} />
         </>
       )}
     </article>
   );
+};
+
+const pendingSummary = (credentials) => {
+  if (credentials.length === 1) {
+    const credential = credentials[0];
+    if (credential.status === 'in-review') {
+      return `${credential.church?.name ?? credential.churchName} is reviewing this credential before signing it.`;
+    }
+    const blocker = credential.blockers?.[0];
+    if (blocker?.kind === 'assessment') {
+      return `Pass the assessment before ${credential.title} can be issued.`;
+    }
+    if (blocker?.kind === 'course') {
+      return `Finish ${blocker.course?.title ?? blocker.slug} before ${credential.title} can be issued.`;
+    }
+    if (blocker?.kind === 'credential') {
+      return `Obtain ${blocker.offering?.title ?? blocker.slug} before ${credential.title} can be issued.`;
+    }
+    return `${credential.title} has not been issued yet.`;
+  }
+
+  const inReview = credentials.filter((c) => c.status === 'in-review').length;
+  const needsAction = credentials.length - inReview;
+  return [
+    needsAction > 0 && `${plural(needsAction, 'credential')} need action from you.`,
+    inReview > 0 && `${plural(inReview, 'credential')} ${inReview === 1 ? 'is' : 'are'} with the issuing church for review.`,
+  ].filter(Boolean).join(' ');
 };
 
 export const Passport = () => {
@@ -196,7 +232,7 @@ export const Passport = () => {
               <section className="stack stack-5">
                 <div>
                   <h2 style={{ fontSize: 'var(--text-2xl)' }}>In progress</h2>
-                  <p className="small muted">{plural(pending.length, 'credential')} waiting on something.</p>
+                  <p className="small muted">{pendingSummary(pending)}</p>
                 </div>
                 <div className="cred-grid">
                   {pending.map((c) => <CredentialCard key={c.credentialId} credential={c} />)}

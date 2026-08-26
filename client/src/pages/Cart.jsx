@@ -124,7 +124,7 @@ export const Cart = () => {
               Checkout <ArrowRight size={16} />
             </button>
             <p className="xs dim" style={{ margin: 0 }}>
-              You will not be charged yet. Pay with M-Pesa, Airtel Money, MTN MoMo, card, PayPal or bank transfer.
+              You will not be charged yet. Pay with M-Pesa, Airtel Money, MTN MoMo or card.
             </p>
           </aside>
         </div>

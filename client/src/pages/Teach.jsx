@@ -42,7 +42,7 @@ export const Teach = () => {
           <div className="grid grid-4">
             {[
               { icon: Layers, title: 'Course and pathway builder', body: 'Sections, lessons, written material, quizzes and assignments. Stack courses into multi-stage pathways with review and examination steps.' },
-              { icon: Wallet, title: 'Payments people can use', body: 'M-Pesa, Airtel Money, MTN MoMo, card, PayPal and bank transfer at checkout, with your listing priced in your terms.' },
+              { icon: Wallet, title: 'Payments people can use', body: 'M-Pesa, Airtel Money, MTN MoMo and card at checkout, with your listing priced in your terms.' },
               { icon: ClipboardCheck, title: 'Assessment and review', body: 'Mark written work, review offline credentials, and run board interviews as formal stages inside a pathway.' },
               { icon: IdCard, title: 'Issuance and verification', body: 'Issue a credential into the holder’s passport with a public verification code that names your ministry.' },
               { icon: Users, title: 'A named profile', body: 'Your history, leadership, faculty, specialisms and delivery modes, on a page learners read before they enrol.' },
