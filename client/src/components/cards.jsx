@@ -3,7 +3,7 @@ import { ArrowRight, Award, Clock, Layers, MapPin, ShoppingBag } from 'lucide-re
 
 import { compact, duration, plural } from '../lib/format.js';
 import { useCart } from '../lib/cart.jsx';
-import { Monogram, Price, Stars, Verified } from './ui.jsx';
+import { Price, Stars, Verified } from './ui.jsx';
 
 export const CourseCard = ({ course }) => {
   const { add, has } = useCart();
@@ -75,14 +75,12 @@ export const ChurchCard = ({ church }) => (
   <article className="card church-card">
     <Link to={`/churches/${church.slug}`} className="media media-3x2" tabIndex={-1} aria-hidden="true">
       <img src={church.coverImage} alt="" loading="lazy" width={800} height={534} />
+      {church.verified && <span className="church-card-verified"><Verified label="Verified" size={13} /></span>}
     </Link>
     <div className="card-body">
-      <div className="row" style={{ gap: 10 }}>
-        <Monogram text={church.monogram} size="monogram-sm" />
-        <div className="grow">
-          <h3 className="course-title clamp-1"><Link to={`/churches/${church.slug}`}>{church.shortName ?? church.name}</Link></h3>
-          <span className="row xs dim" style={{ gap: 4 }}><MapPin size={11} />{church.city}, {church.country}</span>
-        </div>
+      <div className="grow">
+        <h3 className="course-title clamp-1"><Link to={`/churches/${church.slug}`}>{church.shortName ?? church.name}</Link></h3>
+        <span className="row xs dim church-card-location" style={{ gap: 4 }}><MapPin size={11} />{church.city}, {church.country}</span>
       </div>
       <p className="small muted clamp-2" style={{ margin: 0 }}>{church.tagline}</p>
       <div className="row-wrap" style={{ gap: 6 }}>
@@ -92,7 +90,6 @@ export const ChurchCard = ({ church }) => (
         <span className="small muted num">
           {plural(church.stats?.courses ?? 0, 'course')} · {compact(church.stats?.learners ?? 0)} learners
         </span>
-        {church.verified && <Verified label="Verified" size={13} />}
       </div>
     </div>
   </article>

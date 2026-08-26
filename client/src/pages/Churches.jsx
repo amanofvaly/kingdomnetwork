@@ -71,7 +71,7 @@ export const Churches = () => {
           ) : (
             <>
               <span className="small muted num">{plural(data.churches.length, 'church', 'churches')}</span>
-              <div className="grid grid-4">
+              <div className="grid grid-4 church-directory-grid">
                 {data.churches.map((c) => <ChurchCard key={c.slug} church={c} />)}
               </div>
             </>

@@ -208,6 +208,9 @@
 /* church card */
 .church-card .media img { transition: transform .5s cubic-bezier(.2,.6,.2,1); }
 .church-card:hover .media img { transform: scale(1.035); }
+.church-card-verified { position: absolute; right: 8px; top: 8px; padding: 4px 7px; border-radius: var(--r-full); background: rgba(255,255,255,.94); box-shadow: 0 3px 10px rgba(20,23,26,.14); }
+.church-card-location { align-items: flex-start; margin-top: 3px; line-height: 1.35; }
+.church-card-location svg { flex: none; margin-top: 2px; }
 
 /* ===========================================================================
    Forms

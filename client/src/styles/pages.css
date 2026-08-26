@@ -835,12 +835,15 @@
 
 @media (max-width: 1000px) { .outcome-rail { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
 @media (max-width: 620px) {
+  .church-directory-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--s-3); }
+  .church-directory-grid .card-body { padding: var(--s-3); gap: var(--s-3); }
+  .church-directory-grid .church-card .media { border-radius: 0; }
   .outcome-rail { display: flex; overflow-x: auto; padding-right: var(--gutter); scroll-snap-type: x proximity; scrollbar-width: none; }
   .outcome-rail::-webkit-scrollbar { display: none; }
   .outcome-card { width: 185px; flex: 0 0 185px; scroll-snap-align: start; }
-  .band-tight .grid-4 { display: flex; overflow-x: auto; gap: var(--s-4); margin-right: calc(var(--gutter) * -1); padding-right: var(--gutter); scroll-snap-type: x proximity; scrollbar-width: none; }
-  .band-tight .grid-4::-webkit-scrollbar { display: none; }
-  .band-tight .grid-4 > .offer-card { flex: 0 0 78vw; max-width: 300px; scroll-snap-align: start; }
+  .band-tight .grid-4:has(> .offer-card) { display: flex; overflow-x: auto; gap: var(--s-4); margin-right: calc(var(--gutter) * -1); padding-right: var(--gutter); scroll-snap-type: x proximity; scrollbar-width: none; }
+  .band-tight .grid-4:has(> .offer-card)::-webkit-scrollbar { display: none; }
+  .band-tight .grid-4:has(> .offer-card) > .offer-card { flex: 0 0 78vw; max-width: 300px; scroll-snap-align: start; }
 }
 
 /* ===========================================================================
