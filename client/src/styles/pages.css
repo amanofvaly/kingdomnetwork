@@ -661,7 +661,7 @@
   .issuer-rail::before, .issuer-rail::after { flex-basis: 18px; }
   .issuer-rail::before { margin-right: -12px; }.issuer-rail::after { margin-left: -12px; }
   .issuer-banner { flex-basis: calc(100vw - 54px); min-height: 500px; aspect-ratio: auto; }
-  .issuer-banner-copy { width: 100%; padding: 25px 21px; gap: 10px; }
+  .issuer-banner-copy { width: 100%; padding: 25px 21px; gap: 10px; justify-content: flex-start; }
   .issuer-banner h3 { font-size: 35px; max-width: 10ch; }
   .issuer-stack { width: 67%; height: 44%; right: 5%; top: auto; bottom: 4%; }
   .issuer-stack-front strong { font-size: 25px; }.issuer-stack-front small { font-size: 9px; }
