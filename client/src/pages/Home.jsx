@@ -75,15 +75,18 @@ const instantFirst = (items = []) => items
 
 const OutcomeRail = ({ outcomes }) => (
   <section className="category-showcase">
-    <div className="wrap">
-      <h2>Explore ministry pathways</h2>
+    <div className="wrap category-showcase-layout">
+      <div className="category-intro">
+        <h2>Explore ministry pathways</h2>
+        <Link to="/search" className="category-cta">Browse all listings <ArrowRight size={17} /></Link>
+      </div>
       <div className="category-track-wrap">
         <nav className="category-track" aria-label="Ministry pathways">
           {outcomes.map((o, index) => (
             <Link key={o.slug} to={`/${o.slug}`} className={`category-tile category-tone-${index + 1}`}>
               <span className="category-copy">
                 <b>{o.name}</b>
-                <small>Explore from {o.fromPrice != null ? money(o.fromPrice) : '—'}</small>
+                <small>Explore from <strong>{o.fromPrice != null ? money(o.fromPrice) : '—'}</strong></small>
               </span>
               <span className="category-image"><img src={o.coverImage} alt="" loading="eager" /></span>
             </Link>
