@@ -23,6 +23,7 @@ import { Assessment } from './pages/Assessment.jsx';
 import { Verify } from './pages/Verify.jsx';
 import { Account } from './pages/Account.jsx';
 import { Teach } from './pages/Teach.jsx';
+import { ChurchBannerConcept } from './pages/ChurchBannerConcept.jsx';
 import { Login, Signup } from './pages/Auth.jsx';
 import { NotFound } from './pages/NotFound.jsx';
 
@@ -60,6 +61,7 @@ export const App = () => (
       <Route path="verify" element={<Verify />} />
       <Route path="verify/:code" element={<Verify />} />
       <Route path="teach" element={<Teach />} />
+      <Route path="concepts/church-banner" element={<ChurchBannerConcept />} />
       <Route path="login" element={<Login />} />
       <Route path="signup" element={<Signup />} />
 

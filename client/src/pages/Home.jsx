@@ -1,12 +1,12 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { ArrowRight, BadgeCheck, ChevronRight, Plane, Search } from 'lucide-react';
+import { ArrowRight, BadgeCheck, BookOpen, ChevronRight, Church, Headphones, Plane, Search, Users } from 'lucide-react';
 
 import { OfferingCard } from '../components/market.jsx';
 import { ErrorState, SkeletonGrid } from '../components/ui.jsx';
 import { useApi } from '../lib/useAsync.js';
 import { useCart } from '../lib/cart.jsx';
-import { compact, money } from '../lib/format.js';
+import { money } from '../lib/format.js';
 
 /**
  * A photographic banner with the offer on it, the way a storefront opens.
@@ -107,6 +107,38 @@ const Rail = ({ title, sub, to, toLabel, items, loading, cols = 'grid-4', onAdd,
   </section>
 );
 
+const CHURCH_BANNER_ICONS = [BookOpen, Church, Headphones, Users];
+
+const ChurchBanner = ({ church, index }) => {
+  const Icon = CHURCH_BANNER_ICONS[index % CHURCH_BANNER_ICONS.length];
+  const specialties = church.specialties ?? [];
+  return (
+    <Link
+      to={`/churches/${church.slug}`}
+      className={`issuer-banner issuer-palette-${(index % 12) + 1} issuer-layout-${(index % 4) + 1}`}
+      aria-label={`View ${church.name}`}
+    >
+      <div className="issuer-banner-copy">
+        <span className="issuer-kicker">Featured church</span>
+        <span className="issuer-name">{church.name} {church.verified && <BadgeCheck size={19} fill="currentColor" />}</span>
+        <h3>{specialties[0] ?? 'Ministry formation'}</h3>
+        <span className="issuer-location">{church.city !== 'Location to confirm' ? `${church.city}, ` : ''}{church.country}</span>
+      </div>
+      <div className="issuer-stack" aria-hidden="true">
+        <span className="issuer-stack-card issuer-stack-back">{specialties[2] ?? church.region}</span>
+        <span className="issuer-stack-card issuer-stack-mid">{specialties[1] ?? 'Ministry formation'}</span>
+        <span className="issuer-stack-card issuer-stack-front">
+          <span className="issuer-symbol"><Icon size={34} strokeWidth={1.8} /></span>
+          <strong>{church.shortName ?? church.name}</strong>
+          <small>{church.stats?.credentialsIssued?.toLocaleString() ?? 0} credentials issued</small>
+          <ArrowRight className="issuer-arrow" size={25} />
+        </span>
+      </div>
+      <span className="issuer-track" aria-hidden="true"><i /><i /><i /></span>
+    </Link>
+  );
+};
+
 export const Home = () => {
   const { data, error, loading, reload } = useApi('/home');
   const { add, has } = useCart();
@@ -126,7 +158,7 @@ export const Home = () => {
       />
 
       {!loading && data.churches.length > 0 && (
-        <section className="band band-tight band-warm">
+        <section className="band band-tight">
           <div className="wrap stack stack-4">
             <div className="rail-head">
               <div>
@@ -137,20 +169,11 @@ export const Home = () => {
               </div>
               <Link to="/churches" className="link">All churches <ArrowRight size={15} /></Link>
             </div>
-            <div className="church-strip">
-              {data.churches.map((c) => (
-                <Link key={c.slug} to={`/churches/${c.slug}`} className="church-chip">
-                  <span className="monogram">{c.monogram}</span>
-                  <span>
-                    <span className="small strong clamp-1" style={{ display: 'block' }}>{c.shortName ?? c.name}</span>
-                    <span className="xs dim row" style={{ gap: 4 }}>
-                      {c.country}
-                      {c.verified && <BadgeCheck size={11} style={{ color: 'var(--green-600)' }} />}
-                      · {compact(c.stats?.credentialsIssued ?? 0)} issued
-                    </span>
-                  </span>
-                </Link>
-              ))}
+            <div className="issuer-rail-shell">
+              <div className="issuer-rail">
+                {data.churches.map((c, index) => <ChurchBanner key={c.slug} church={c} index={index} />)}
+              </div>
+              <span className="issuer-swipe-cue" aria-hidden="true"><ChevronRight size={24} /></span>
             </div>
           </div>
         </section>
