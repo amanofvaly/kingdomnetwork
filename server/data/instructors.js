@@ -25,7 +25,7 @@ export const instructors = [
   // The R.O.C.K. WOI
   {
     slug: 'dana-carson', name: 'Dr. Dana Carson', title: 'Apostle and Presiding Bishop, The R.O.C.K. WOI',
-    churchSlug: 'rock-woi', image: '/media/people/p-man-maroon-suit.webp', avatar: '/media/people/p-man-maroon-suit@200.webp',
+    churchSlug: 'rock-woi', image: '/media/people/dana-carson.jpg', avatar: '/media/people/dana-carson.jpg',
     bio: 'Leads The R.O.C.K. World Outreach International and writes its systematic theology sequence. Supervises doctoral-level study and teaches the doctrine core himself.',
     credentials: ['PhD', 'DMin', 'Ordained 1988', '35 years in ministry'],
     yearsExperience: 35, rating: 4.7, ratingCount: 1846, learners: 9140, courseCount: 2,

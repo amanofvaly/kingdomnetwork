@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Check, CreditCard, Lock, Smartphone, Wallet } from 'lucide-react';
+import { ArrowLeft, CreditCard, Lock, Smartphone, Wallet } from 'lucide-react';
 
 import { ErrorState, Spinner } from '../components/ui.jsx';
 import { api, ApiError, setToken } from '../lib/api.js';
@@ -21,7 +21,7 @@ export const Checkout = () => {
   const [method, setMethod] = useState(null);
   const [account, setAccount] = useState('');
   const [extras, setExtras] = useState({});
-  const [details, setDetails] = useState({ name: '', email: '', phone: '', country: '' });
+  const [details, setDetails] = useState({ name: '', email: '', password: '', country: '' });
   const [errors, setErrors] = useState({});
   const [busy, setBusy] = useState(false);
   const [failure, setFailure] = useState(null);
@@ -29,7 +29,7 @@ export const Checkout = () => {
   const paymentSection = useRef(null);
 
   useEffect(() => {
-    if (user) setDetails((d) => ({ ...d, name: d.name || user.name, email: d.email || user.email, phone: d.phone || user.phone || '', country: d.country || user.country || '' }));
+    if (user) setDetails((d) => ({ ...d, name: d.name || user.name, email: d.email || user.email, country: d.country || user.country || '' }));
   }, [user]);
 
   useEffect(() => {
@@ -39,6 +39,7 @@ export const Checkout = () => {
   useEffect(() => { if (methods && !method) setMethod(methods[0]); }, [methods, method]);
 
   const selected = useMemo(() => methods?.find((m) => m.id === method?.id) ?? null, [methods, method]);
+  const needsPassword = !user || user.hasPassword === false;
 
   if (!items.length) {
     return (
@@ -53,11 +54,13 @@ export const Checkout = () => {
 
   const validate = () => {
     const next = {};
-    if (!details.name.trim()) next.name = 'Enter the name that goes on your documents.';
-    if (!/^\S+@\S+\.\S+$/.test(details.email)) next.email = 'Enter a valid email address.';
-    if (!details.phone.trim()) next.phone = 'Enter a phone number so the church can reach you.';
+    if (!user && !details.name.trim()) next.name = 'Enter the name that goes on your documents.';
+    if (!user && !/^\S+@\S+\.\S+$/.test(details.email)) next.email = 'Enter a valid email address.';
+    if (needsPassword && details.password.length < 8) next.password = 'Use at least 8 characters.';
     if (!account.trim()) next.account = `Enter your ${selected.fieldLabel.toLowerCase()}.`;
-    else if (selected.pattern && !new RegExp(selected.pattern).test(account.replace(/\s+/g, selected.id === 'card' ? ' ' : ''))) {
+    else if (selected.pattern && !new RegExp(selected.pattern).test(
+      selected.id === 'card' ? account.replace(/\s+/g, ' ') : account.replace(/[\s()-]/g, ''),
+    )) {
       next.account = selected.patternHint;
     }
     for (const f of selected.extraFields ?? []) {
@@ -71,9 +74,9 @@ export const Checkout = () => {
 
   const continueToPayment = () => {
     const next = {};
-    if (!details.name.trim()) next.name = 'Enter the name that goes on your documents.';
-    if (!details.phone.trim()) next.phone = 'Enter a phone number so the church can reach you.';
-    if (!/^\S+@\S+\.\S+$/.test(details.email)) next.email = 'Enter a valid email address.';
+    if (!user && !details.name.trim()) next.name = 'Enter the name that goes on your documents.';
+    if (needsPassword && details.password.length < 8) next.password = 'Use at least 8 characters.';
+    if (!user && !/^\S+@\S+\.\S+$/.test(details.email)) next.email = 'Enter a valid email address.';
     setErrors(next);
     if (Object.keys(next).length) {
       requestAnimationFrame(() => document.querySelector('[aria-invalid="true"]')?.focus());
@@ -94,12 +97,19 @@ export const Checkout = () => {
         const acct = await api.post('/auth/guest', details);
         setToken(acct.token);
         setUser(acct.user);
+      } else if (needsPassword) {
+        const updated = await api.patch('/auth/me', { password: details.password });
+        setUser(updated);
       }
       await new Promise((r) => setTimeout(r, 1100));
       const { order } = await api.post('/orders', {
         items,
         payment: { method: selected.id, account },
-        billing: details,
+        billing: {
+          name: user?.name ?? details.name,
+          email: user?.email ?? details.email,
+          country: user?.country ?? details.country,
+        },
       });
       clear();
       navigate(`/orders/${order.reference}`, { replace: true });
@@ -115,11 +125,6 @@ export const Checkout = () => {
         <Link to="/cart" className="checkout-back"><ArrowLeft size={16} /> Back to basket</Link>
         <h1>Complete your purchase</h1>
         <p>Review your order, add your details, then choose how to pay.</p>
-        <ol className="checkout-steps" aria-label="Checkout progress">
-          <li className={mobileStep === 1 ? 'is-current' : 'is-done'}><span>{mobileStep === 2 ? <Check size={13} /> : '1'}</span> Your details</li>
-          <li className={mobileStep === 2 ? 'is-current' : ''}><span>2</span> Payment</li>
-          <li><span><Check size={13} /></span> Confirmation</li>
-        </ol>
       </div>
 
       <section className="checkout-mobile-order" aria-label="Your order">
@@ -146,35 +151,53 @@ export const Checkout = () => {
                 <h3>Your details</h3>
               <p className="small muted" style={{ margin: '4px 0 0' }}>
                   Used for your account and any documents the church issues.
-                  {!user && ' No password is required.'}
               </p>
               </div>
             </div>
-            <div className="grid grid-2">
-              <div className="field">
-                <label htmlFor="cname">Full name</label>
-                <input id="cname" className="input" value={details.name} aria-invalid={!!errors.name}
-                  onChange={(e) => setDetails({ ...details, name: e.target.value })} autoComplete="name" />
-                {errors.name && <span className="err">{errors.name}</span>}
+            {user ? (
+              <div className="stack stack-4">
+                <div className="checkout-account-summary">
+                  <span><small>Purchasing as</small><strong>{user.name}</strong></span>
+                  <span><small>Email</small><strong>{user.email}</strong></span>
+                  <span><small>Country</small><strong>{user.country || 'Not provided'}</strong></span>
+                  <Link to="/account" className="link small">Edit account</Link>
+                </div>
+                {needsPassword && (
+                  <div className="field">
+                    <label htmlFor="cpassword">Create password</label>
+                    <input id="cpassword" className="input" type="password" value={details.password} aria-invalid={!!errors.password}
+                      onChange={(e) => setDetails({ ...details, password: e.target.value })} autoComplete="new-password" minLength={8} />
+                    {errors.password ? <span className="err">{errors.password}</span> : <span className="hint">At least 8 characters. Use this to access your purchases later.</span>}
+                  </div>
+                )}
               </div>
-              <div className="field">
-                <label htmlFor="cphone">Phone number</label>
-                <input id="cphone" className="input" value={details.phone} aria-invalid={!!errors.phone}
-                  onChange={(e) => setDetails({ ...details, phone: e.target.value })} autoComplete="tel" inputMode="tel" />
-                {errors.phone && <span className="err">{errors.phone}</span>}
+            ) : (
+              <div className="grid grid-2">
+                <div className="field">
+                  <label htmlFor="cname">Full name</label>
+                  <input id="cname" className="input" value={details.name} aria-invalid={!!errors.name}
+                    onChange={(e) => setDetails({ ...details, name: e.target.value })} autoComplete="name" />
+                  {errors.name && <span className="err">{errors.name}</span>}
+                </div>
+                <div className="field">
+                  <label htmlFor="cpassword">Create password</label>
+                  <input id="cpassword" className="input" type="password" value={details.password} aria-invalid={!!errors.password}
+                    onChange={(e) => setDetails({ ...details, password: e.target.value })} autoComplete="new-password" minLength={8} />
+                  {errors.password ? <span className="err">{errors.password}</span> : <span className="hint">At least 8 characters. Use this to access your purchases later.</span>}
+                </div>
+                <div className="field">
+                  <label htmlFor="cemail">Email</label>
+                  <input id="cemail" className="input" type="email" value={details.email} aria-invalid={!!errors.email}
+                    onChange={(e) => setDetails({ ...details, email: e.target.value })} autoComplete="email" />
+                  {errors.email && <span className="err">{errors.email}</span>}
+                </div>
+                <div className="field">
+                  <label htmlFor="ccountry">Country</label>
+                  <input id="ccountry" className="input" value={details.country}
+                    onChange={(e) => setDetails({ ...details, country: e.target.value })} autoComplete="country-name" />
+                </div>
               </div>
-              <div className="field">
-                <label htmlFor="cemail">Email</label>
-                <input id="cemail" className="input" type="email" value={details.email} aria-invalid={!!errors.email}
-                  onChange={(e) => setDetails({ ...details, email: e.target.value })} autoComplete="email" />
-                {errors.email && <span className="err">{errors.email}</span>}
-              </div>
-              <div className="field">
-                <label htmlFor="ccountry">Country</label>
-                <input id="ccountry" className="input" value={details.country}
-                  onChange={(e) => setDetails({ ...details, country: e.target.value })} autoComplete="country-name" />
-              </div>
-            </div>
+            )}
             {!user && (
               <p className="xs dim" style={{ margin: 0 }}>
                 Already have an account? <Link to="/login" state={{ from: '/checkout' }} className="link xs">Sign in</Link>.

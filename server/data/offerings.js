@@ -40,7 +40,7 @@ export const offerings = [
     price: 29, compareAtPrice: 49,
     requires: { eligibility: ['You should be serving in a congregation in some capacity'] },
     award: { title: 'Ordained Minister', postNominal: 'Rev.', documentTitle: 'Certificate of Ordination', validityMonths: 0, renewable: false },
-    coverImage: '/media/scenes/church-pews.webp', coverAlt: 'Sunlit pews in a quiet church',
+    coverImage: '/media/scenes/congregation-praying.jpg', coverAlt: 'A congregation praying together during a church service',
     rating: 4.4, ratingCount: 1840, issuedCount: 5240, featured: true, badge: 'Issued instantly',
   }),
   make({
@@ -83,7 +83,7 @@ export const offerings = [
       eligibility: ['At least two years serving in a congregation', 'No unresolved disciplinary matter'],
     },
     award: { title: 'Ordained Minister', postNominal: 'Rev.', documentTitle: 'Certificate of Ordination', validityMonths: 36, renewable: true },
-    coverImage: '/media/scenes/congregation-gathering.webp', coverAlt: 'A congregation gathered under warm light',
+    coverImage: '/media/churches/faith-life-pastor-lectern.jpg', coverAlt: 'The Faith Life Church pastor teaching from a lectern',
     rating: 4.8, ratingCount: 913, issuedCount: 1160, featured: true, editorsPick: true, badge: "Editors' pick",
   }),
   make({
@@ -105,7 +105,7 @@ export const offerings = [
     price: 75, compareAtPrice: 120,
     requires: { courses: ['pastoral-care-and-crisis-response'], ...review(10, ['Ministry record', 'Two references']) },
     award: { title: 'Ordained Minister', postNominal: 'Rev.', documentTitle: 'Certificate of Ordination' },
-    coverImage: '/media/scenes/church-stained-glass.webp', coverAlt: 'Light through a stained glass window',
+    coverImage: '/media/scenes/minister-supporting-congregant.jpg', coverAlt: 'A minister speaking privately with a congregant',
     rating: 4.9, ratingCount: 1402, issuedCount: 1740,
   }),
   make({
@@ -167,7 +167,7 @@ export const offerings = [
       ...review(28, ['Record of works planted or covered', 'Three references']),
     },
     award: { title: 'Apostolic Minister', postNominal: 'Rev.', documentTitle: 'Certificate of Apostolic Ministry' },
-    coverImage: '/media/scenes/village-east-africa.webp', coverAlt: 'A settlement spread across a wide valley',
+    coverImage: '/media/scenes/preacher-and-congregation.jpg', coverAlt: 'A preacher addressing a crowded congregation from the stage',
     rating: 4.8, ratingCount: 190, issuedCount: 260,
   }),
   make({
@@ -207,7 +207,7 @@ export const offerings = [
     description: ['Recognition for itinerant and open-air evangelists working under NDW covering.'],
     price: 22, compareAtPrice: 39,
     award: { title: 'Certificate of Evangelism', documentTitle: 'Certificate of Evangelism' },
-    coverImage: '/media/scenes/group-silhouette.webp', coverAlt: 'A group on a ridge at sunset',
+    coverImage: '/media/people/sam-moore.jpg', coverAlt: 'Sam Moore preaching from a church pulpit',
     rating: 4.6, ratingCount: 618, issuedCount: 1420, featured: true, badge: 'Issued instantly',
   }),
   make({
@@ -218,7 +218,7 @@ export const offerings = [
     price: 25, compareAtPrice: 42,
     requires: assess(15, 20),
     award: { title: 'Certificate in Biblical Studies', documentTitle: 'Certificate in Biblical Studies' },
-    coverImage: '/media/scenes/students-writing.webp', coverAlt: 'Students working through written notes',
+    coverImage: '/media/scenes/why-study-the-bible.jpeg', coverAlt: 'A study page headed Why Study the Bible',
     rating: 4.6, ratingCount: 3402, issuedCount: 5240, featured: true,
   }),
   make({
@@ -251,7 +251,7 @@ export const offerings = [
     price: 40, compareAtPrice: 68,
     requires: { courses: ['pastoral-care-and-crisis-response'] },
     award: { title: 'Certificate in Pastoral Care', documentTitle: 'Certificate in Pastoral Care' },
-    coverImage: '/media/scenes/cafe-discussion.webp', coverAlt: 'Two people talking across a table',
+    coverImage: '/media/scenes/pastoral-care-conversation.jpeg', coverAlt: 'A pastor offering support during a private conversation',
     rating: 4.9, ratingCount: 1402, issuedCount: 1740, featured: true, editorsPick: true, badge: 'Most complete',
   }),
   make({
@@ -321,7 +321,7 @@ export const offerings = [
     price: 30, compareAtPrice: 52,
     requires: assess(15, 25),
     award: { title: 'Licensed Minister', documentTitle: 'Ministry Licence', validityMonths: 24, renewable: true },
-    coverImage: '/media/scenes/sunrise-arms-raised.webp', coverAlt: 'A minister standing with arms raised at sunrise',
+    coverImage: '/media/churches/faith-life-pastor-lectern.jpg', coverAlt: 'The Faith Life Church pastor teaching from a lectern',
     rating: 4.7, ratingCount: 520, issuedCount: 1180, featured: true,
   }),
   make({
@@ -356,7 +356,7 @@ export const offerings = [
     price: 60, compareAtPrice: 98,
     requires: review(14, ['Congregation details', 'Two references']),
     award: { title: 'Affiliated Minister', documentTitle: 'Certificate of Affiliation', validityMonths: 12, renewable: true },
-    coverImage: '/media/scenes/congregation-gathering.webp', coverAlt: 'A congregation gathered together',
+    coverImage: '/media/churches/faith-life-pastor-lectern.jpg', coverAlt: 'The Faith Life Church pastor teaching from a lectern',
     rating: 4.8, ratingCount: 320, issuedCount: 640, badge: 'Renews annually',
   }),
   make({

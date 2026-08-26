@@ -14,8 +14,8 @@ export const outcomes = [
     blurb:
       'Ordination is granted by a church, on its own authority and under its own name. Compare what each ministry requires, what it costs, and how long it takes.',
     types: ['ordination'],
-    coverImage: '/media/scenes/hands-open-bible.webp',
-    coverAlt: 'Hands resting on an open Bible during a service of ordination',
+    coverImage: '/media/scenes/congregation-praying.jpg',
+    coverAlt: 'A congregation praying together during a church service',
     icon: 'flame',
   },
   {
@@ -27,8 +27,8 @@ export const outcomes = [
     blurb:
       'A certificate names a competence and the church that vouches for it. Some are issued on purchase, some after a short assessment, some after coursework.',
     types: ['certificate'],
-    coverImage: '/media/scenes/graduation-caps.webp',
-    coverAlt: 'Graduates throwing caps into the air',
+    coverImage: '/media/scenes/students-laptop.webp',
+    coverAlt: 'Smiling students learning together around a laptop',
     icon: 'award',
   },
   {
@@ -40,8 +40,8 @@ export const outcomes = [
     blurb:
       'A licence carries permissions rather than a title. What it authorises depends entirely on the issuing church and on local law.',
     types: ['license'],
-    coverImage: '/media/scenes/church-sanctuary.webp',
-    coverAlt: 'An empty church sanctuary with wooden pews',
+    coverImage: '/media/scenes/preacher-and-congregation.jpg',
+    coverAlt: 'A preacher addressing a congregation from the stage',
     icon: 'scroll',
   },
   {
@@ -66,8 +66,8 @@ export const outcomes = [
     blurb:
       'Churches abroad invite ministers to conferences, pulpit exchanges and mission engagements. The letter is issued on the host church’s letterhead and names them as your host for the visit.',
     types: ['invitation-letter'],
-    coverImage: '/media/scenes/auditorium-crowd.webp',
-    coverAlt: 'A packed auditorium at an international ministers conference',
+    coverImage: '/media/scenes/friends-overlook.webp',
+    coverAlt: 'Friends travelling together and looking across a new city',
     icon: 'plane',
   },
 ];

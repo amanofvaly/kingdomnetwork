@@ -17,9 +17,9 @@ export const churches = [
     region: 'East Africa',
     website: 'henrybyamukama.com',
     foundedYear: 1998,
-    coverImage: '/media/scenes/congregation-gathering.webp',
-    coverAlt: 'A congregation gathered under warm string lights during an evening service',
-    portraitImage: '/media/scenes/hands-raised-dark.webp',
+    coverImage: '/media/churches/faith-life-pastor-lectern.jpg',
+    coverAlt: 'The Faith Life Church pastor teaching from a lectern',
+    portraitImage: '/media/churches/faith-life-pastor-speaking.jpg',
     verified: true,
     about:
       'Faith Life Church trains pastors, evangelists and lay leaders across Uganda and the wider Great Lakes region. Teaching runs in two tracks: a residential cohort in Kampala and a distance track built for leaders who serve rural congregations while holding other work.',
@@ -75,7 +75,7 @@ export const churches = [
       {
         name: 'Dr. Dana Carson',
         title: 'Apostle and Presiding Bishop',
-        image: '/media/people/p-man-maroon-suit.webp',
+        image: '/media/people/dana-carson.jpg',
         bio: 'Leads the ministry and its teaching faculty. Writes the systematic theology sequence and supervises doctoral-level study.',
       },
       {
@@ -165,10 +165,10 @@ export const churches = [
         bio: 'Founded the network in 1967. Teaches the prophetic foundations sequence and chairs the ministerial review board.',
       },
       {
-        name: 'Ruth Adeniyi',
-        title: 'Director of Ministerial Alignment',
-        image: '/media/people/p-woman-blazer.webp',
-        bio: 'Manages credentialing, accountability review and the annual standing assessment for aligned ministers.',
+        name: 'Sherilyn Hamon-Miller',
+        title: 'Chief Executive Officer',
+        image: '/media/churches/sherilyn-hamon-miller.png',
+        bio: 'Serves as CEO and administrator of Christian International Ministries and as personal assistant to Dr. Bill Hamon.',
       },
     ],
     specialties: ['Prophetic ministry', 'Ministerial alignment', 'Apostolic teaching', 'Leadership covering'],

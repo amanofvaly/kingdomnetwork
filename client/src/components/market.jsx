@@ -1,9 +1,10 @@
 import { Link } from 'react-router-dom';
 import {
-  Award, BadgeCheck, BookOpen, ClipboardCheck, FileCheck2, Layers, MapPin, Plane, ShoppingBag, Zap,
+  ArrowRight, Award, BadgeCheck, BookOpen, ClipboardCheck, FileCheck2, Layers, MapPin, Plane, ShoppingBag, Zap,
 } from 'lucide-react';
 
 import { compact, money, plural } from '../lib/format.js';
+import { useCart } from '../lib/cart.jsx';
 
 /** How you get it. The single most important thing on a listing after the price. */
 export const ACQUISITION = {
@@ -30,12 +31,21 @@ export const OutcomeIcon = ({ name, size = 18, ...rest }) => {
   return <Icon size={size} {...rest} />;
 };
 
+const isImmediate = (o) => o.acquisition === 'instant'
+  && !(o.requires?.credentials?.length)
+  && !(o.requires?.courses?.length)
+  && !o.requires?.assessment?.required
+  && !o.requires?.review?.required;
+
 /** The marketplace card. Price is the loudest thing on it after the title. */
 export const OfferingCard = ({ offering: o, showOutcome = false, onAdd, added = false }) => {
+  const cart = useCart();
   const church = o.church;
+  const inCart = added || cart.has('offering', o.slug);
+  const immediate = isImmediate(o);
   const badge = o.badge && o.badge !== ACQUISITION[o.acquisition]?.label ? o.badge : null;
   return (
-    <article className="card offer-card">
+    <article className={`card offer-card ${immediate ? 'offer-instant' : ''}`}>
       {badge && <span className="flag badge-bestseller">{badge}</span>}
       <Link to={`/listing/${o.slug}`} className="media media-3x2" tabIndex={-1} aria-hidden="true">
         <img src={o.coverImage} alt="" loading="lazy" width={800} height={534}
@@ -75,9 +85,14 @@ export const OfferingCard = ({ offering: o, showOutcome = false, onAdd, added = 
           </span>
           <span className="xs dim num">{compact(o.issuedCount ?? 0)} issued</span>
         </div>
-        {onAdd && (
-          <button type="button" className="btn btn-outline btn-sm btn-block card-buy" disabled={added} onClick={() => onAdd(o)}>
-            <ShoppingBag size={14} /> {added ? 'In basket' : 'Add to basket'}
+        {inCart ? (
+          <Link to="/cart" className="btn btn-outline btn-sm btn-block card-buy">
+            In your basket <ArrowRight size={14} />
+          </Link>
+        ) : (
+          <button type="button" className="btn btn-outline btn-sm btn-block card-buy"
+            onClick={() => (onAdd ? onAdd(o) : cart.add({ kind: 'offering', slug: o.slug }))}>
+            <ShoppingBag size={14} /> Add to basket
           </button>
         )}
       </div>
@@ -95,7 +110,10 @@ export const OfferingCard = ({ offering: o, showOutcome = false, onAdd, added = 
  * compare on: how it is issued, how long it takes, how long it lasts.
  */
 export const OfferingRow = ({ offering: o, onAdd, owned }) => {
+  const cart = useCart();
   const church = o.church;
+  const inCart = cart.has('offering', o.slug);
+  const immediate = isImmediate(o);
   const discount = o.compareAtPrice > o.price ? Math.round((1 - o.price / o.compareAtPrice) * 100) : 0;
   const badge = o.badge && o.badge !== ACQUISITION[o.acquisition]?.label ? o.badge : null;
 
@@ -121,7 +139,7 @@ export const OfferingRow = ({ offering: o, onAdd, owned }) => {
   ].filter(Boolean).join(' + ');
 
   return (
-    <article className="offer-row">
+    <article className={`offer-row ${immediate ? 'offer-instant' : ''}`}>
       <Link to={`/listing/${o.slug}`} className="media" tabIndex={-1} aria-hidden="true">
         <img src={o.coverImage} alt="" loading="lazy"
           onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = '/media/scenes/books-colorful.webp'; }} />
@@ -172,10 +190,13 @@ export const OfferingRow = ({ offering: o, onAdd, owned }) => {
             <Link to="/passport" className="btn btn-outline btn-sm btn-block">In your passport</Link>
           </div>
         ) : (
-          <div className={`offer-actions ${onAdd ? '' : 'is-single'}`}>
+          <div className="offer-actions">
             <Link to={`/listing/${o.slug}`} className="btn btn-primary btn-sm btn-block">View</Link>
-            {onAdd && (
-              <button type="button" className="btn btn-outline btn-sm btn-block" onClick={() => onAdd(o)}>
+            {inCart ? (
+              <Link to="/cart" className="btn btn-outline btn-sm btn-block">In your basket <ArrowRight size={14} /></Link>
+            ) : (
+              <button type="button" className="btn btn-outline btn-sm btn-block"
+                onClick={() => (onAdd ? onAdd(o) : cart.add({ kind: 'offering', slug: o.slug }))}>
                 Add to basket
               </button>
             )}

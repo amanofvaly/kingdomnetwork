@@ -310,14 +310,18 @@ export const Listing = () => {
                   <Link to="/passport" className="btn btn-primary btn-lg btn-block">
                     <Download size={17} /> In your passport
                   </Link>
+                ) : inCart ? (
+                  <Link to="/cart" className="btn btn-primary btn-lg btn-block">
+                    In your basket <ArrowRight size={17} />
+                  </Link>
                 ) : (
                   <div className="stack stack-3">
                     <button type="button" className="btn btn-primary btn-lg btn-block" onClick={buyNow}>
                       Buy now
                     </button>
-                    <button type="button" className="btn btn-outline btn-block" disabled={inCart}
+                    <button type="button" className="btn btn-outline btn-block"
                       onClick={() => add({ kind: 'offering', slug: o.slug })}>
-                      <ShoppingBag size={16} /> {inCart ? 'In your basket' : 'Add to basket'}
+                      <ShoppingBag size={16} /> Add to basket
                     </button>
                     {repeatable && held && (
                       <p className="xs dim" style={{ margin: 0 }}>
@@ -364,10 +368,14 @@ export const Listing = () => {
           <Link to="/passport" className="btn btn-outline btn-block">
             <Download size={16} /> In your passport
           </Link>
+        ) : inCart ? (
+          <Link to="/cart" className="btn btn-primary btn-block">
+            In your basket <ArrowRight size={16} />
+          </Link>
         ) : (
           <div className="buy-bar-actions">
             <button type="button" className="btn btn-outline buy-bar-add" aria-label="Add to basket"
-              disabled={inCart} onClick={() => add({ kind: 'offering', slug: o.slug })}>
+              onClick={() => add({ kind: 'offering', slug: o.slug })}>
               <ShoppingBag size={17} />
             </button>
             <button type="button" className="btn btn-primary btn-block" onClick={buyNow}>Buy now</button>

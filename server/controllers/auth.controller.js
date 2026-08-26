@@ -36,15 +36,16 @@ export const signup = asyncHandler(async (req, res) => {
 });
 
 /**
- * Checkout account. A buyer pays with a name, an email and a phone number and
- * the account is created behind the purchase — asking for a password before
- * anyone has bought anything loses more sales than it prevents fraud.
- * Returning buyers with a password still sign in normally.
+ * Checkout account. The account is created behind the purchase from the same
+ * details form, so the buyer does not have to complete a separate signup flow.
  */
 export const guest = asyncHandler(async (req, res) => {
-  const { name, email, phone, country } = req.body ?? {};
+  const { name, email, password, country } = req.body ?? {};
   if (!name?.trim()) return res.status(400).json({ success: false, message: 'Enter your full name.' });
   if (!/^\S+@\S+\.\S+$/.test(email ?? '')) return res.status(400).json({ success: false, message: 'Enter a valid email address.' });
+  if (!password || password.length < 8) {
+    return res.status(400).json({ success: false, message: 'Use a password of at least 8 characters.' });
+  }
 
   const existing = await User.findOne({ email: email.toLowerCase().trim() }).select('+passwordHash');
   if (existing) {
@@ -54,8 +55,8 @@ export const guest = asyncHandler(async (req, res) => {
         message: 'An account already uses that email. Sign in to continue.',
       });
     }
-    // A previous checkout account. Keep going with it.
-    if (phone?.trim()) existing.phone = phone.trim();
+    // Upgrade a previous passwordless checkout account as it returns.
+    existing.passwordHash = await hashPassword(password);
     if (country?.trim()) existing.country = country.trim();
     await existing.save();
     return res.json({ success: true, data: { token: signToken(existing), user: existing.toPublic() } });
@@ -65,7 +66,7 @@ export const guest = asyncHandler(async (req, res) => {
   const user = await User.create({
     name: name.trim(),
     email: email.toLowerCase().trim(),
-    phone: phone?.trim() || undefined,
+    passwordHash: await hashPassword(password),
     country: country?.trim() || undefined,
     role: 'learner',
     avatar: `/media/people/${avatar}@200.webp`,
@@ -102,6 +103,12 @@ export const updateMe = asyncHandler(async (req, res) => {
   const allowed = ['name', 'country', 'city', 'phone', 'ministryRole', 'bio'];
   for (const key of allowed) {
     if (typeof req.body?.[key] === 'string') req.user[key] = req.body[key].trim();
+  }
+  if (typeof req.body?.password === 'string') {
+    if (req.body.password.length < 8) {
+      return res.status(400).json({ success: false, message: 'Use a password of at least 8 characters.' });
+    }
+    req.user.passwordHash = await hashPassword(req.body.password);
   }
   await req.user.save();
   res.json({ success: true, data: req.user.toPublic() });

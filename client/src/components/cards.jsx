@@ -1,11 +1,14 @@
 import { Link } from 'react-router-dom';
-import { Award, Clock, Layers, MapPin } from 'lucide-react';
+import { ArrowRight, Award, Clock, Layers, MapPin, ShoppingBag } from 'lucide-react';
 
 import { compact, duration, plural } from '../lib/format.js';
+import { useCart } from '../lib/cart.jsx';
 import { Monogram, Price, Stars, Verified } from './ui.jsx';
 
 export const CourseCard = ({ course }) => {
+  const { add, has } = useCart();
   const church = course.church;
+  const inCart = has('course', course.slug);
   return (
     <article className="card course-card">
       {course.bestseller && <span className="flag badge-bestseller">Bestseller</span>}
@@ -37,6 +40,14 @@ export const CourseCard = ({ course }) => {
           <Price amount={course.price} was={course.compareAtPrice} currency={course.currency} />
           {course.certificate?.kind && <span className="tag tag-gold"><Award size={12} />{course.certificate.kind}</span>}
         </div>
+        {inCart ? (
+          <Link to="/cart" className="btn btn-outline btn-sm btn-block card-buy">In your basket <ArrowRight size={14} /></Link>
+        ) : (
+          <button type="button" className="btn btn-outline btn-sm btn-block card-buy"
+            onClick={() => add({ kind: 'course', slug: course.slug })}>
+            <ShoppingBag size={14} /> Add to basket
+          </button>
+        )}
       </div>
     </article>
   );

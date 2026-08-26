@@ -7,7 +7,7 @@ export const optionalAuth = async (req, _res, next) => {
   if (!token) return next();
   const payload = readToken(token);
   if (!payload) return next();
-  req.user = await User.findById(payload.sub);
+  req.user = await User.findById(payload.sub).select('+passwordHash');
   next();
 };
 
@@ -17,7 +17,7 @@ export const requireAuth = async (req, res, next) => {
   const payload = token ? readToken(token) : null;
   if (!payload) return res.status(401).json({ success: false, message: 'Sign in to continue.' });
 
-  const user = await User.findById(payload.sub);
+  const user = await User.findById(payload.sub).select('+passwordHash');
   if (!user) return res.status(401).json({ success: false, message: 'That session is no longer valid.' });
 
   req.user = user;

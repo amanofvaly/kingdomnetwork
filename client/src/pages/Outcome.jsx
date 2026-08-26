@@ -33,7 +33,7 @@ export const Outcome = ({ slug: slugProp }) => {
   const params0 = useParams();
   const slug = slugProp ?? params0.slug;
   const [params, setParams] = useSearchParams();
-  const { add, has } = useCart();
+  const { add } = useCart();
   const [filtersOpen, setFiltersOpen] = useState(false);
   const { user } = useAuth();
   const { data: ent } = useApi('/me/entitlements', { skip: !user });
@@ -169,7 +169,7 @@ export const Outcome = ({ slug: slugProp }) => {
               <div>
                 {offerings.map((o) => (
                   <OfferingRow key={o.slug} offering={o} owned={owned.has(o.slug)}
-                    onAdd={has('offering', o.slug) ? null : (x) => add({ kind: 'offering', slug: x.slug })} />
+                    onAdd={(x) => add({ kind: 'offering', slug: x.slug })} />
                 ))}
               </div>
             )}

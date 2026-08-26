@@ -38,6 +38,7 @@ userSchema.methods.toPublic = function toPublic() {
     country: this.country,
     city: this.city,
     phone: this.phone,
+    hasPassword: Boolean(this.passwordHash),
     ministryRole: this.ministryRole,
     bio: this.bio,
     createdAt: this.createdAt,

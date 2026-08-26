@@ -62,6 +62,17 @@ const Hero = ({ data }) => {
   );
 };
 
+const isImmediate = (o) => o.acquisition === 'instant'
+  && !(o.requires?.credentials?.length)
+  && !(o.requires?.courses?.length)
+  && !o.requires?.assessment?.required
+  && !o.requires?.review?.required;
+
+const instantFirst = (items = []) => items
+  .map((item, index) => ({ item, index }))
+  .sort((a, b) => Number(isImmediate(b.item)) - Number(isImmediate(a.item)) || a.index - b.index)
+  .map(({ item }) => item);
+
 const OutcomeRail = ({ outcomes }) => (
   <section className="category-showcase">
     <div className="wrap">
@@ -100,7 +111,7 @@ const Rail = ({ title, sub, to, toLabel, items, loading, cols = 'grid-4', onAdd,
       </div>
       {loading ? <SkeletonGrid count={4} cols={cols} /> : (
         <div className={`grid ${cols}`}>
-          {items.map((o) => <OfferingCard key={o.slug} offering={o} showOutcome onAdd={onAdd} added={has?.('offering', o.slug)} />)}
+          {instantFirst(items).map((o) => <OfferingCard key={o.slug} offering={o} showOutcome onAdd={onAdd} added={has?.('offering', o.slug)} />)}
         </div>
       )}
     </div>
@@ -108,10 +119,22 @@ const Rail = ({ title, sub, to, toLabel, items, loading, cols = 'grid-4', onAdd,
 );
 
 const CHURCH_BANNER_ICONS = [BookOpen, Church, Headphones, Users];
+const CHURCH_PEOPLE = {
+  'faith-life-church': '/media/churches/faith-life-pastor-speaking.jpg',
+  'rock-woi': '/media/churches/rock-woi-pastor.png',
+  'seminole-assembly': '/media/churches/seminole-community.webp',
+  'christian-international': '/media/churches/sherilyn-hamon-miller.png',
+};
+const churchBannerRank = (church) => {
+  if (church.slug === 'rock-woi') return 0;
+  if (CHURCH_PEOPLE[church.slug]) return 1;
+  return 2;
+};
 
 const ChurchBanner = ({ church, index }) => {
   const Icon = CHURCH_BANNER_ICONS[index % CHURCH_BANNER_ICONS.length];
   const specialties = church.specialties ?? [];
+  const personImage = CHURCH_PEOPLE[church.slug];
   return (
     <Link
       to={`/churches/${church.slug}`}
@@ -127,11 +150,17 @@ const ChurchBanner = ({ church, index }) => {
       <div className="issuer-stack" aria-hidden="true">
         <span className="issuer-stack-card issuer-stack-back">{specialties[2] ?? church.region}</span>
         <span className="issuer-stack-card issuer-stack-mid">{specialties[1] ?? 'Ministry formation'}</span>
-        <span className="issuer-stack-card issuer-stack-front">
-          <span className="issuer-symbol"><Icon size={34} strokeWidth={1.8} /></span>
-          <strong>{church.shortName ?? church.name}</strong>
-          <small>{church.stats?.credentialsIssued?.toLocaleString() ?? 0} credentials issued</small>
-          <ArrowRight className="issuer-arrow" size={25} />
+        <span className={`issuer-stack-card issuer-stack-front ${personImage ? 'has-person' : ''}`}>
+          {personImage ? (
+            <img src={personImage} alt="" />
+          ) : (
+            <>
+              <span className="issuer-symbol"><Icon size={34} strokeWidth={1.8} /></span>
+              <strong>{church.shortName ?? church.name}</strong>
+              <small>{church.stats?.credentialsIssued?.toLocaleString() ?? 0} credentials issued</small>
+              <ArrowRight className="issuer-arrow" size={25} />
+            </>
+          )}
         </span>
       </div>
       <span className="issuer-track" aria-hidden="true"><i /><i /><i /></span>
@@ -147,15 +176,6 @@ export const Home = () => {
   return (
     <>
       <Hero data={data} />
-      {data && <OutcomeRail outcomes={data.outcomes} />}
-
-      <Rail
-        title="Popular right now"
-        sub="Start with the pathways people are choosing most."
-        to="/search" toLabel="Browse everything"
-        items={data?.featured ?? []} loading={loading}
-        onAdd={(o) => add({ kind: 'offering', slug: o.slug })} has={has}
-      />
 
       {!loading && data.churches.length > 0 && (
         <section className="band band-tight">
@@ -171,13 +191,25 @@ export const Home = () => {
             </div>
             <div className="issuer-rail-shell">
               <div className="issuer-rail">
-                {data.churches.map((c, index) => <ChurchBanner key={c.slug} church={c} index={index} />)}
+                {[...data.churches]
+                  .sort((a, b) => churchBannerRank(a) - churchBannerRank(b))
+                  .map((c, index) => <ChurchBanner key={c.slug} church={c} index={index} />)}
               </div>
               <span className="issuer-swipe-cue" aria-hidden="true"><ChevronRight size={24} /></span>
             </div>
           </div>
         </section>
       )}
+
+      <Rail
+        title="Popular right now"
+        sub="Start with the pathways people are choosing most."
+        to="/search" toLabel="Browse everything"
+        items={data?.featured ?? []} loading={loading}
+        onAdd={(o) => add({ kind: 'offering', slug: o.slug })} has={has}
+      />
+
+      {data && <OutcomeRail outcomes={data.outcomes} />}
 
       <section className="band band-tight">
         <div className="wrap">
@@ -192,7 +224,7 @@ export const Home = () => {
           </div>
           {loading ? <SkeletonGrid count={4} /> : (
             <div className="grid grid-4">
-              {data.letters.map((o) => <OfferingCard key={o.slug} offering={o} />)}
+              {instantFirst(data.letters).map((o) => <OfferingCard key={o.slug} offering={o} />)}
             </div>
           )}
         </div>

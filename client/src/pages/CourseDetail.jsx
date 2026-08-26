@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import {
-  Award, BookOpen, Check, ChevronDown, Clock, FileText, Globe, GraduationCap,
+  ArrowRight, Award, BookOpen, Check, ChevronDown, Clock, FileText, Globe, GraduationCap,
   Headphones, Infinity as InfinityIcon, PlayCircle, ShoppingBag, Signal, Sparkles, Users,
 } from 'lucide-react';
 
@@ -321,14 +321,18 @@ export const CourseDetail = () => {
                       This course is included with that credential. It is not sold separately.
                     </p>
                   </div>
+                ) : inCart ? (
+                  <Link to="/cart" className="btn btn-primary btn-lg btn-block">
+                    In your basket <ArrowRight size={17} />
+                  </Link>
                 ) : (
                   <div className="stack stack-3">
                     <button type="button" className="btn btn-primary btn-lg btn-block" onClick={buy}>
-                      {inCart ? 'Go to basket' : 'Enrol now'}
+                      Enrol now
                     </button>
-                    <button type="button" className="btn btn-outline btn-block" disabled={inCart}
+                    <button type="button" className="btn btn-outline btn-block"
                       onClick={() => add({ kind: 'course', slug: course.slug })}>
-                      <ShoppingBag size={16} /> {inCart ? 'In your basket' : 'Add to basket'}
+                      <ShoppingBag size={16} /> Add to basket
                     </button>
                   </div>
                 )}
