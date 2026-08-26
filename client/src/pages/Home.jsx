@@ -8,6 +8,10 @@ import { useApi } from '../lib/useAsync.js';
 import { useCart } from '../lib/cart.jsx';
 import { money } from '../lib/format.js';
 
+// Imported (not referenced from /public) so Vite fingerprints it: a new filename
+// on every edit means the swap goes live immediately, past every cache.
+import heroFeatured from '../assets/hero-featured-pastoral-care.jpg';
+
 /**
  * A photographic banner with the offer on it, the way a storefront opens.
  * Search sits inside it because this is a marketplace, not a brochure.
@@ -51,7 +55,7 @@ const Hero = ({ data }) => {
 
         {featured && (
           <article className="hero-feature-banner">
-            <img src="/media/hero-featured-pastoral-care-e23f708e.jpg"
+            <img src={heroFeatured}
               alt="Featured Pastoral Care Certificate from Seminole Assembly, $40" fetchPriority="high" />
             <button type="button" className="hero-hotspot hero-hotspot-buy" onClick={buy} aria-label="Buy Pastoral Care Certificate now" />
             <Link to={`/listing/${featured.slug}`} className="hero-hotspot hero-hotspot-details" aria-label="View Pastoral Care Certificate details" />
