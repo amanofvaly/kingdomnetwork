@@ -296,7 +296,7 @@
 .header-inner { display: flex; align-items: center; gap: var(--s-5); height: var(--header-h); }
 
 .brand { display: flex; align-items: center; gap: 10px; flex: none; }
-.brand-mark { width: 30px; height: 30px; border-radius: var(--r-sm); background: var(--green-900); color: #fff; display: grid; place-items: center; font-family: var(--font-display); font-weight: 600; font-size: 15px; }
+.brand-mark { display: block; width: 26px; height: 32px; object-fit: contain; flex: none; }
 .brand-name { font-family: var(--font-display); font-weight: 600; font-size: var(--text-md); letter-spacing: -0.025em; }
 
 .nav { display: flex; align-items: center; gap: var(--s-1); }

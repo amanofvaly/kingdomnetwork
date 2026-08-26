@@ -160,7 +160,7 @@ const MobileNav = ({ onClose }) => {
       <div className="wrap">
         <div className="row-between" style={{ height: 'var(--header-h)' }}>
           <Link to="/" className="brand" onClick={onClose}>
-            <span className="brand-mark">K</span>
+            <img className="brand-mark" src="/brand-mark.png" alt="" width="26" height="32" />
             <span className="brand-name">Kingdom Network</span>
           </Link>
           <button type="button" className="icon-btn" onClick={onClose} aria-label="Close menu"><X size={20} /></button>
@@ -212,7 +212,7 @@ const Header = () => {
       <header className="header">
         <div className="wrap header-inner">
           <Link to="/" className="brand">
-            <span className="brand-mark" aria-hidden="true">K</span>
+            <img className="brand-mark" src="/brand-mark.png" alt="" width="26" height="32" />
             <span className="brand-name">Kingdom Network</span>
           </Link>
 
@@ -261,7 +261,7 @@ const Footer = () => (
       <div className="footer-grid">
         <div className="stack stack-3">
           <Link to="/" className="brand">
-            <span className="brand-mark" aria-hidden="true">K</span>
+            <img className="brand-mark" src="/brand-mark-white.png" alt="" width="26" height="32" />
             <span className="brand-name" style={{ color: '#fff' }}>Kingdom Network</span>
           </Link>
           <p className="small" style={{ maxWidth: '34ch', color: 'var(--ink-inverse-2)' }}>
