@@ -5,7 +5,6 @@ import { Check, SlidersHorizontal, X } from 'lucide-react';
 import { ACQUISITION, OfferingRow, OutcomeIcon } from '../components/market.jsx';
 import { Empty, ErrorState, Spinner } from '../components/ui.jsx';
 import { useApi } from '../lib/useAsync.js';
-import { useCart } from '../lib/cart.jsx';
 import { useAuth } from '../lib/auth.jsx';
 import { money, plural } from '../lib/format.js';
 
@@ -33,7 +32,6 @@ export const Outcome = ({ slug: slugProp }) => {
   const params0 = useParams();
   const slug = slugProp ?? params0.slug;
   const [params, setParams] = useSearchParams();
-  const { add } = useCart();
   const [filtersOpen, setFiltersOpen] = useState(false);
   const { user } = useAuth();
   const { data: ent } = useApi('/me/entitlements', { skip: !user });
@@ -56,7 +54,10 @@ export const Outcome = ({ slug: slugProp }) => {
   if (loading && !data) return <div className="wrap band"><Spinner label="Loading listings" /></div>;
 
   const { outcome, offerings, facets, priceRange, total } = data;
-  const owned = new Set((ent?.offerings ?? []).map((o) => o.slug));
+  // Held credentials and live applications are different states, and the row
+  // says something different for each.
+  const owned = new Set((ent?.credentials ?? []).filter((c) => c.status === 'issued').map((c) => c.slug));
+  const applied = new Map((ent?.applications ?? []).map((a) => [a.slug, a]));
 
   const active = [
     params.get('church') && { key: 'church', label: facets.churches.find((c) => c.value === params.get('church'))?.label ?? params.get('church') },
@@ -168,8 +169,8 @@ export const Outcome = ({ slug: slugProp }) => {
             ) : (
               <div>
                 {offerings.map((o) => (
-                  <OfferingRow key={o.slug} offering={o} owned={owned.has(o.slug)}
-                    onAdd={(x) => add({ kind: 'offering', slug: x.slug })} />
+                  <OfferingRow key={o.slug} offering={o} owned={owned.has(o.slug)} applied={applied.get(o.slug)}
+                    />
                 ))}
               </div>
             )}

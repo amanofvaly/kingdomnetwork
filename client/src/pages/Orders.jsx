@@ -16,7 +16,7 @@ export const Orders = () => {
       <h1 style={{ fontSize: 'var(--text-3xl)' }}>Orders</h1>
       {data.length === 0 ? (
         <Empty icon={ShoppingBag} title="No orders yet" action={<Link to="/courses" className="btn btn-primary">Browse courses</Link>}>
-          Anything you enrol on will show up here with its receipt.
+          Your orders and receipts appear here.
         </Empty>
       ) : (
         <div className="stack stack-4">

@@ -21,7 +21,7 @@ export const Teach = () => {
               and issue certificates and ordination directly into a minister&rsquo;s passport.
             </p>
             <div className="row-wrap" style={{ gap: 12 }}>
-              <Link to="/signup" className="btn btn-inverse btn-lg">Apply to teach</Link>
+              <Link to="/onboarding" className="btn btn-inverse btn-lg">Set up your church</Link>
               <Link to="/churches" className="btn btn-inverse-outline btn-lg">See who is here</Link>
             </div>
           </div>
@@ -35,8 +35,8 @@ export const Teach = () => {
         <div className="wrap stack stack-6">
           <div className="section-head" style={{ marginBottom: 0 }}>
             <div>
-              <h2>What you get</h2>
-              <p>The parts of running a teaching ministry that are tedious to build and easy to get wrong.</p>
+              <h2>What's included</h2>
+              <p>Everything you need to publish, assess and issue.</p>
             </div>
           </div>
           <div className="grid grid-4">
@@ -85,10 +85,10 @@ export const Teach = () => {
             <div className="stack stack-2" style={{ maxWidth: '52ch' }}>
               <h3>Ready to publish?</h3>
               <p className="muted" style={{ margin: 0 }}>
-                Create an account, tell us about your ministry, and we will set up your profile and first course with you.
+                Create an account and set up your church profile in a few minutes.
               </p>
             </div>
-            <Link to="/signup" className="btn btn-primary btn-lg">Apply to teach</Link>
+            <Link to="/onboarding" className="btn btn-primary btn-lg">Set up your church</Link>
           </div>
         </div>
       </section>

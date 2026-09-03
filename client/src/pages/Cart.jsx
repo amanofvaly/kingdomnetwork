@@ -30,14 +30,14 @@ export const Cart = () => {
     return (
       <div className="wrap band">
         <Empty icon={ShoppingBag} title="Your basket is empty"
-          action={<Link to="/ordination" className="btn btn-primary">Browse the marketplace</Link>}>
-          Add a credential, a licence or an invitation and it shows up here.
+          action={<Link to="/courses" className="btn btn-primary">Browse the coursework</Link>}>
+          Courses and books only. Credentials are applied for from their own page.
         </Empty>
       </div>
     );
   }
 
-  const path = (i) => (i.kind === 'offering' ? `/listing/${i.slug}` : `/courses/${i.slug}`);
+  const path = (i) => (i.kind === 'resource' ? `/resources/${i.slug}` : `/courses/${i.slug}`);
 
   return (
     <div className="wrap band-tight stack stack-6">
@@ -55,7 +55,7 @@ export const Cart = () => {
                       <img src={item.image} alt="" loading="lazy" />
                     </Link>
                     <div className="stack stack-2">
-                      <span className="xs dim">{item.kind === 'course' ? 'Course' : item.outcome?.replace('-', ' ')}</span>
+                      <span className="xs dim">{item.kind === 'course' ? 'Course' : (item.type ?? 'Material')}</span>
                       <h4><Link to={path(item)}>{item.title}</Link></h4>
                       <span className="small muted">{item.churchName}</span>
                       <button type="button" className="link small" style={{ color: 'var(--red-600)', alignSelf: 'flex-start' }}
@@ -77,7 +77,7 @@ export const Cart = () => {
                 <div>
                   <h3>Often bought with this</h3>
                   <p className="small muted" style={{ margin: '4px 0 0' }}>
-                    Ministers who buy what is in your basket usually add one of these.
+                    Often bought together.
                   </p>
                 </div>
                 <div className="stack stack-3">
@@ -92,16 +92,16 @@ export const Cart = () => {
                       </div>
                       <span className="price-big" style={{ flex: 'none' }}>{money(o.price)}</span>
                       <button type="button" className="btn btn-outline btn-sm" style={{ flex: 'none' }}
-                        disabled={has('offering', o.slug)}
-                        onClick={() => add({ kind: 'offering', slug: o.slug })}>
-                        <Plus size={14} /> {has('offering', o.slug) ? 'Added' : 'Add'}
+                        disabled={has(o.kind, o.slug)}
+                        onClick={() => add({ kind: o.kind, slug: o.slug })}>
+                        <Plus size={14} /> {has(o.kind, o.slug) ? 'Added' : 'Add'}
                       </button>
                     </div>
                   ))}
                 </div>
                 {also.length > 1 && (
                   <button type="button" className="btn btn-outline" style={{ alignSelf: 'flex-start' }}
-                    onClick={() => also.forEach((o) => add({ kind: 'offering', slug: o.slug }))}>
+                    onClick={() => also.forEach((o) => add({ kind: o.kind, slug: o.slug }))}>
                     Add all {money(also.reduce((n, o) => n + o.price, 0))}
                   </button>
                 )}
@@ -124,7 +124,7 @@ export const Cart = () => {
               Checkout <ArrowRight size={16} />
             </button>
             <p className="xs dim" style={{ margin: 0 }}>
-              You will not be charged yet. Pay with M-Pesa, Airtel Money, MTN MoMo or card.
+              Pay with M-Pesa, Airtel Money, MTN MoMo or card.
             </p>
           </aside>
         </div>

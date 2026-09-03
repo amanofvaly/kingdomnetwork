@@ -5,7 +5,7 @@ import { CourseCard } from '../components/cards.jsx';
 import { OfferingCard } from '../components/market.jsx';
 import { Breadcrumbs, ErrorState, Monogram, Spinner, Stars, Verified } from '../components/ui.jsx';
 import { useApi } from '../lib/useAsync.js';
-import { compact, plural } from '../lib/format.js';
+import { compact, money, plural } from '../lib/format.js';
 
 export const ChurchDetail = () => {
   const { slug } = useParams();
@@ -14,7 +14,12 @@ export const ChurchDetail = () => {
   if (loading) return <div className="wrap band"><Spinner label="Loading church" /></div>;
   if (error) return <div className="wrap band"><ErrorState error={error} onRetry={reload} /></div>;
 
-  const { church, listings, courses, faculty } = data;
+  const { church, listings, courses, faculty, resources, donations, gallery, sections } = data;
+
+  // The church controls the order of its own page, and can hide blocks it does
+  // not want. `visible` keeps the rendering below honest about that.
+  const visible = new Set((sections ?? []).filter((x) => x.visible !== false).map((x) => x.type));
+  const shows = (type) => !sections?.length || visible.has(type);
 
   return (
     <>
@@ -69,7 +74,7 @@ export const ChurchDetail = () => {
                 ))}
               </div>
               <Link to={`/courses?church=${church.slug}`} className="btn btn-primary btn-block btn-sm">
-                Browse {plural(listings.length, 'listing')}
+                See {plural(listings.length, 'listing')}
               </Link>
             </div>
           </div>
@@ -122,14 +127,14 @@ export const ChurchDetail = () => {
         </section>
       )}
 
-      {listings.length > 0 && (
+      {listings.length > 0 && shows('whatWeIssue') && (
         <section className="band band-tight band-sunken">
           <div className="wrap stack stack-5">
             <div className="rail-head">
               <div>
-                <h2 style={{ fontSize: 'var(--text-2xl)' }}>What this church issues</h2>
+                <h2 style={{ fontSize: 'var(--text-2xl)' }}>Credentials offered</h2>
                 <p className="small muted" style={{ margin: '4px 0 0' }}>
-                  {plural(listings.length, 'listing')}, each with its own requirements and price set by the ministry.
+                  {plural(listings.length, 'listing')}, each with the requirements and the fee this ministry sets itself.
                 </p>
               </div>
             </div>
@@ -140,12 +145,12 @@ export const ChurchDetail = () => {
         </section>
       )}
 
-      {courses.length > 0 && (
+      {courses.length > 0 && shows('courses') && (
         <section className="band band-tight">
           <div className="wrap stack stack-5">
             <div>
               <h2 style={{ fontSize: 'var(--text-2xl)' }}>Coursework</h2>
-              <p className="small muted">Courses this church teaches, unlocked by the credentials that require them.</p>
+              <p className="small muted">Courses taught by this church.</p>
             </div>
             <div className="grid grid-4">
               {courses.map((c) => <CourseCard key={c.slug} course={{ ...c, church }} />)}
@@ -154,7 +159,7 @@ export const ChurchDetail = () => {
         </section>
       )}
 
-      {faculty.length > 0 && (
+      {faculty.length > 0 && shows('faculty') && (
         <section className="band band-tight band-warm">
           <div className="wrap stack stack-5">
             <h2 style={{ fontSize: 'var(--text-2xl)' }}>Faculty</h2>
@@ -177,6 +182,83 @@ export const ChurchDetail = () => {
                 </div>
               ))}
             </div>
+          </div>
+        </section>
+      )}
+      {resources?.length > 0 && shows('resources') && (
+        <section className="band band-tight">
+          <div className="wrap stack stack-5">
+            <h2 style={{ fontSize: 'var(--text-2xl)' }}>Books and materials</h2>
+            <div className="grid grid-4">
+              {resources.map((r) => (
+                <article key={r.slug} className="card">
+                  {r.coverImage ? (
+                    <span className="media media-3x2"><img src={r.coverImage} alt="" loading="lazy" /></span>
+                  ) : null}
+                  <div className="card-body">
+                    <span className="xs dim">{r.kind?.replace('-', ' ')}</span>
+                    <h4 className="clamp-2">{r.title}</h4>
+                    {r.subtitle ? <p className="small muted clamp-2">{r.subtitle}</p> : null}
+                    <div className="offer-foot">
+                      <span className="price-big">{r.price ? money(r.price) : 'Free'}</span>
+                      {r.pages ? <span className="xs dim">{r.pages} pages</span> : null}
+                    </div>
+                  </div>
+                </article>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {gallery?.length > 0 && shows('gallery') && (
+        <section className="band band-tight">
+          <div className="wrap stack stack-5">
+            <h2 style={{ fontSize: 'var(--text-2xl)' }}>The church</h2>
+            <div className="grid grid-4">
+              {gallery.map((g) => (
+                <span key={g.id} className="media media-3x2">
+                  <img src={g.url} alt={g.alt ?? ''} loading="lazy" />
+                </span>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {donations?.enabled && shows('donate') && (
+        <section className="band band-tight band-sunken">
+          <div className="wrap stack stack-5">
+            <div className="stack stack-2" style={{ maxWidth: '62ch' }}>
+              <span className="eyebrow">Give</span>
+              <h2 style={{ fontSize: 'var(--text-2xl)' }}>
+                {donations.headline ?? `Support ${church.shortName ?? church.name}`}
+              </h2>
+              {donations.blurb ? <p className="lede">{donations.blurb}</p> : null}
+            </div>
+
+            {donations.causes?.length > 0 && (
+              <div className="grid grid-3">
+                {donations.causes.map((c) => (
+                  <div key={c.id} className="panel stack stack-3">
+                    <h4>{c.title}</h4>
+                    {c.blurb ? <p className="small muted" style={{ margin: 0 }}>{c.blurb}</p> : null}
+                    {c.goalAmount ? (
+                      <div className="stack stack-1">
+                        <span className="progress">
+                          <span style={{ width: `${Math.min(100, ((c.raisedAmount ?? 0) / c.goalAmount) * 100)}%` }} />
+                        </span>
+                        <span className="xs dim">{money(c.raisedAmount ?? 0)} of {money(c.goalAmount)}</span>
+                      </div>
+                    ) : null}
+                  </div>
+                ))}
+              </div>
+            )}
+
+            <Link to={`/give/${church.slug}`} className="btn btn-primary" style={{ alignSelf: 'flex-start' }}>
+              Give to {church.shortName ?? church.name}
+            </Link>
           </div>
         </section>
       )}

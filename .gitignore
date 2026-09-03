@@ -33,3 +33,7 @@ Thumbs.db
 coverage/
 .cache/
 *.pem
+
+# Uploaded media (kept on an attached disk in production)
+server/uploads/*
+!server/uploads/.gitignore

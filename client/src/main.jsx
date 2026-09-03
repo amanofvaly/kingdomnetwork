@@ -7,17 +7,21 @@ import './styles/tokens.css';
 import './styles/base.css';
 import './styles/app.css';
 import './styles/pages.css';
+import './styles/admin.css';
 
 import { App } from './App.jsx';
 import { AuthProvider } from './lib/auth.jsx';
 import { CartProvider } from './lib/cart.jsx';
+import { ToastProvider } from './lib/toast.jsx';
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
     <BrowserRouter>
       <AuthProvider>
         <CartProvider>
-          <App />
+          <ToastProvider>
+            <App />
+          </ToastProvider>
         </CartProvider>
       </AuthProvider>
     </BrowserRouter>

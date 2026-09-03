@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import {
-  BookOpen, ChevronDown, Compass, IdCard, LogOut, Menu, Search, ShoppingBag, User, X,
+  BookOpen, Building2, ChevronDown, ClipboardList, Compass, IdCard, LogOut, Menu, Search, ShieldCheck, ShoppingBag, User, X,
 } from 'lucide-react';
 
 import { api } from '../lib/api.js';
@@ -58,8 +58,8 @@ const SearchField = ({ compactMode }) => {
           value={term}
           onChange={(e) => { setTerm(e.target.value); setOpen(true); }}
           onFocus={() => setOpen(true)}
-          placeholder={compactMode ? 'Search credentials, churches, destinations' : 'Search the marketplace'}
-          aria-label="Search the marketplace"
+          placeholder={compactMode ? 'Search credentials, churches, destinations' : 'Search credentials and churches'}
+          aria-label="Search credentials and churches"
         />
       </form>
 
@@ -113,7 +113,7 @@ const SearchField = ({ compactMode }) => {
 };
 
 const AccountMenu = () => {
-  const { user, logout } = useAuth();
+  const { user, logout, memberships, isPlatformAdmin } = useAuth();
   const [open, setOpen] = useState(false);
   const ref = useRef(null);
   const navigate = useNavigate();
@@ -141,8 +141,19 @@ const AccountMenu = () => {
           </div>
           <Link to="/dashboard" onClick={() => setOpen(false)}><BookOpen size={16} /> My account</Link>
           <Link to="/passport" onClick={() => setOpen(false)}><IdCard size={16} /> Minister passport</Link>
+          <Link to="/applications" onClick={() => setOpen(false)}><ClipboardList size={16} /> My applications</Link>
           <Link to="/account" onClick={() => setOpen(false)}><User size={16} /> Account</Link>
           <Link to="/orders" onClick={() => setOpen(false)}><ShoppingBag size={16} /> Orders</Link>
+
+          {memberships.length > 0 || isPlatformAdmin ? <hr /> : null}
+          {memberships.map((m) => (
+            <Link key={m.churchSlug} to={`/manage/${m.churchSlug}`} onClick={() => setOpen(false)}>
+              <Building2 size={16} /> {m.church?.shortName ?? m.churchSlug}
+            </Link>
+          ))}
+          {isPlatformAdmin ? (
+            <Link to="/admin" onClick={() => setOpen(false)}><ShieldCheck size={16} /> Platform administration</Link>
+          ) : null}
           <div className="menu-sep" />
           <button type="button" onClick={() => { logout(); setOpen(false); navigate('/'); }}>
             <LogOut size={16} /> Sign out
@@ -265,7 +276,7 @@ const Footer = () => (
             <span className="brand-name" style={{ color: '#fff' }}>Kingdom Network</span>
           </Link>
           <p className="small" style={{ maxWidth: '34ch', color: 'var(--ink-inverse-2)' }}>
-            A marketplace for church-issued ordination, credentials and invitations. Churches set their own titles, requirements and prices.
+            Ordination, credentials and invitation letters issued by churches. Each church sets its own requirements and fees.
           </p>
         </div>
         <div>
@@ -293,12 +304,13 @@ const Footer = () => (
             <li><Link to="/login">Sign in</Link></li>
             <li><Link to="/dashboard">My account</Link></li>
             <li><Link to="/passport">Minister passport</Link></li>
+            <li><Link to="/applications">My applications</Link></li>
           </ul>
         </div>
         <div>
           <h5>For churches</h5>
           <ul>
-            <li><Link to="/teach">List on Kingdom Network</Link></li>
+            <li><Link to="/for-churches">List what you issue</Link></li>
             <li><Link to="/churches">Church directory</Link></li>
           </ul>
         </div>

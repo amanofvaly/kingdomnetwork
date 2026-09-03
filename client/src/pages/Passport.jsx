@@ -1,12 +1,13 @@
 import { Link } from 'react-router-dom';
 import {
-  Award, BadgeCheck, Clock, Copy, Download, FileCheck2, IdCard, Plane, ShieldCheck,
+  Award, BadgeCheck, Clock, Copy, Download, IdCard, Plane, ShieldCheck,
 } from 'lucide-react';
 
 import { Avatar, Empty, ErrorState, Spinner } from '../components/ui.jsx';
 import { getToken } from '../lib/api.js';
+import { StatusPill } from '../components/admin/kit.jsx';
 import { useApi } from '../lib/useAsync.js';
-import { dateLong, money, plural } from '../lib/format.js';
+import { dateLong, plural } from '../lib/format.js';
 
 const KIND = {
   certificate: 'Certificate',
@@ -18,8 +19,9 @@ const KIND = {
 
 const STATUS = {
   issued: { label: 'Issued', tone: 'tag-green' },
-  'in-review': { label: 'With the church', tone: 'tag-gold' },
-  'in-progress': { label: 'Not yet issued', tone: '' },
+  expired: { label: 'Expired', tone: 'tag-gold' },
+  // Reported as withdrawn rather than hidden: someone checking a document needs
+  // to be told it was revoked, not that it never existed.
   revoked: { label: 'Withdrawn', tone: 'tag-red' },
 };
 
@@ -43,52 +45,10 @@ const download = async (credential) => {
   URL.revokeObjectURL(url);
 };
 
-const Blockers = ({ blockers, credentialId }) => (
-  <div className="stack stack-3" style={{ paddingTop: 'var(--s-3)', borderTop: '1px solid var(--line)' }}>
-    <span className="xs dim">What you need to do</span>
-    {blockers.map((b, i) => {
-      if (b.kind === 'assessment') {
-        return (
-          <div key={i} className="row-between" style={{ gap: 12, flexWrap: 'wrap' }}>
-            <span className="row small" style={{ gap: 8 }}><FileCheck2 size={14} /> Pass the required assessment</span>
-            <Link to={`/assessment/${credentialId}`} className="btn btn-primary btn-sm">Take assessment</Link>
-          </div>
-        );
-      }
-      if (b.kind === 'course') {
-        return (
-          <div key={i} className="stack stack-2">
-            <div className="row-between" style={{ gap: 12, flexWrap: 'wrap' }}>
-              <span className="row small grow" style={{ gap: 8, minWidth: 0 }}>
-                <Clock size={14} /> <span className="grow clamp-1">Finish {b.course?.title ?? b.slug}</span>
-                <span className="xs dim num">{b.progress}%</span>
-              </span>
-              <Link to={`/learn/${b.slug}`} className="btn btn-outline btn-sm">
-                {b.progress > 0 ? 'Continue course' : 'Start course'}
-              </Link>
-            </div>
-            <div className="progress"><span style={{ width: `${b.progress}%` }} /></div>
-          </div>
-        );
-      }
-      return (
-        <div key={i} className="row-between" style={{ gap: 12, flexWrap: 'wrap' }}>
-          <span className="row small grow" style={{ gap: 8 }}>
-            <Award size={14} /> Obtain {b.offering?.title ?? b.slug}
-          </span>
-          <Link to={`/listing/${b.slug}`} className="btn btn-outline btn-sm">
-            View required credential{b.offering ? ` · ${money(b.offering.price)}` : ''}
-          </Link>
-        </div>
-      );
-    })}
-  </div>
-);
-
 const CredentialCard = ({ credential: c }) => {
   const issued = c.status === 'issued';
   const isLetter = c.kind === 'invitation-letter';
-  const status = STATUS[c.status] ?? STATUS['in-progress'];
+  const status = STATUS[c.expired ? 'expired' : c.status] ?? STATUS.issued;
 
   return (
     <article className={`cred ${issued ? 'issued' : ''} ${isLetter ? 'letter' : ''}`}>
@@ -133,47 +93,61 @@ const CredentialCard = ({ credential: c }) => {
             </button>
           </div>
         </div>
-      ) : c.status === 'in-review' ? (
-        <div className="notice notice-gold" style={{ marginTop: 'auto' }}>
-          <Clock size={15} />
-          <span>
-            {c.churchName} is reviewing your submission. They sign it and it appears here.
-            {c.offering?.requires?.review?.turnaroundDays ? ` Usually about ${plural(c.offering.requires.review.turnaroundDays, 'day')}.` : ''}
-          </span>
-        </div>
       ) : (
-        <>
-          <Blockers blockers={c.blockers ?? []} credentialId={c.credentialId} />
-        </>
+        <div className="notice" style={{ marginTop: 'auto' }}>
+          <Clock size={15} />
+          <span>{c.expired ? 'This has expired.' : 'This is no longer current.'}</span>
+        </div>
       )}
     </article>
   );
 };
 
-const pendingSummary = (credentials) => {
-  if (credentials.length === 1) {
-    const credential = credentials[0];
-    if (credential.status === 'in-review') {
-      return `${credential.church?.name ?? credential.churchName} is reviewing this credential before signing it.`;
-    }
-    const blocker = credential.blockers?.[0];
-    if (blocker?.kind === 'assessment') {
-      return `Pass the assessment before ${credential.title} can be issued.`;
-    }
-    if (blocker?.kind === 'course') {
-      return `Finish ${blocker.course?.title ?? blocker.slug} before ${credential.title} can be issued.`;
-    }
-    if (blocker?.kind === 'credential') {
-      return `Obtain ${blocker.offering?.title ?? blocker.slug} before ${credential.title} can be issued.`;
-    }
-    return `${credential.title} has not been issued yet.`;
+
+/** Something still in flight with a church. Issued credentials sit alongside. */
+const ApplicationCard = ({ application: a }) => (
+  <article className="cred">
+    <div className="row-between">
+      <span className="tag"><Award size={12} /> Applied for</span>
+      <StatusPill status={a.status} />
+    </div>
+
+    <div className="stack stack-2">
+      <h4>{a.offeringTitle}</h4>
+      {a.church && (
+        <Link to={`/churches/${a.church.slug}`} className="row small muted" style={{ gap: 8 }}>
+          <span className="monogram monogram-sm">{a.church.monogram}</span>
+          <span className="grow clamp-1">{a.church.name}</span>
+        </Link>
+      )}
+    </div>
+
+    <div className="stack stack-2" style={{ marginTop: 'auto', paddingTop: 'var(--s-3)', borderTop: '1px solid var(--line)' }}>
+      <span className="progress">
+        <span style={{ width: `${Math.round(((a.steps ?? []).filter((s) => s.status === 'complete' || s.status === 'waived').length / Math.max(1, (a.steps ?? []).length)) * 100)}%` }} />
+      </span>
+      <Link to={`/applications/${a.reference}`} className="btn btn-outline btn-sm btn-block">
+        View progress
+      </Link>
+    </div>
+  </article>
+);
+
+/** One line saying what, between them, the live applications are waiting on. */
+const pendingSummary = (applications) => {
+  if (applications.length === 1) {
+    const [a] = applications;
+    const next = (a.steps ?? []).find((s) => s.status !== 'complete' && s.status !== 'waived');
+    if (!next) return `${a.church?.name ?? 'The church'} is deciding on ${a.offeringTitle}.`;
+    if (next.type === 'review') return `${a.church?.name ?? 'The church'} is reading your application.`;
+    return `${next.label} — before ${a.offeringTitle} can be issued.`;
   }
 
-  const inReview = credentials.filter((c) => c.status === 'in-review').length;
-  const needsAction = credentials.length - inReview;
+  const withChurch = applications.filter((a) => ['final_review', 'under_review', 'submitted'].includes(a.status)).length;
+  const yours = applications.length - withChurch;
   return [
-    needsAction > 0 && `${plural(needsAction, 'credential')} need action from you.`,
-    inReview > 0 && `${plural(inReview, 'credential')} ${inReview === 1 ? 'is' : 'are'} with the issuing church for review.`,
+    yours > 0 && `${plural(yours, 'application')} ${yours === 1 ? 'needs' : 'need'} something from you.`,
+    withChurch > 0 && `${plural(withChurch, 'application')} ${withChurch === 1 ? 'is' : 'are'} with the church.`,
   ].filter(Boolean).join(' ');
 };
 
@@ -183,9 +157,9 @@ export const Passport = () => {
   if (loading) return <div className="wrap band"><Spinner label="Opening your passport" /></div>;
   if (error) return <div className="wrap band"><ErrorState error={error} onRetry={reload} /></div>;
 
-  const { holder, credentials, counts } = data;
-  const issued = credentials.filter((c) => c.status === 'issued');
-  const pending = credentials.filter((c) => c.status !== 'issued');
+  const { holder, credentials, applications, counts } = data;
+  const issued = credentials.filter((c) => c.status === 'issued' && !c.expired);
+  const lapsed = credentials.filter((c) => c.expired || c.status !== 'issued');
   const titles = issued.filter((c) => c.postNominal).map((c) => c.postNominal);
 
   return (
@@ -205,7 +179,7 @@ export const Passport = () => {
               </span>
             </div>
             <div className="row" style={{ gap: 'var(--s-5)' }}>
-              {[['issued', counts.issued], ['with the church', counts.inReview], ['in progress', counts.inProgress]].map(([label, n]) => (
+              {[['issued', counts.issued], ['in progress', counts.inProgress], ['expired', counts.expired]].map(([label, n]) => (
                 <div key={label} className="stack" style={{ gap: 0 }}>
                   <span className="num strong" style={{ fontFamily: 'var(--font-display)', fontSize: 'var(--text-2xl)' }}>{n}</span>
                   <span className="xs dim">{label}</span>
@@ -221,21 +195,21 @@ export const Passport = () => {
       </div>
 
       <div className="wrap band-tight stack stack-7">
-        {credentials.length === 0 ? (
-          <Empty icon={IdCard} title="Nothing issued yet"
-            action={<Link to="/ordination" className="btn btn-primary">Browse the marketplace</Link>}>
-            Buy a credential and the document appears here, ready to download.
+        {credentials.length === 0 && applications.length === 0 ? (
+          <Empty icon={IdCard} title="Nothing here yet"
+            action={<Link to="/ordination" className="btn btn-primary">See what churches issue</Link>}>
+            Your credentials are stored here, ready to download.
           </Empty>
         ) : (
           <>
-            {pending.length > 0 && (
+            {applications.length > 0 && (
               <section className="stack stack-5">
                 <div>
                   <h2 style={{ fontSize: 'var(--text-2xl)' }}>In progress</h2>
-                  <p className="small muted">{pendingSummary(pending)}</p>
+                  <p className="small muted">{pendingSummary(applications)}</p>
                 </div>
                 <div className="cred-grid">
-                  {pending.map((c) => <CredentialCard key={c.credentialId} credential={c} />)}
+                  {applications.map((a) => <ApplicationCard key={a.reference} application={a} />)}
                 </div>
               </section>
             )}
@@ -248,6 +222,20 @@ export const Passport = () => {
                 </div>
                 <div className="cred-grid">
                   {issued.map((c) => <CredentialCard key={c.credentialId} credential={c} />)}
+                </div>
+              </section>
+            )}
+
+            {lapsed.length > 0 && (
+              <section className="stack stack-5">
+                <div>
+                  <h2 style={{ fontSize: 'var(--text-2xl)' }}>No longer current</h2>
+                  <p className="small muted">
+                    Expired or withdrawn credentials.
+                  </p>
+                </div>
+                <div className="cred-grid">
+                  {lapsed.map((c) => <CredentialCard key={c.credentialId} credential={c} />)}
                 </div>
               </section>
             )}

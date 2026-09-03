@@ -46,7 +46,7 @@ export const Account = () => {
           <div className="field">
             <label htmlFor="aname">Full name</label>
             <input id="aname" className="input" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
-            <span className="hint">This is the name printed on any credential a church issues to you.</span>
+            <span className="hint">Printed on your certificates.</span>
           </div>
           <div className="grid grid-2" style={{ gap: 'var(--s-4)' }}>
             <div className="field">
@@ -67,7 +67,7 @@ export const Account = () => {
             </div>
           </div>
           <div className="field">
-            <label htmlFor="abio">About you</label>
+            <label htmlFor="abio">Your details</label>
             <textarea id="abio" className="textarea" value={form.bio} onChange={(e) => setForm({ ...form, bio: e.target.value })}
               placeholder="Where you serve and what you are studying toward." />
           </div>

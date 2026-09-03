@@ -1,22 +1,36 @@
 import { Link } from 'react-router-dom';
 import {
-  ArrowRight, Award, BadgeCheck, BookOpen, ClipboardCheck, FileCheck2, Layers, MapPin, Plane, ShoppingBag, Zap,
+  Award, BadgeCheck, BookOpen, CalendarClock, ClipboardCheck, FileCheck2, Layers, MapPin, Plane, ScrollText,
 } from 'lucide-react';
 
 import { compact, money, plural } from '../lib/format.js';
-import { useCart } from '../lib/cart.jsx';
 
-/** How you get it. The single most important thing on a listing after the price. */
+/**
+ * How a credential is obtained. The single most important thing on a listing,
+ * because it is what actually differs between two churches issuing the same
+ * title.
+ *
+ * There is no longer an "issued instantly" mode for anything that confers
+ * standing: a credential cannot be published without a church decision behind
+ * it. The mode survives for affiliations and letters, which are relationships
+ * and supporting documents rather than titles.
+ */
 export const ACQUISITION = {
-  instant: { label: 'Issued instantly', icon: Zap, tone: 'green', help: 'Issued to your passport as soon as you pay.' },
-  assessment: { label: 'Short assessment', icon: ClipboardCheck, tone: '', help: 'Answer a set of questions here, then it is issued.' },
-  coursework: { label: 'Coursework', icon: BookOpen, tone: '', help: 'The course is unlocked when you pay. Finish it and the credential is issued.' },
-  credentials: { label: 'Requires credentials', icon: Layers, tone: 'gold', help: 'You must already hold the credentials this church names.' },
-  review: { label: 'Church review', icon: FileCheck2, tone: '', help: 'The church checks your documents before signing.' },
+  instant: { label: 'Issued on request', icon: FileCheck2, tone: '', help: 'Issued once your details are confirmed.' },
+  application: { label: 'By application', icon: ScrollText, tone: '', help: 'Apply and the church reviews your application.' },
+  assessment: { label: 'Written assessment', icon: ClipboardCheck, tone: '', help: 'Includes a written assessment.' },
+  coursework: { label: 'Coursework', icon: BookOpen, tone: '', help: 'Requires completing specific courses.' },
+  credentials: { label: 'Builds on others', icon: Layers, tone: 'gold', help: 'Requires credentials you already hold.' },
+  interview: { label: 'Interview', icon: CalendarClock, tone: '', help: 'Includes an interview with the church.' },
+  review: { label: 'Church review', icon: FileCheck2, tone: '', help: 'Reviewed by the church before issue.' },
 };
 
+/** Types that confer standing. Never merchandised, never discounted. */
+const CONFERS_STANDING = ['ordination', 'certificate', 'license', 'diploma', 'letter-of-standing'];
+export const confersStanding = (type) => CONFERS_STANDING.includes(type);
+
 export const AcquisitionTag = ({ mode, size = 12 }) => {
-  const a = ACQUISITION[mode] ?? ACQUISITION.instant;
+  const a = ACQUISITION[mode] ?? ACQUISITION.application;
   const Icon = a.icon;
   return (
     <span className={`tag ${a.tone ? `tag-${a.tone}` : ''}`} title={a.help}>
@@ -31,25 +45,42 @@ export const OutcomeIcon = ({ name, size = 18, ...rest }) => {
   return <Icon size={size} {...rest} />;
 };
 
-const isImmediate = (o) => o.acquisition === 'instant'
-  && !(o.requires?.credentials?.length)
-  && !(o.requires?.courses?.length)
-  && !o.requires?.assessment?.required
-  && !o.requires?.review?.required;
+/** What the fee is, said plainly. */
+const Fee = ({ offering: o }) => {
+  const amount = o.fee?.amount ?? o.price ?? 0;
+  if (!amount) return <span className="price-big">Free</span>;
 
-/** The marketplace card. Price is the loudest thing on it after the title. */
-export const OfferingCard = ({ offering: o, showOutcome = false, onAdd, added = false }) => {
-  const cart = useCart();
-  const church = o.church;
-  const inCart = added || cart.has('offering', o.slug);
-  const immediate = isImmediate(o);
-  const badge = o.badge && o.badge !== ACQUISITION[o.acquisition]?.label ? o.badge : null;
   return (
-    <article className={`card offer-card ${immediate ? 'offer-instant' : ''}`}>
+    <span className="stack" style={{ gap: 0 }}>
+      <span className="price-big">{money(amount, o.currency)}</span>
+      <span className="xs dim">{confersStanding(o.type) ? 'to apply' : ''}</span>
+    </span>
+  );
+};
+
+/**
+ * The listing card.
+ *
+ * The issuing church leads, because nobody seeks standing without knowing who
+ * grants it. The action is "apply", not "add to basket" — a title is not a
+ * thing you put in a bag.
+ */
+export const OfferingCard = ({ offering: o, showOutcome = false, held = false }) => {
+  const church = o.church;
+  const badge = !confersStanding(o.type) && o.badge && o.badge !== ACQUISITION[o.acquisition]?.label ? o.badge : null;
+
+  return (
+    <article className="card offer-card">
       {badge && <span className="flag badge-bestseller">{badge}</span>}
       <Link to={`/listing/${o.slug}`} className="media media-3x2" tabIndex={-1} aria-hidden="true">
-        <img src={o.coverImage} alt="" loading="lazy" width={800} height={534}
-          onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = '/media/scenes/books-colorful.webp'; }} />
+        <img
+          src={o.coverImage}
+          alt=""
+          loading="lazy"
+          width={800}
+          height={534}
+          onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = '/media/scenes/books-colorful.webp'; }}
+        />
       </Link>
       <div className="card-body">
         {church && (
@@ -59,41 +90,31 @@ export const OfferingCard = ({ offering: o, showOutcome = false, onAdd, added = 
               <span className="small strong clamp-1" style={{ display: 'block', lineHeight: 1.25 }}>
                 {church.shortName ?? church.name}
               </span>
-              <span className="xs dim row" style={{ gap: 4 }}>
-                <MapPin size={10} />{church.country}
-                {church.verified && <BadgeCheck size={11} style={{ color: 'var(--green-600)' }} />}
-              </span>
+              <span className="xs dim">{church.country}</span>
             </span>
+            {church.verified && <BadgeCheck size={15} style={{ color: 'var(--green-600)', flex: 'none' }} />}
           </Link>
         )}
 
-        <h3 className="offer-title clamp-2">
-          <Link to={`/listing/${o.slug}`}>{o.title}</Link>
-        </h3>
-        {o.subtitle && <p className="small muted clamp-2" style={{ margin: 0 }}>{o.subtitle}</p>}
+        <Link to={`/listing/${o.slug}`} className="offer-title clamp-2">{o.title}</Link>
+        {showOutcome ? <span className="xs dim">{o.outcome}</span> : null}
 
         <div className="row-wrap" style={{ gap: 6 }}>
           <AcquisitionTag mode={o.acquisition} />
-          {showOutcome && o.award?.postNominal && <span className="tag">Styled {o.award.postNominal}</span>}
           {o.letter?.destinationCity && <span className="tag"><Plane size={12} />{o.letter.destinationCity}</span>}
         </div>
 
         <div className="offer-foot">
-          <span className="row" style={{ gap: 8, alignItems: 'baseline' }}>
-            <span className="price-big">{money(o.price, o.currency)}</span>
-            {o.compareAtPrice > o.price && <span className="price-was">{money(o.compareAtPrice, o.currency)}</span>}
-          </span>
+          <Fee offering={o} />
           <span className="xs dim num">{compact(o.issuedCount ?? 0)} issued</span>
         </div>
-        {inCart ? (
-          <Link to="/cart" className="btn btn-outline btn-sm btn-block card-buy">
-            In your basket <ArrowRight size={14} />
-          </Link>
+
+        {held ? (
+          <Link to="/passport" className="btn btn-outline btn-sm btn-block card-buy">In your passport</Link>
         ) : (
-          <button type="button" className="btn btn-outline btn-sm btn-block card-buy"
-            onClick={() => (onAdd ? onAdd(o) : cart.add({ kind: 'offering', slug: o.slug }))}>
-            <ShoppingBag size={14} /> Add to basket
-          </button>
+          <Link to={`/listing/${o.slug}`} className="btn btn-outline btn-sm btn-block card-buy">
+            View details
+          </Link>
         )}
       </div>
     </article>
@@ -103,30 +124,26 @@ export const OfferingCard = ({ offering: o, showOutcome = false, onAdd, added = 
 /**
  * The comparison row on an outcome page.
  *
- * Every listing in a bucket sells the same thing — eight churches all call it
- * "Ordained Minister" — so the title is the constant and carries no
- * information. The issuing church is the variable, so the church leads and the
- * title drops to a supporting line. Below it sits the spec people actually
- * compare on: how it is issued, how long it takes, how long it lasts.
+ * Every listing in a bucket is the same title — eight churches all call it
+ * "Ordained Minister" — so the title carries no information and the issuing
+ * church does. The church leads; below it sits the spec people actually compare
+ * on: what it asks, how long it takes, how long it lasts.
  */
-export const OfferingRow = ({ offering: o, onAdd, owned }) => {
-  const cart = useCart();
+export const OfferingRow = ({ offering: o, owned, applied }) => {
   const church = o.church;
-  const inCart = cart.has('offering', o.slug);
-  const immediate = isImmediate(o);
-  const discount = o.compareAtPrice > o.price ? Math.round((1 - o.price / o.compareAtPrice) * 100) : 0;
-  const badge = o.badge && o.badge !== ACQUISITION[o.acquisition]?.label ? o.badge : null;
+  const standing = confersStanding(o.type);
+  const badge = !standing && o.badge && o.badge !== ACQUISITION[o.acquisition]?.label ? o.badge : null;
 
   const turnaround = o.requires?.review?.turnaroundDays ?? o.letter?.turnaroundDays;
-  const timeToIssue = turnaround
+  const timeToDecide = turnaround
     ? `about ${plural(turnaround, 'day')}`
-    : o.acquisition === 'instant'
-      ? 'Immediately'
-      : o.acquisition === 'assessment'
-        ? `${o.requires?.assessment?.minutes ?? 30} min assessment`
-        : o.acquisition === 'coursework'
-          ? 'On finishing the course'
-          : 'Once you hold the rest';
+    : o.acquisition === 'coursework'
+      ? 'When the coursework is done'
+      : o.acquisition === 'interview'
+        ? 'After the interview'
+        : o.acquisition === 'credentials'
+          ? 'Once you hold the rest'
+          : 'Decided by the church';
 
   const months = o.award?.validityMonths;
   const validity = !months
@@ -136,13 +153,19 @@ export const OfferingRow = ({ offering: o, onAdd, owned }) => {
   const needs = [
     o.requires?.credentials?.length && plural(o.requires.credentials.length, 'credential'),
     o.requires?.courses?.length && plural(o.requires.courses.length, 'course'),
+    o.requires?.assessment?.required && 'an assessment',
+    o.requires?.interview?.required && 'an interview',
   ].filter(Boolean).join(' + ');
 
   return (
-    <article className={`offer-row ${immediate ? 'offer-instant' : ''}`}>
+    <article className="offer-row">
       <Link to={`/listing/${o.slug}`} className="media" tabIndex={-1} aria-hidden="true">
-        <img src={o.coverImage} alt="" loading="lazy"
-          onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = '/media/scenes/books-colorful.webp'; }} />
+        <img
+          src={o.coverImage}
+          alt=""
+          loading="lazy"
+          onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = '/media/scenes/books-colorful.webp'; }}
+        />
       </Link>
 
       <div className="offer-row-main">
@@ -171,17 +194,15 @@ export const OfferingRow = ({ offering: o, onAdd, owned }) => {
         </p>
 
         <dl className="offer-spec">
-          <div><dt>Issued</dt><dd>{timeToIssue}</dd></div>
-          <div><dt>Requires</dt><dd>{needs || 'Nothing'}</dd></div>
+          <div><dt>Decision</dt><dd>{timeToDecide}</dd></div>
+          <div><dt>Requirements</dt><dd>{needs || 'Your details'}</dd></div>
           <div><dt>Valid</dt><dd>{validity}</dd></div>
         </dl>
       </div>
 
       <div className="offer-row-buy">
         <div className="offer-price">
-          <span className="price-big">{money(o.price, o.currency)}</span>
-          {discount > 0 && <span className="price-was">{money(o.compareAtPrice, o.currency)}</span>}
-          {discount > 0 && <span className="tag tag-red">{discount}% off</span>}
+          <Fee offering={o} />
           <span className="xs dim num offer-issued">{compact(o.issuedCount ?? 0)} issued</span>
         </div>
 
@@ -189,17 +210,14 @@ export const OfferingRow = ({ offering: o, onAdd, owned }) => {
           <div className="offer-actions is-single">
             <Link to="/passport" className="btn btn-outline btn-sm btn-block">In your passport</Link>
           </div>
+        ) : applied ? (
+          <div className="offer-actions is-single">
+            <Link to={`/applications/${applied.reference}`} className="btn btn-outline btn-sm btn-block">Your application</Link>
+          </div>
         ) : (
           <div className="offer-actions">
             <Link to={`/listing/${o.slug}`} className="btn btn-primary btn-sm btn-block">View</Link>
-            {inCart ? (
-              <Link to="/cart" className="btn btn-outline btn-sm btn-block">In your basket <ArrowRight size={14} /></Link>
-            ) : (
-              <button type="button" className="btn btn-outline btn-sm btn-block"
-                onClick={() => (onAdd ? onAdd(o) : cart.add({ kind: 'offering', slug: o.slug }))}>
-                Add to basket
-              </button>
-            )}
+            <Link to={`/apply/${o.slug}`} className="btn btn-outline btn-sm btn-block">Apply</Link>
           </div>
         )}
       </div>

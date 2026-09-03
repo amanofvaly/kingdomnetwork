@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom';
 import { Award, BookOpen, Clock, Download, FileCheck2, IdCard, PlayCircle } from 'lucide-react';
 
 import { Empty, ErrorState, Spinner } from '../components/ui.jsx';
+import { StatusPill } from '../components/admin/kit.jsx';
 import { useApi } from '../lib/useAsync.js';
 import { useAuth } from '../lib/auth.jsx';
 import { money, plural } from '../lib/format.js';
@@ -43,68 +44,89 @@ export const Dashboard = () => {
         {data.pending.length > 0 && (
           <section className="stack stack-5">
             <div>
-              <h2 style={{ fontSize: 'var(--text-2xl)' }}>Finish these to be issued</h2>
-              <p className="small muted">You have paid for these. Here is what each one is still waiting on.</p>
+              <h2 style={{ fontSize: 'var(--text-2xl)' }}>Your applications</h2>
+              <p className="small muted">What each church is still waiting on from you.</p>
             </div>
             <div className="stack stack-4">
-              {data.pending.map(({ credential: c, offering, church, blockers }) => (
-                <div key={c.credentialId} className="panel stack stack-4">
+              {data.pending.map((a) => (
+                <div key={a.reference} className="panel stack stack-4">
                   <div className="row-between" style={{ flexWrap: 'wrap', gap: 'var(--s-3)' }}>
                     <div className="row" style={{ gap: 'var(--s-4)' }}>
-                      {offering?.coverImage && (
+                      {a.offering?.coverImage && (
                         <span className="media" style={{ width: 84, aspectRatio: '3/2', flex: 'none' }}>
-                          <img src={offering.coverImage} alt="" loading="lazy" />
+                          <img src={a.offering.coverImage} alt="" loading="lazy" />
                         </span>
                       )}
                       <div>
-                        <h4>{c.title}</h4>
-                        <span className="small muted">{church?.name ?? c.churchName}</span>
+                        <h4><Link to={`/applications/${a.reference}`}>{a.offeringTitle}</Link></h4>
+                        <span className="small muted">{a.church?.name}</span>
                       </div>
                     </div>
-                    <span className={`tag ${c.status === 'in-review' ? 'tag-gold' : ''}`}>
-                      {c.status === 'in-review' ? 'With the church' : 'Not yet issued'}
-                    </span>
+                    <StatusPill status={a.status} />
                   </div>
 
-                  {c.status === 'in-review' ? (
+                  {a.infoRequest ? (
                     <div className="notice notice-gold">
                       <Clock size={15} />
-                      <span>{church?.name ?? c.churchName} is reviewing your submission and will sign it.</span>
+                      <span>{a.church?.name} has asked you for something. {a.infoRequest.message}</span>
                     </div>
-                  ) : (
+                  ) : null}
+
+                  {a.steps.length ? (
                     <div className="stack stack-3" style={{ paddingTop: 'var(--s-3)', borderTop: '1px solid var(--line)' }}>
-                      {blockers.map((b, i) =>
-                        b.kind === 'assessment' ? (
-                          <div key={i} className="row-between" style={{ gap: 'var(--s-4)', flexWrap: 'wrap' }}>
-                            <span className="row small" style={{ gap: 8 }}><FileCheck2 size={15} /> Assessment not yet passed</span>
-                            <Link to={`/assessment/${c.credentialId}`} className="btn btn-primary btn-sm">Take the assessment</Link>
+                      {a.steps.slice(0, 4).map((b) =>
+                        b.type === 'assessment' ? (
+                          <div key={b.key} className="row-between" style={{ gap: 'var(--s-4)', flexWrap: 'wrap' }}>
+                            <span className="row small" style={{ gap: 8 }}><FileCheck2 size={15} /> {b.label}</span>
+                            <Link to={`/applications/${a.reference}/assessment`} className="btn btn-primary btn-sm">Sit the paper</Link>
                           </div>
-                        ) : b.kind === 'course' ? (
-                          <div key={i} className="row-between" style={{ gap: 'var(--s-4)', flexWrap: 'wrap' }}>
+                        ) : b.type === 'interview' ? (
+                          <div key={b.key} className="row-between" style={{ gap: 'var(--s-4)', flexWrap: 'wrap' }}>
+                            <span className="row small" style={{ gap: 8 }}><Clock size={15} /> {b.label}</span>
+                            <Link to={`/applications/${a.reference}/interview`} className="btn btn-primary btn-sm">
+                              {b.meta?.booked ? 'Details' : 'Book a time'}
+                            </Link>
+                          </div>
+                        ) : b.type === 'course' && b.course ? (
+                          <div key={b.key} className="row-between" style={{ gap: 'var(--s-4)', flexWrap: 'wrap' }}>
                             <span className="grow stack stack-1" style={{ minWidth: 200 }}>
                               <span className="row small" style={{ gap: 8 }}>
-                                <BookOpen size={15} /><span className="grow clamp-1">{b.course?.title ?? b.slug}</span>
-                                <span className="xs dim num">{b.progress}%</span>
+                                <BookOpen size={15} /><span className="grow clamp-1">{b.course.title}</span>
+                                <span className="xs dim num">{b.progress ?? 0}%</span>
                               </span>
-                              <span className="progress"><span style={{ width: `${b.progress}%` }} /></span>
+                              <span className="progress"><span style={{ width: `${b.progress ?? 0}%` }} /></span>
                             </span>
-                            <Link to={`/learn/${b.slug}`} className="btn btn-outline btn-sm">
-                              <PlayCircle size={14} /> {b.progress > 0 ? 'Continue' : 'Start'}
+                            <Link to={`/learn/${b.course.slug}`} className="btn btn-outline btn-sm">
+                              <PlayCircle size={14} /> {(b.progress ?? 0) > 0 ? 'Continue' : 'Start'}
                             </Link>
                           </div>
-                        ) : (
-                          <div key={i} className="row-between" style={{ gap: 'var(--s-4)', flexWrap: 'wrap' }}>
+                        ) : b.type === 'credential' && b.offering ? (
+                          <div key={b.key} className="row-between" style={{ gap: 'var(--s-4)', flexWrap: 'wrap' }}>
                             <span className="row small" style={{ gap: 8 }}>
-                              <Award size={15} /> {b.offering?.title ?? b.slug} <span className="dim">— required credential</span>
+                              <Award size={15} /> {b.offering.title} <span className="dim">— required first</span>
                             </span>
-                            <Link to={`/listing/${b.slug}`} className="btn btn-primary btn-sm">
-                              {b.offering ? money(b.offering.price) : 'View'}
+                            <Link to={`/listing/${b.offering.slug}`} className="btn btn-primary btn-sm">
+                              {b.offering.fee?.amount ? money(b.offering.fee.amount) : 'View'}
                             </Link>
+                          </div>
+                        ) : b.type === 'review' ? (
+                          <div key={b.key} className="row small row" style={{ gap: 8 }}>
+                            <Clock size={15} /> {a.church?.name} is reading your application. {b.detail ?? ''}
+                          </div>
+                        ) : (
+                          <div key={b.key} className="row-between" style={{ gap: 'var(--s-4)', flexWrap: 'wrap' }}>
+                            <span className="row small" style={{ gap: 8 }}><FileCheck2 size={15} /> {b.label}</span>
+                            <Link to={`/applications/${a.reference}`} className="btn btn-outline btn-sm">Open</Link>
                           </div>
                         ),
                       )}
+                      {a.steps.length > 4 ? (
+                        <Link className="link small" to={`/applications/${a.reference}`}>
+                          And {a.steps.length - 4} more
+                        </Link>
+                      ) : null}
                     </div>
-                  )}
+                  ) : null}
                 </div>
               ))}
             </div>

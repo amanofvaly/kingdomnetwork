@@ -2,7 +2,7 @@
   "name": "kingdom-network",
   "version": "1.0.0",
   "private": true,
-  "description": "Kingdom Network — monolithic MERN application (single server, single repo).",
+  "description": "Kingdom Network \u2014 monolithic MERN application (single server, single repo).",
   "type": "module",
   "main": "server/index.js",
   "engines": {
@@ -17,7 +17,10 @@
     "postinstall": "npm --prefix client install",
     "lint": "npm --prefix client run lint",
     "seed": "node server/scripts/seed.js",
-    "seed:all": "node server/scripts/seed.js --all"
+    "seed:all": "node server/scripts/seed.js --all",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "migrate": "node server/scripts/migrate.js"
   },
   "dependencies": {
     "bcryptjs": "^3.0.3",
@@ -35,6 +38,7 @@
   "devDependencies": {
     "concurrently": "^9.2.1",
     "cross-env": "^10.1.0",
-    "nodemon": "^3.1.10"
+    "nodemon": "^3.1.10",
+    "vitest": "^4.1.11"
   }
 }

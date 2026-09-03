@@ -144,7 +144,7 @@ export const Learn = () => {
   const flat = useMemo(() => {
     if (!data) return [];
     return data.course.curriculum.flatMap((s) =>
-      s.lectures.map((l) => ({ id: `${s.id}/${l.id}`, lecture: l, section: s })),
+      s.lectures.map((l) => ({ id: l.key, lecture: l, section: s })),
     );
   }, [data]);
 
@@ -152,7 +152,7 @@ export const Learn = () => {
     if (!data) return;
     setDone(new Set(data.enrollment.completedLectures));
     setProgress(data.enrollment.progress);
-    const start = params.get('l') ?? data.enrollment.lastLectureId ?? null;
+    const start = params.get('l') ?? data.enrollment.lastLectureKey ?? null;
     // `start` is null on a fresh enrolment, and ''.split('/')[0] is '' rather
     // than undefined, so fall through on falsy rather than on nullish.
     const sectionId = (start ?? '').split('/')[0] || data.course.curriculum[0]?.id;
@@ -170,7 +170,7 @@ export const Learn = () => {
   }
 
   const { course, church } = data;
-  const currentId = params.get('l') ?? data.enrollment.lastLectureId ?? flat[0]?.id;
+  const currentId = params.get('l') ?? data.enrollment.lastLectureKey ?? flat[0]?.id;
   const index = Math.max(0, flat.findIndex((f) => f.id === currentId));
   const current = flat[index];
 
@@ -188,10 +188,10 @@ export const Learn = () => {
     if (completed) optimistic.add(id); else optimistic.delete(id);
     setDone(optimistic);
     try {
-      const res = await api.post(`/learn/${slug}/progress`, { lectureId: id, completed });
+      const res = await api.post(`/learn/${slug}/progress`, { lectureKey: id, completed });
       setProgress(res.enrollment.progress);
       setDone(new Set(res.enrollment.completedLectures));
-      if (res.justCompleted && res.credential?.status === 'issued') setJustEarned(res.credential);
+      if (res.justCompleted && res.advanced?.length) setJustEarned(res.advanced[0]);
     } catch {
       setDone(new Set(done));
     } finally {
@@ -224,8 +224,12 @@ export const Learn = () => {
             <div className="notice notice-gold" style={{ alignItems: 'center' }}>
               <Award size={20} />
               <div className="grow">
-                <div className="strong small">{justEarned.title} has been issued</div>
-                <div className="xs">Credential {justEarned.credentialId} is now in your passport.</div>
+                <div className="strong small">Course finished — {justEarned.title}</div>
+                <div className="xs">
+                  {justEarned.outstanding === 0
+                    ? 'Nothing else is outstanding. Your application is with the church.'
+                    : `${justEarned.outstanding} requirement${justEarned.outstanding === 1 ? '' : 's'} still to go.`}
+                </div>
               </div>
               <Link to="/passport" className="btn btn-sm btn-outline">Open passport</Link>
             </div>
@@ -290,7 +294,7 @@ export const Learn = () => {
         <div className="player-side-scroll">
           {course.curriculum.map((section) => {
             const open = openSections.has(section.id);
-            const secDone = section.lectures.filter((l) => done.has(`${section.id}/${l.id}`)).length;
+            const secDone = section.lectures.filter((l) => done.has(l.key)).length;
             return (
               <div key={section.id}>
                 <button type="button" className="p-sec-head" aria-expanded={open}
@@ -304,7 +308,7 @@ export const Learn = () => {
                   <span className="xs dim num">{secDone}/{section.lectures.length}</span>
                 </button>
                 {open && section.lectures.map((l) => {
-                  const id = `${section.id}/${l.id}`;
+                  const id = l.key;
                   const Icon = KIND_ICON[l.kind] ?? PlayCircle;
                   const isDone = done.has(id);
                   return (

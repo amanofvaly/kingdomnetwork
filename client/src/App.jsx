@@ -1,6 +1,7 @@
 import { Navigate, Route, Routes, useLocation } from 'react-router-dom';
 
 import { Layout } from './components/Layout.jsx';
+import { AdminShell, ChurchShell } from './components/admin/Shell.jsx';
 import { Spinner } from './components/ui.jsx';
 import { useAuth } from './lib/auth.jsx';
 
@@ -23,9 +24,35 @@ import { Assessment } from './pages/Assessment.jsx';
 import { Verify } from './pages/Verify.jsx';
 import { Account } from './pages/Account.jsx';
 import { Teach } from './pages/Teach.jsx';
-import { ChurchBannerConcept } from './pages/ChurchBannerConcept.jsx';
 import { Login, Signup } from './pages/Auth.jsx';
 import { NotFound } from './pages/NotFound.jsx';
+
+import { Apply } from './pages/Apply.jsx';
+import { ApplicationDetail, Applications } from './pages/Applications.jsx';
+import { InterviewBooking } from './pages/InterviewBooking.jsx';
+import { Give, GiveThanks } from './pages/Give.jsx';
+import { Onboarding } from './pages/Onboarding.jsx';
+import { AcceptInvite, ForgotPassword, ReferenceForm, ResetPassword } from './pages/Standalone.jsx';
+
+import { Overview } from './pages/manage/Overview.jsx';
+import { Applicants } from './pages/manage/Applicants.jsx';
+import { CredentialEditor, Credentials } from './pages/manage/Credentials.jsx';
+import { CourseEditor, Courses as ManageCourses } from './pages/manage/Courses.jsx';
+import { AssessmentEditor, Assessments } from './pages/manage/Assessments.jsx';
+import { Media } from './pages/manage/Media.jsx';
+import { Interviews } from './pages/manage/Interviews.jsx';
+import { PageBuilder } from './pages/manage/PageBuilder.jsx';
+import { Donations } from './pages/manage/Donations.jsx';
+import { Finance } from './pages/manage/Finance.jsx';
+import { Team } from './pages/manage/Team.jsx';
+import { Settings } from './pages/manage/Settings.jsx';
+import { Issued } from './pages/manage/Issued.jsx';
+import { Resources } from './pages/manage/Resources.jsx';
+
+import {
+  AdminApplications, AdminAudit, AdminChurches, AdminMerchandising, AdminOverview,
+  AdminPayments, AdminSettings, AdminSettlements, AdminUsers, AdminVerification,
+} from './pages/admin/AdminPages.jsx';
 
 // Outcome pages sit at the root because they are the pages people land on.
 const OUTCOMES = ['ordination', 'certification', 'ministry-license', 'church-affiliation', 'invitation-letter'];
@@ -40,7 +67,43 @@ const RequireAuth = ({ children }) => {
 
 export const App = () => (
   <Routes>
+    {/* Full-screen, with their own chrome. */}
     <Route path="/learn/:slug" element={<RequireAuth><Learn /></RequireAuth>} />
+
+    {/* The church console. */}
+    <Route path="/manage/:churchSlug" element={<ChurchShell />}>
+      <Route index element={<Overview />} />
+      <Route path="applicants" element={<Applicants />} />
+      <Route path="credentials" element={<Credentials />} />
+      <Route path="credentials/:slug" element={<CredentialEditor />} />
+      <Route path="courses" element={<ManageCourses />} />
+      <Route path="courses/:slug" element={<CourseEditor />} />
+      <Route path="assessments" element={<Assessments />} />
+      <Route path="assessments/:slug" element={<AssessmentEditor />} />
+      <Route path="resources" element={<Resources />} />
+      <Route path="media" element={<Media />} />
+      <Route path="interviews" element={<Interviews />} />
+      <Route path="issued" element={<Issued />} />
+      <Route path="page" element={<PageBuilder />} />
+      <Route path="donations" element={<Donations />} />
+      <Route path="finance" element={<Finance />} />
+      <Route path="team" element={<Team />} />
+      <Route path="settings" element={<Settings />} />
+    </Route>
+
+    {/* The platform console. */}
+    <Route path="/admin" element={<AdminShell />}>
+      <Route index element={<AdminOverview />} />
+      <Route path="churches" element={<AdminChurches />} />
+      <Route path="verification" element={<AdminVerification />} />
+      <Route path="users" element={<AdminUsers />} />
+      <Route path="applications" element={<AdminApplications />} />
+      <Route path="payments" element={<AdminPayments />} />
+      <Route path="settlements" element={<AdminSettlements />} />
+      <Route path="merchandising" element={<AdminMerchandising />} />
+      <Route path="settings" element={<AdminSettings />} />
+      <Route path="audit" element={<AdminAudit />} />
+    </Route>
 
     <Route element={<Layout />}>
       <Route index element={<Home />} />
@@ -60,20 +123,38 @@ export const App = () => (
       <Route path="checkout" element={<Checkout />} />
       <Route path="verify" element={<Verify />} />
       <Route path="verify/:code" element={<Verify />} />
-      <Route path="teach" element={<Teach />} />
-      <Route path="concepts/church-banner" element={<ChurchBannerConcept />} />
+      <Route path="for-churches" element={<Teach />} />
       <Route path="login" element={<Login />} />
       <Route path="signup" element={<Signup />} />
+      <Route path="forgot-password" element={<ForgotPassword />} />
+      <Route path="reset-password" element={<ResetPassword />} />
+      <Route path="reference/:token" element={<ReferenceForm />} />
+
+      {/* Giving to a church needs no account. */}
+      <Route path="give/:slug" element={<Give />} />
+      <Route path="give/:slug/thanks" element={<GiveThanks />} />
+
+      {/* Onboarding a church. */}
+      <Route path="onboarding" element={<RequireAuth><Onboarding /></RequireAuth>} />
+      <Route path="onboarding/:churchSlug/:step" element={<RequireAuth><Onboarding /></RequireAuth>} />
+      <Route path="invite/:token" element={<AcceptInvite />} />
+
+      {/* Applying, and following what happens next. */}
+      <Route path="apply/:slug" element={<Apply />} />
+      <Route path="applications" element={<RequireAuth><Applications /></RequireAuth>} />
+      <Route path="applications/:reference" element={<RequireAuth><ApplicationDetail /></RequireAuth>} />
+      <Route path="applications/:reference/assessment" element={<RequireAuth><Assessment /></RequireAuth>} />
+      <Route path="applications/:reference/interview" element={<RequireAuth><InterviewBooking /></RequireAuth>} />
 
       <Route path="orders" element={<RequireAuth><Orders /></RequireAuth>} />
       <Route path="orders/:reference" element={<RequireAuth><OrderConfirmation /></RequireAuth>} />
       <Route path="dashboard" element={<RequireAuth><Dashboard /></RequireAuth>} />
       <Route path="passport" element={<RequireAuth><Passport /></RequireAuth>} />
-      <Route path="assessment/:id" element={<RequireAuth><Assessment /></RequireAuth>} />
       <Route path="account" element={<RequireAuth><Account /></RequireAuth>} />
 
-      {/* Old paths from the course-first build. */}
+      {/* Paths from earlier shapes of the product. */}
       <Route path="pathways" element={<Navigate to="/ordination" replace />} />
+      <Route path="teach" element={<Navigate to="/for-churches" replace />} />
 
       <Route path="*" element={<NotFound />} />
     </Route>

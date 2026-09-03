@@ -47,7 +47,7 @@ export const Search = () => {
     <>
       <div className="band-warm" style={{ borderBottom: '1px solid var(--line)', paddingBlock: 'var(--s-6)' }}>
         <div className="wrap stack stack-2">
-          <h1 style={{ fontSize: 'var(--text-3xl)' }}>{q ? `“${q}”` : 'Everything on the marketplace'}</h1>
+          <h1 style={{ fontSize: 'var(--text-3xl)' }}>{q ? `“${q}”` : 'Browse everything'}</h1>
           <p className="muted" style={{ margin: 0 }}>
             {loading ? 'Searching…' : `${plural(data.total, 'listing')} from churches worldwide`}
           </p>
@@ -58,7 +58,7 @@ export const Search = () => {
         <div className="catalogue">
           <aside className={`filters ${filtersOpen ? 'is-open' : ''}`} aria-label="Filters">
             <div className="filter-group" style={{ borderTop: 'none', paddingTop: 0 }}>
-              <h5>What you get</h5>
+              <h5>What's included</h5>
               <div className="filter-list">
                 {(data?.facets.outcomes ?? []).map((f) => (
                   <Facet key={f.value} label={f.label} count={f.count}
