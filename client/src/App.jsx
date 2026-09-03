@@ -16,23 +16,30 @@ import { ChurchDetail } from './pages/ChurchDetail.jsx';
 import { Cart } from './pages/Cart.jsx';
 import { Checkout } from './pages/Checkout.jsx';
 import { OrderConfirmation } from './pages/OrderConfirmation.jsx';
-import { Orders } from './pages/Orders.jsx';
-import { Dashboard } from './pages/Dashboard.jsx';
 import { Learn } from './pages/Learn.jsx';
-import { Passport } from './pages/Passport.jsx';
 import { Assessment } from './pages/Assessment.jsx';
 import { Verify } from './pages/Verify.jsx';
-import { Account } from './pages/Account.jsx';
 import { Teach } from './pages/Teach.jsx';
 import { Login, Signup } from './pages/Auth.jsx';
 import { NotFound } from './pages/NotFound.jsx';
 
 import { Apply } from './pages/Apply.jsx';
-import { ApplicationDetail, Applications } from './pages/Applications.jsx';
+import { ApplicationDetail } from './pages/Applications.jsx';
 import { InterviewBooking } from './pages/InterviewBooking.jsx';
 import { Give, GiveThanks } from './pages/Give.jsx';
 import { ChurchRegister } from './pages/ChurchRegister.jsx';
 import { AcceptInvite, ForgotPassword, ReferenceForm, ResetPassword } from './pages/Standalone.jsx';
+
+import { MeShell } from './components/me/Shell.jsx';
+import { MeHome } from './pages/me/Home.jsx';
+import { MeJourney } from './pages/me/Journey.jsx';
+import { MePassport } from './pages/me/Passport.jsx';
+import { MeLearning } from './pages/me/Learning.jsx';
+import { MeLibrary } from './pages/me/Library.jsx';
+import { MeGiving } from './pages/me/Giving.jsx';
+import { MeInbox } from './pages/me/Inbox.jsx';
+import { MeProfile } from './pages/me/Profile.jsx';
+import { MeSettings } from './pages/me/Settings.jsx';
 
 import { Overview } from './pages/manage/Overview.jsx';
 import { Applicants } from './pages/manage/Applicants.jsx';
@@ -74,6 +81,21 @@ export const App = () => (
     {/* Full-screen, with their own chrome. */}
     <Route path="/learn/:slug" element={<RequireAuth><Learn /></RequireAuth>} />
     <Route path="/church/register" element={<ChurchRegister />} />
+
+    {/* The user's own area. Its own chrome, like the consoles — but it is not
+        one: a console exists to make an administrator careful, this exists to
+        give a person somewhere of their own. */}
+    <Route path="/me" element={<MeShell />}>
+      <Route index element={<MeHome />} />
+      <Route path="journey" element={<MeJourney />} />
+      <Route path="passport" element={<MePassport />} />
+      <Route path="learning" element={<MeLearning />} />
+      <Route path="library" element={<MeLibrary />} />
+      <Route path="giving" element={<MeGiving />} />
+      <Route path="inbox" element={<MeInbox />} />
+      <Route path="profile" element={<MeProfile />} />
+      <Route path="settings" element={<MeSettings />} />
+    </Route>
 
     {/* The church console. */}
     <Route path="/manage/:churchSlug" element={<ChurchShell />}>
@@ -146,18 +168,19 @@ export const App = () => (
 
       {/* Applying, and following what happens next. */}
       <Route path="apply/:slug" element={<Apply />} />
-      <Route path="applications" element={<RequireAuth><Applications /></RequireAuth>} />
       <Route path="applications/:reference" element={<RequireAuth><ApplicationDetail /></RequireAuth>} />
       <Route path="applications/:reference/assessment" element={<RequireAuth><Assessment /></RequireAuth>} />
       <Route path="applications/:reference/interview" element={<RequireAuth><InterviewBooking /></RequireAuth>} />
 
-      <Route path="orders" element={<RequireAuth><Orders /></RequireAuth>} />
       <Route path="orders/:reference" element={<RequireAuth><OrderConfirmation /></RequireAuth>} />
-      <Route path="dashboard" element={<RequireAuth><Dashboard /></RequireAuth>} />
-      <Route path="passport" element={<RequireAuth><Passport /></RequireAuth>} />
-      <Route path="account" element={<RequireAuth><Account /></RequireAuth>} />
 
-      {/* Paths from earlier shapes of the product. */}
+      {/* Paths from earlier shapes of the product. The five personal pages
+          that used to live out here are now sections of /me. */}
+      <Route path="dashboard" element={<Navigate to="/me" replace />} />
+      <Route path="account" element={<Navigate to="/me/profile" replace />} />
+      <Route path="passport" element={<Navigate to="/me/passport" replace />} />
+      <Route path="orders" element={<Navigate to="/me/library" replace />} />
+      <Route path="applications" element={<Navigate to="/me/journey" replace />} />
       <Route path="pathways" element={<Navigate to="/ordination" replace />} />
       <Route path="teach" element={<Navigate to="/for-churches" replace />} />
 

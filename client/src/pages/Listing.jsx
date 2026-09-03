@@ -123,7 +123,7 @@ const Action = ({ offering: o, held, application, size = '' }) => {
 
   if (held) {
     return (
-      <Link to="/passport" className={`btn btn-primary btn-block ${size}`}>
+      <Link to="/me/passport" className={`btn btn-primary btn-block ${size}`}>
         <Download size={17} /> In your passport
       </Link>
     );

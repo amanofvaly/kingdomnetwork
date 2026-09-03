@@ -53,7 +53,11 @@ export const dashboard = asyncHandler(async (req, res) => {
       offeringTitle: a.offeringTitle,
       offering: offeringBy[a.offeringSlug] ?? null,
       church: churchBy[a.churchSlug] ?? null,
-      infoRequest: a.infoRequest?.resolvedAt ? null : a.infoRequest,
+      // Mongoose materialises `infoRequest` as an empty subdocument even when
+      // nothing was ever asked, and `{}` is truthy — so a consumer testing the
+      // field alone renders an empty "they asked you for something" callout.
+      // Only an unresolved request that actually says something counts.
+      infoRequest: a.infoRequest?.message && !a.infoRequest.resolvedAt ? a.infoRequest : null,
       steps: outstanding.map((s) => ({
         key: s.key,
         type: s.type,

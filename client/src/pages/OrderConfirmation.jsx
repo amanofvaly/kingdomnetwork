@@ -122,8 +122,8 @@ export const OrderConfirmation = () => {
       </section>
 
       <div className="row" style={{ gap: 12, justifyContent: 'center' }}>
-        <Link className="btn btn-outline" to="/dashboard">My learning</Link>
-        <Link className="btn btn-ghost" to="/orders">All orders</Link>
+        <Link className="btn btn-outline" to="/me/learning">My learning</Link>
+        <Link className="btn btn-ghost" to="/me/library">Your library</Link>
       </div>
     </div>
   );

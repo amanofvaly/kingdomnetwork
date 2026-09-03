@@ -72,7 +72,7 @@ export const ChurchShell = () => {
 
   if (!ready) return <div className="wrap band"><Spinner /></div>;
   if (!user) return <Navigate to="/login" state={{ from: `/manage/${churchSlug}` }} replace />;
-  if (user.accountKind !== 'church' && !isPlatformAdmin) return <Navigate to="/dashboard" replace />;
+  if (user.accountKind !== 'church' && !isPlatformAdmin) return <Navigate to="/me" replace />;
   if (!membership && !isPlatformAdmin) {
     return (
       <div className="wrap band">

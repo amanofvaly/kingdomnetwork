@@ -1,64 +1,20 @@
 import { useState } from 'react';
 import { Link, useParams, useSearchParams } from 'react-router-dom';
-import { ArrowRight, CalendarClock, Check, FileText, X } from 'lucide-react';
+import { CalendarClock, Check, FileText, X } from 'lucide-react';
 
 import { FileDrop, StatusPill, Textarea } from '../components/admin/kit.jsx';
-import { Empty, ErrorState, Monogram, Spinner } from '../components/ui.jsx';
+import { ErrorState, Monogram, Spinner } from '../components/ui.jsx';
 import { api } from '../lib/api.js';
 import { dateShort, money } from '../lib/format.js';
 import { useToast } from '../lib/toast.jsx';
 import { useApi } from '../lib/useAsync.js';
 
-/** Everything a person has in flight with a church. */
-export const Applications = () => {
-  const { data, error, loading, reload } = useApi('/applications');
-
-  if (loading) return <div className="wrap band"><Spinner /></div>;
-  if (error) return <div className="wrap band"><ErrorState error={error} onRetry={reload} /></div>;
-
-  return (
-    <div className="wrap band">
-      <div className="stack stack-5">
-        <div className="stack stack-2">
-          <span className="eyebrow">Your applications</span>
-          <h1>Track your applications</h1>
-        </div>
-
-        {data.length ? (
-          <div className="stack stack-3">
-            {data.map((a) => (
-              <Link key={a.reference} to={`/applications/${a.reference}`} className="panel row row-between" style={{ padding: 'var(--s-4) var(--s-5)', textDecoration: 'none', color: 'inherit', gap: 'var(--s-4)' }}>
-                <span className="row" style={{ gap: 14, minWidth: 0 }}>
-                  <Monogram text={a.church?.monogram} />
-                  <span className="stack" style={{ gap: 2, minWidth: 0 }}>
-                    <b className="clamp-1">{a.offeringTitle}</b>
-                    <span className="dim small">{a.church?.name}</span>
-                  </span>
-                </span>
-                <span className="row" style={{ gap: 16 }}>
-                  <span className="stack" style={{ gap: 4, minWidth: 120 }}>
-                    <span className="progress"><span style={{ width: `${a.summary.percent}%` }} /></span>
-                    <span className="dim xs">{a.summary.complete} of {a.summary.total} met</span>
-                  </span>
-                  <StatusPill status={a.status} />
-                  <ArrowRight size={16} strokeWidth={1.8} />
-                </span>
-              </Link>
-            ))}
-          </div>
-        ) : (
-          <Empty
-            title="No applications yet"
-            body="Your applications and their status appear here."
-            action={<Link className="btn btn-primary" to="/ordination">See what churches issue</Link>}
-          />
-        )}
-      </div>
-    </div>
-  );
-};
-
-/* --- one application ---------------------------------------------------- */
+/**
+ * One application, in full.
+ *
+ * The list that used to sit alongside this is now /me/journey, where it can
+ * show what is outstanding rather than only what exists.
+ */
 
 export const ApplicationDetail = () => {
   const { reference } = useParams();
@@ -132,7 +88,7 @@ export const ApplicationDetail = () => {
                 {a.decision.note ? <p style={{ margin: '4px 0 0' }}>{a.decision.note}</p> : null}
                 {a.credentialId ? (
                   <p style={{ margin: '8px 0 0' }}>
-                    <Link className="btn btn-primary btn-sm" to="/passport">Open your passport</Link>
+                    <Link className="btn btn-primary btn-sm" to="/me/passport">Open your passport</Link>
                   </p>
                 ) : null}
               </div>

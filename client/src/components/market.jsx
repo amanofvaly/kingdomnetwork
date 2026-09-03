@@ -110,7 +110,7 @@ export const OfferingCard = ({ offering: o, showOutcome = false, held = false })
         </div>
 
         {held ? (
-          <Link to="/passport" className="btn btn-outline btn-sm btn-block card-buy">In your passport</Link>
+          <Link to="/me/passport" className="btn btn-outline btn-sm btn-block card-buy">In your passport</Link>
         ) : (
           <Link to={`/listing/${o.slug}`} className="btn btn-outline btn-sm btn-block card-buy">
             View details
@@ -208,7 +208,7 @@ export const OfferingRow = ({ offering: o, owned, applied }) => {
 
         {owned ? (
           <div className="offer-actions is-single">
-            <Link to="/passport" className="btn btn-outline btn-sm btn-block">In your passport</Link>
+            <Link to="/me/passport" className="btn btn-outline btn-sm btn-block">In your passport</Link>
           </div>
         ) : applied ? (
           <div className="offer-actions is-single">

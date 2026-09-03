@@ -8,6 +8,7 @@ import './styles/base.css';
 import './styles/app.css';
 import './styles/pages.css';
 import './styles/admin.css';
+import './styles/me.css';
 
 import { App } from './App.jsx';
 import { AuthProvider } from './lib/auth.jsx';

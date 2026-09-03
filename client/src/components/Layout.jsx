@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import {
-  BookOpen, ChevronDown, ClipboardList, Compass, IdCard, LayoutDashboard, LogOut, Menu, Search, ShieldCheck, ShoppingBag, User, X,
+  ChevronDown, Compass, IdCard, LayoutDashboard, LogOut, Menu, Search, ShieldCheck, ShoppingBag, X,
 } from 'lucide-react';
 
 import { api } from '../lib/api.js';
@@ -139,20 +139,20 @@ const AccountMenu = () => {
             <div className="xs dim">{user.email}</div>
           </div>
           {user.accountKind !== 'church' ? (
-            <>
-              <Link to="/dashboard" onClick={() => setOpen(false)}><BookOpen size={16} /> My account</Link>
-              <Link to="/passport" onClick={() => setOpen(false)}><IdCard size={16} /> Minister passport</Link>
-              <Link to="/applications" onClick={() => setOpen(false)}><ClipboardList size={16} /> My applications</Link>
-              <Link to="/account" onClick={() => setOpen(false)}><User size={16} /> Account</Link>
-              <Link to="/orders" onClick={() => setOpen(false)}><ShoppingBag size={16} /> Orders</Link>
-            </>
+            <Link to="/me" onClick={() => setOpen(false)}><IdCard size={16} /> Your area</Link>
           ) : null}
 
-          {memberships.map((m) => (
-            <Link key={m.churchSlug} to={`/manage/${m.churchSlug}`} onClick={() => setOpen(false)}>
-              <LayoutDashboard size={16} /> Dashboard
-            </Link>
-          ))}
+          {/* Only a church account can enter the console. A personal account may
+              still hold a membership — accepting a team invite is a personal
+              action — but the console turns it away, so offering the link would
+              be offering a second route to the page it just came from. */}
+          {user.accountKind === 'church'
+            ? memberships.map((m) => (
+              <Link key={m.churchSlug} to={`/manage/${m.churchSlug}`} onClick={() => setOpen(false)}>
+                <LayoutDashboard size={16} /> {m.church?.name ?? 'Church dashboard'}
+              </Link>
+            ))
+            : null}
           {isPlatformAdmin ? (
             <Link to="/admin" onClick={() => setOpen(false)}><ShieldCheck size={16} /> Platform administration</Link>
           ) : null}
@@ -188,8 +188,7 @@ const MobileNav = ({ onClose }) => {
             ))}
             {user && user.accountKind !== 'church' && (
               <>
-                <NavLink to="/dashboard" onClick={onClose} style={{ padding: '14px 0', fontSize: 'var(--text-xl)', fontFamily: 'var(--font-display)', fontWeight: 600, letterSpacing: '-0.02em', borderBottom: '1px solid var(--line)' }}>My learning</NavLink>
-                <NavLink to="/passport" onClick={onClose} style={{ padding: '14px 0', fontSize: 'var(--text-xl)', fontFamily: 'var(--font-display)', fontWeight: 600, letterSpacing: '-0.02em', borderBottom: '1px solid var(--line)' }}>Minister passport</NavLink>
+                <NavLink to="/me" onClick={onClose} style={{ padding: '14px 0', fontSize: 'var(--text-xl)', fontFamily: 'var(--font-display)', fontWeight: 600, letterSpacing: '-0.02em', borderBottom: '1px solid var(--line)' }}>Your area</NavLink>
               </>
             )}
             {user?.accountKind === 'church' && memberships[0] ? (
@@ -260,7 +259,7 @@ const Header = () => {
                 ) : null
               ) : (
                 <>
-                  <Link to="/passport" className="btn btn-ghost btn-sm hide-on-narrow">My passport</Link>
+                  <Link to="/me/passport" className="btn btn-ghost btn-sm hide-on-narrow">My passport</Link>
                   <AccountMenu />
                 </>
               )
@@ -324,9 +323,9 @@ const Footer = () => (
           <ul>
             <li><Link to="/signup">Create an account</Link></li>
             <li><Link to="/login">Sign in</Link></li>
-            <li><Link to="/dashboard">My account</Link></li>
-            <li><Link to="/passport">Minister passport</Link></li>
-            <li><Link to="/applications">My applications</Link></li>
+            <li><Link to="/me">Your area</Link></li>
+            <li><Link to="/me/passport">Minister passport</Link></li>
+            <li><Link to="/me/journey">Your journey</Link></li>
           </ul>
         </div>
         <div>

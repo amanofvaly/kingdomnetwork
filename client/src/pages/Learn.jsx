@@ -208,7 +208,7 @@ export const Learn = () => {
     <div className="player">
       <div className="player-main">
         <div className="player-bar">
-          <Link to="/dashboard" className="icon-btn" aria-label="Back to my learning"><ChevronLeft size={20} /></Link>
+          <Link to="/me/learning" className="icon-btn" aria-label="Back to my learning"><ChevronLeft size={20} /></Link>
           <div className="grow" style={{ minWidth: 0 }}>
             <div className="small strong clamp-1">{course.title}</div>
             <div className="xs dim">{church?.shortName ?? church?.name}</div>
@@ -231,7 +231,7 @@ export const Learn = () => {
                     : `${justEarned.outstanding} requirement${justEarned.outstanding === 1 ? '' : 's'} still to go.`}
                 </div>
               </div>
-              <Link to="/passport" className="btn btn-sm btn-outline">Open passport</Link>
+              <Link to="/me/passport" className="btn btn-sm btn-outline">Open passport</Link>
             </div>
           )}
 
@@ -273,7 +273,7 @@ export const Learn = () => {
                       : 'Every lesson is complete.'}
                   </p>
                   <div className="row-wrap" style={{ gap: 10 }}>
-                    <Link to="/passport" className="btn btn-primary btn-sm">View credential</Link>
+                    <Link to="/me/passport" className="btn btn-primary btn-sm">View credential</Link>
                     <Link to="/courses" className="btn btn-outline btn-sm">Find your next course</Link>
                   </div>
                 </div>

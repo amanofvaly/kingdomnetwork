@@ -27,6 +27,23 @@ export const dateLong = (value) =>
 export const dateShort = (value) =>
   value ? new Date(value).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : '';
 
+export const dateTime = (value) =>
+  value
+    ? new Date(value).toLocaleString('en-GB', {
+      day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit',
+    })
+    : '';
+
+/** 1_048_576 -> "1 MB". Sizes shown next to a download, so round numbers. */
+export const bytes = (n) => {
+  if (!n) return '';
+  const units = ['B', 'KB', 'MB', 'GB'];
+  let value = n;
+  let i = 0;
+  while (value >= 1024 && i < units.length - 1) { value /= 1024; i += 1; }
+  return `${value < 10 && i > 0 ? value.toFixed(1) : Math.round(value)} ${units[i]}`;
+};
+
 export const monthsAgo = (n) => {
   if (!n || n < 1) return 'this month';
   if (n === 1) return 'a month ago';

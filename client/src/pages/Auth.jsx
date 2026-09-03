@@ -30,7 +30,7 @@ const Shell = ({ mode, title, lede, children, footer }) => (
 const useAfterAuth = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  return () => navigate(location.state?.from ?? '/dashboard', { replace: true });
+  return () => navigate(location.state?.from ?? '/me', { replace: true });
 };
 
 export const Login = () => {
@@ -50,7 +50,7 @@ export const Login = () => {
       if (session.user?.accountKind === 'church' && session.memberships?.[0]) {
         navigate(`/manage/${session.memberships[0].churchSlug}`, { replace: true });
       } else {
-        navigate(location.state?.from ?? '/dashboard', { replace: true });
+        navigate(location.state?.from ?? '/me', { replace: true });
       }
     } catch (err) {
       setError(err instanceof ApiError ? err.message : 'Could not sign you in.');

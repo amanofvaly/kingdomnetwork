@@ -5,6 +5,7 @@ import * as application from '../controllers/application.controller.js';
 import * as assessment from '../controllers/assessment.controller.js';
 import * as interview from '../controllers/interview.controller.js';
 import * as learning from '../controllers/learning.controller.js';
+import * as me from '../controllers/me.controller.js';
 import * as passport from '../controllers/passport.controller.js';
 import * as payment from '../controllers/payment.controller.js';
 
@@ -42,6 +43,11 @@ router.get('/me/dashboard', learning.dashboard);
 router.get('/me/entitlements', learning.entitlements);
 router.get('/me/passport', passport.passport);
 router.get('/me/credentials/:id/document.pdf', passport.downloadDocument);
+
+// ── what you own, what you have paid, where you are expected ──
+router.get('/me/library', me.library);
+router.get('/me/statement', me.statement);
+router.get('/me/interviews', me.interviews);
 
 // ── coursework ──
 router.get('/learn/:slug', learning.player);

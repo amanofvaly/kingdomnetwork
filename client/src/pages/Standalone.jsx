@@ -207,7 +207,7 @@ export const ResetPassword = () => {
     setBusy(true);
     try {
       adopt(await api.post('/auth/reset-password', { token: params.get('token'), password }));
-      navigate('/dashboard');
+      navigate('/me');
     } catch (err) {
       fail(err);
       setBusy(false);

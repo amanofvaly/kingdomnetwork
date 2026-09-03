@@ -87,4 +87,14 @@
   --gutter: clamp(16px, 4vw, 48px);
 
   --focus: 0 0 0 3px rgba(63, 104, 189, 0.3);
+
+  /* --- motion ---
+     Two curves earned their place before this block existed: the register
+     flow's reveal and the card-image zoom. Naming them stops the next
+     surface from inventing a third that is almost the same. */
+  --ease-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-soft: cubic-bezier(0.2, 0.6, 0.2, 1);
+  --dur-1: 0.18s;
+  --dur-2: 0.32s;
+  --dur-3: 0.7s;
 }

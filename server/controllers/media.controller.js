@@ -4,7 +4,9 @@ import { storage } from '../lib/storage/index.js';
 import { describeAccepted, MAX_BYTES, readBody, storeUpload } from '../lib/upload.js';
 import { Application } from '../models/Application.js';
 import { ChurchMembership } from '../models/ChurchMembership.js';
+import { Enrollment } from '../models/Enrollment.js';
 import { MediaAsset } from '../models/MediaAsset.js';
+import { Resource } from '../models/Resource.js';
 
 /**
  * The church's media library, and the one route every stored file is read
@@ -198,6 +200,15 @@ const canReadPrivate = async (user, asset) => {
   if (usage) {
     const application = await Application.findById(usage.entityId, 'userId');
     if (application && String(application.userId) === String(user._id)) return true;
+  }
+
+  // Someone who bought a book may read the book. The file a church sells is
+  // private like any other, so without this the purchase bought nothing: the
+  // enrolment was written and the file stayed unreachable.
+  const sold = await Resource.findOne({ fileMediaIds: asset._id }, 'slug');
+  if (sold) {
+    const bought = await Enrollment.findOne({ userId: user._id, resourceSlug: sold.slug });
+    if (bought) return true;
   }
 
   return false;
