@@ -40,6 +40,13 @@ export const requirePlatformAdmin = (req, res, next) => {
   next();
 };
 
+export const requirePersonal = (req, res, next) => {
+  if (req.user?.accountKind !== 'personal') {
+    return res.status(403).json({ success: false, message: 'This area is for personal accounts.' });
+  }
+  next();
+};
+
 /**
  * Resolves `:churchSlug` into `req.church` and the caller's `req.membership`,
  * then checks the permission.
@@ -65,6 +72,10 @@ export const requireChurchRole = (permission) => async (req, res, next) => {
     req.membership = null;
     req.actingAsPlatformAdmin = true;
     return next();
+  }
+
+  if (req.user?.accountKind !== 'church') {
+    return res.status(403).json({ success: false, message: 'A personal account cannot administer a church.' });
   }
 
   const membership = await ChurchMembership.findOne({

@@ -82,6 +82,9 @@
 .btn-primary { background: var(--green-700); color: #fff; }
 .btn-primary:hover:not(:disabled) { background: var(--green-900); }
 
+.btn-secondary { background: var(--green-50); color: var(--green-700); }
+.btn-secondary:hover:not(:disabled) { background: var(--green-100); color: var(--green-900); }
+
 .btn-dark { background: var(--ink); color: #fff; }
 .btn-dark:hover:not(:disabled) { background: #000; }
 
@@ -299,7 +302,8 @@
 .header-inner { display: flex; align-items: center; gap: var(--s-5); height: var(--header-h); }
 
 .brand { display: flex; align-items: center; gap: 10px; flex: none; }
-.brand-mark { display: block; width: 26px; height: 32px; object-fit: contain; flex: none; }
+.brand-mark { display: block; width: 26px; height: 32px; object-fit: contain; flex: none; background: transparent; }
+.console-brand img { background: transparent; }
 .brand-name { font-family: var(--font-display); font-weight: 600; font-size: var(--text-md); letter-spacing: -0.025em; }
 
 .nav { display: flex; align-items: center; gap: var(--s-1); }
@@ -317,8 +321,7 @@
 .menu { position: absolute; top: calc(100% + 8px); right: 0; min-width: 240px; background: var(--bg); border: 1px solid var(--line); border-radius: var(--r-lg); box-shadow: var(--shadow-lg); padding: var(--s-2); z-index: 70; }
 .menu a, .menu button { display: flex; align-items: center; gap: var(--s-3); width: 100%; padding: 9px var(--s-3); border-radius: var(--r-sm); font-size: var(--text-base); color: var(--ink-2); text-align: left; }
 .menu a:hover, .menu button:hover { background: var(--bg-sunken); color: var(--ink); }
-.menu-head { padding: var(--s-3); border-bottom: 1px solid var(--line); margin-bottom: var(--s-2); }
-.menu-sep { height: 1px; background: var(--line); margin: var(--s-2) 0; }
+.menu-head { padding: var(--s-3); }
 
 .hide-lg { display: none; }
 @media (max-width: 1000px) {

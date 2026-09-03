@@ -35,7 +35,8 @@ const useAfterAuth = () => {
 
 export const Login = () => {
   const { login } = useAuth();
-  const after = useAfterAuth();
+  const navigate = useNavigate();
+  const location = useLocation();
   const [form, setForm] = useState({ email: '', password: '' });
   const [error, setError] = useState(null);
   const [busy, setBusy] = useState(false);
@@ -45,8 +46,12 @@ export const Login = () => {
     setError(null);
     setBusy(true);
     try {
-      await login(form);
-      after();
+      const session = await login(form);
+      if (session.user?.accountKind === 'church' && session.memberships?.[0]) {
+        navigate(`/manage/${session.memberships[0].churchSlug}`, { replace: true });
+      } else {
+        navigate(location.state?.from ?? '/dashboard', { replace: true });
+      }
     } catch (err) {
       setError(err instanceof ApiError ? err.message : 'Could not sign you in.');
       setBusy(false);
@@ -54,7 +59,7 @@ export const Login = () => {
   };
 
   return (
-    <Shell mode="login" title="Sign in" lede="Pick up your courses and open your passport."
+    <Shell mode="login" title="Sign in" lede="Access your personal or church account."
       footer={<>New here? <Link to="/signup" className="link">Create an account</Link>.</>}>
       <form className="stack stack-4" onSubmit={submit} noValidate>
         {error && <div className="notice notice-red"><span>{error}</span></div>}

@@ -28,19 +28,11 @@ export const Churches = () => {
         <div className="wrap" style={{ paddingBlock: 'var(--s-7)' }}>
           <div className="stack stack-5">
             <div className="stack stack-3" style={{ maxWidth: '60ch' }}>
-              <span className="eyebrow">Issuing churches</span>
-              <h1 style={{ fontSize: 'clamp(2rem, 3.6vw, 2.9rem)' }}>The ministries behind the credentials.</h1>
+              <h1 style={{ fontSize: 'clamp(2rem, 3.6vw, 2.9rem)' }}>Churches</h1>
               <p className="lede">
-                Every course and title on Kingdom Network belongs to a named church. Read who they are,
-                where they teach, and what they issue before you enrol.
+                Browse the directory of churches and ministries.
               </p>
             </div>
-            <form className="search" style={{ maxWidth: 520 }} role="search"
-              onSubmit={(e) => { e.preventDefault(); update({ q: new FormData(e.currentTarget).get('q')?.toString().trim() }); }}>
-              <Search size={18} color="var(--ink-3)" />
-              <input name="q" type="search" defaultValue={q} placeholder="Search by name, city or specialism" aria-label="Search churches" />
-              <button type="submit" className="btn btn-primary btn-sm">Search</button>
-            </form>
           </div>
         </div>
       </section>

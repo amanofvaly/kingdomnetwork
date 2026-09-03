@@ -5,25 +5,29 @@ import { ArrowRight, BadgeCheck, BookOpen, ChevronRight, Church, Headphones, Pla
 import { OfferingCard } from '../components/market.jsx';
 import { ErrorState, SkeletonGrid } from '../components/ui.jsx';
 import { useApi } from '../lib/useAsync.js';
+import { useCart } from '../lib/cart.jsx';
 import { money } from '../lib/format.js';
+import heroFeatured from '../assets/hero-featured-henry.jpg';
 
 /**
  * The opening banner.
  *
- * This used to be a flat photograph with two invisible, percentage-positioned
- * buttons laid over it — so the offer, its price and the church were baked into
- * a raster file and could only be changed by re-exporting the image. It is now
- * real markup, filled from a slot a platform administrator sets, and falls back
- * to the highest-ranked listing when no slot is configured.
+ * The original art-directed storefront banner. The artwork is imported so Vite
+ * fingerprints every revision, while real controls keep its pictured actions
+ * keyboard-accessible.
  */
 const Hero = ({ data }) => {
   const navigate = useNavigate();
   const [term, setTerm] = useState('');
+  const { add } = useCart();
 
   const slot = data?.hero;
-  const featured = slot?.offering ?? data?.featured?.[0];
-  const church = featured?.church;
-  const fee = featured?.fee?.amount ?? featured?.price ?? 0;
+  const featuredSlug = 'pastoral-care-certificate-seminole';
+
+  const buyFeatured = () => {
+    add({ kind: 'offering', slug: featuredSlug });
+    navigate('/checkout');
+  };
 
   return (
     <section className="market-hero">
@@ -52,38 +56,24 @@ const Hero = ({ data }) => {
           </div>
         </div>
 
-        {featured && (
-          <article className="hero-feature">
-            <Link to={`/listing/${featured.slug}`} className="hero-feature-media">
-              <img
-                src={slot?.image ?? featured.coverImage}
-                alt={slot?.imageAlt ?? featured.coverAlt ?? ''}
-                fetchPriority="high"
-                onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = '/media/scenes/books-colorful.webp'; }}
-              />
-            </Link>
-            <div className="hero-feature-body">
-              {church && (
-                <span className="row" style={{ gap: 8 }}>
-                  <span className="monogram monogram-sm">{church.monogram}</span>
-                  <span className="small strong">{church.shortName ?? church.name}</span>
-                  {church.verified && <BadgeCheck size={14} style={{ color: 'var(--green-600)' }} />}
-                </span>
-              )}
-              <Link to={`/listing/${featured.slug}`} className="hero-feature-title">{featured.title}</Link>
-              {featured.subtitle ? <p className="small muted clamp-2">{featured.subtitle}</p> : null}
-              <div className="row row-between" style={{ alignItems: 'flex-end' }}>
-                <span className="stack" style={{ gap: 0 }}>
-                  <span className="price-big">{fee ? money(fee) : 'No fee'}</span>
-                  <span className="xs dim">{fee ? 'to apply' : ''}</span>
-                </span>
-                <Link to={`/listing/${featured.slug}`} className="btn btn-primary btn-sm">
-                  View details <ArrowRight size={14} />
-                </Link>
-              </div>
-            </div>
-          </article>
-        )}
+        <article className="hero-feature-banner">
+          <img
+            src={heroFeatured}
+            alt="Featured Pastoral Care Certificate from Seminole Assembly, $40"
+            fetchPriority="high"
+          />
+          <button
+            type="button"
+            className="hero-hotspot hero-hotspot-buy"
+            onClick={buyFeatured}
+            aria-label="Buy Pastoral Care Certificate now"
+          />
+          <Link
+            to={`/listing/${featuredSlug}`}
+            className="hero-hotspot hero-hotspot-details"
+            aria-label="View Pastoral Care Certificate details"
+          />
+        </article>
       </div>
     </section>
   );
@@ -270,7 +260,7 @@ export const Home = () => {
               <li><BadgeCheck size={16} /> No approval needed. Listings go live when you publish them</li>
             </ul>
             <div className="row-wrap" style={{ gap: 12 }}>
-              <Link to="/teach" className="btn btn-inverse">Start listing</Link>
+              <Link to="/church/register" className="btn btn-inverse">Register your church</Link>
               <Link to="/churches" className="btn btn-inverse-outline">See who is here</Link>
             </div>
           </div>

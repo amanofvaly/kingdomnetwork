@@ -21,7 +21,7 @@ export const Teach = () => {
               and issue certificates and ordination directly into a minister&rsquo;s passport.
             </p>
             <div className="row-wrap" style={{ gap: 12 }}>
-              <Link to="/onboarding" className="btn btn-inverse btn-lg">Set up your church</Link>
+              <Link to="/church/register" className="btn btn-inverse btn-lg">Register your church</Link>
               <Link to="/churches" className="btn btn-inverse-outline btn-lg">See who is here</Link>
             </div>
           </div>
@@ -88,7 +88,7 @@ export const Teach = () => {
                 Create an account and set up your church profile in a few minutes.
               </p>
             </div>
-            <Link to="/onboarding" className="btn btn-primary btn-lg">Set up your church</Link>
+            <Link to="/church/register" className="btn btn-primary btn-lg">Register your church</Link>
           </div>
         </div>
       </section>

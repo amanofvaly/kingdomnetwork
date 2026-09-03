@@ -72,6 +72,7 @@ export const ChurchShell = () => {
 
   if (!ready) return <div className="wrap band"><Spinner /></div>;
   if (!user) return <Navigate to="/login" state={{ from: `/manage/${churchSlug}` }} replace />;
+  if (user.accountKind !== 'church' && !isPlatformAdmin) return <Navigate to="/dashboard" replace />;
   if (!membership && !isPlatformAdmin) {
     return (
       <div className="wrap band">
@@ -162,7 +163,7 @@ export const ChurchShell = () => {
         footer={
           <nav className="console-nav">
             {church?.slug ? (
-              <Link to={`/churches/${church.slug}`}>
+              <Link to={`/churches/${church.slug}`} target="_blank" rel="noopener noreferrer">
                 <Building2 size={16} strokeWidth={1.7} />
                 <span>View public page</span>
               </Link>

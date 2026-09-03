@@ -7,6 +7,7 @@ import { token as randomToken } from '../lib/ids.js';
 import { Church } from '../models/Church.js';
 import { ChurchMembership, CHURCH_ROLE_GRANTS } from '../models/ChurchMembership.js';
 import { User } from '../models/User.js';
+import { proposeSlug } from '../lib/slugs.js';
 
 const AVATARS = [
   'p-woman-bun', 'p-man-blue-shirt', 'p-woman-striped', 'p-man-teal-shirt',
@@ -64,14 +65,95 @@ export const signup = asyncHandler(async (req, res) => {
     country: country?.trim() || undefined,
     ministryRole: ministryRole?.trim() || undefined,
     role: 'member',
+    accountKind: 'personal',
     avatar: avatarUrl(),
   });
 
   res.status(201).json({ success: true, data: await sessionFor(user) });
 });
 
+/**
+ * A church signs up through its own surface. It creates a church, a distinct
+ * sign-in and the first administrative relationship in one operation; an
+ * existing personal session can never be converted into a church.
+ */
+export const registerChurch = asyncHandler(async (req, res) => {
+  if (req.user) {
+    return res.status(409).json({
+      success: false,
+      message: 'Church registration uses a separate sign-in. Sign out of your personal account first.',
+    });
+  }
+
+  const { churchName, yourName, email, password, city, country, about } = req.body ?? {};
+  if (!churchName?.trim()) return res.status(400).json({ success: false, message: 'Enter the church name.' });
+  if (!yourName?.trim()) return res.status(400).json({ success: false, message: 'Enter your name.' });
+  if (!/^\S+@\S+\.\S+$/.test(email ?? '')) return res.status(400).json({ success: false, message: 'Enter a valid church email address.' });
+  if (!password || password.length < 8) return res.status(400).json({ success: false, message: 'Use a password of at least 8 characters.' });
+  if (!city?.trim() || !country?.trim()) return res.status(400).json({ success: false, message: 'Enter the church city and country.' });
+  if (!about?.trim()) return res.status(400).json({ success: false, message: 'Add a short introduction to the church.' });
+
+  const normalizedEmail = email.toLowerCase().trim();
+  if (await User.exists({ email: normalizedEmail })) {
+    return res.status(409).json({ success: false, message: 'An account already uses that email address.' });
+  }
+
+  const name = churchName.trim();
+  const slug = await proposeSlug(Church, name, { suffix: false });
+  let user;
+  let church;
+
+  try {
+    user = await User.create({
+      name: yourName.trim(),
+      email: normalizedEmail,
+      passwordHash: await hashPassword(password),
+      country: country.trim(),
+      role: 'member',
+      accountKind: 'church',
+      avatar: avatarUrl(),
+    });
+
+    church = await Church.create({
+      slug,
+      name,
+      shortName: name.split(/\s+/).slice(0, 2).join(' '),
+      monogram: name.split(/\s+/).map((word) => word[0]).join('').slice(0, 2).toUpperCase(),
+      city: city.trim(),
+      country: country.trim(),
+      about: about.trim().slice(0, 420),
+      contact: { email: normalizedEmail },
+      coverImage: '/media/church-registration-cross.jpg',
+      coverAlt: 'A cross illuminated by vivid blue, gold and red light',
+      status: 'published',
+      publishedAt: new Date(),
+      demo: false,
+      onboarding: { currentStep: 10, completedSteps: [1, 2, 3, 5, 10], startedAt: new Date(), completedAt: new Date() },
+      verification: { state: 'unverified' },
+    });
+
+    await ChurchMembership.create({
+      churchSlug: slug,
+      userId: user._id,
+      role: 'admin',
+      status: 'active',
+      acceptedAt: new Date(),
+      title: 'Primary contact',
+    });
+
+    user.churchSlug = slug;
+    await user.save();
+  } catch (error) {
+    if (church) await Church.deleteOne({ _id: church._id });
+    if (user) await User.deleteOne({ _id: user._id });
+    throw error;
+  }
+
+  res.status(201).json({ success: true, data: await sessionFor(user) });
+});
+
 export const login = asyncHandler(async (req, res) => {
-  const { email, password } = req.body ?? {};
+  const { email, password, accountKind } = req.body ?? {};
   if (!email || !password) {
     return res.status(400).json({ success: false, message: 'Enter your email and password.' });
   }
@@ -89,6 +171,27 @@ export const login = asyncHandler(async (req, res) => {
   }
   if (!user || !(await verifyPassword(password, user.passwordHash))) {
     return res.status(401).json({ success: false, message: 'That email and password do not match.' });
+  }
+
+  // Church accounts created before accountKind was introduced carry a unique
+  // primary-contact membership. Upgrade only those records, never an ordinary
+  // personal account that was invited to help a church.
+  if ((!accountKind || accountKind === 'church') && user.accountKind === 'personal' && user.churchSlug) {
+    const legacyChurchAccount = await ChurchMembership.exists({
+      userId: user._id,
+      churchSlug: user.churchSlug,
+      role: 'admin',
+      title: 'Primary contact',
+      status: 'active',
+    });
+    if (legacyChurchAccount) user.accountKind = 'church';
+  }
+
+  if (accountKind && user.accountKind !== accountKind) {
+    return res.status(403).json({
+      success: false,
+      message: 'This account type does not match the requested sign-in method.',
+    });
   }
 
   user.lastLoginAt = new Date();
@@ -127,6 +230,7 @@ export const guest = asyncHandler(async (req, res) => {
     passwordHash: await hashPassword(password),
     country: country?.trim() || undefined,
     role: 'member',
+    accountKind: 'personal',
     avatar: avatarUrl(),
   });
 

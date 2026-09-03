@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import {
-  BookOpen, Building2, ChevronDown, ClipboardList, Compass, IdCard, LogOut, Menu, Search, ShieldCheck, ShoppingBag, User, X,
+  BookOpen, ChevronDown, ClipboardList, Compass, IdCard, LayoutDashboard, LogOut, Menu, Search, ShieldCheck, ShoppingBag, User, X,
 } from 'lucide-react';
 
 import { api } from '../lib/api.js';
@@ -14,7 +14,6 @@ import { Avatar } from './ui.jsx';
 const NAV = [
   { to: '/ordination', label: 'Ordination' },
   { to: '/certification', label: 'Certificates' },
-  { to: '/invitation-letter', label: 'Invitations' },
   { to: '/churches', label: 'Churches' },
 ];
 
@@ -139,22 +138,24 @@ const AccountMenu = () => {
             <div className="strong small">{user.name}</div>
             <div className="xs dim">{user.email}</div>
           </div>
-          <Link to="/dashboard" onClick={() => setOpen(false)}><BookOpen size={16} /> My account</Link>
-          <Link to="/passport" onClick={() => setOpen(false)}><IdCard size={16} /> Minister passport</Link>
-          <Link to="/applications" onClick={() => setOpen(false)}><ClipboardList size={16} /> My applications</Link>
-          <Link to="/account" onClick={() => setOpen(false)}><User size={16} /> Account</Link>
-          <Link to="/orders" onClick={() => setOpen(false)}><ShoppingBag size={16} /> Orders</Link>
+          {user.accountKind !== 'church' ? (
+            <>
+              <Link to="/dashboard" onClick={() => setOpen(false)}><BookOpen size={16} /> My account</Link>
+              <Link to="/passport" onClick={() => setOpen(false)}><IdCard size={16} /> Minister passport</Link>
+              <Link to="/applications" onClick={() => setOpen(false)}><ClipboardList size={16} /> My applications</Link>
+              <Link to="/account" onClick={() => setOpen(false)}><User size={16} /> Account</Link>
+              <Link to="/orders" onClick={() => setOpen(false)}><ShoppingBag size={16} /> Orders</Link>
+            </>
+          ) : null}
 
-          {memberships.length > 0 || isPlatformAdmin ? <hr /> : null}
           {memberships.map((m) => (
             <Link key={m.churchSlug} to={`/manage/${m.churchSlug}`} onClick={() => setOpen(false)}>
-              <Building2 size={16} /> {m.church?.shortName ?? m.churchSlug}
+              <LayoutDashboard size={16} /> Dashboard
             </Link>
           ))}
           {isPlatformAdmin ? (
             <Link to="/admin" onClick={() => setOpen(false)}><ShieldCheck size={16} /> Platform administration</Link>
           ) : null}
-          <div className="menu-sep" />
           <button type="button" onClick={() => { logout(); setOpen(false); navigate('/'); }}>
             <LogOut size={16} /> Sign out
           </button>
@@ -165,7 +166,7 @@ const AccountMenu = () => {
 };
 
 const MobileNav = ({ onClose }) => {
-  const { user, logout } = useAuth();
+  const { user, memberships, logout } = useAuth();
   return (
     <div style={{ position: 'fixed', inset: 0, zIndex: 100, background: 'var(--bg)' }}>
       <div className="wrap">
@@ -185,19 +186,25 @@ const MobileNav = ({ onClose }) => {
                 {item.label}
               </NavLink>
             ))}
-            {user && (
+            {user && user.accountKind !== 'church' && (
               <>
                 <NavLink to="/dashboard" onClick={onClose} style={{ padding: '14px 0', fontSize: 'var(--text-xl)', fontFamily: 'var(--font-display)', fontWeight: 600, letterSpacing: '-0.02em', borderBottom: '1px solid var(--line)' }}>My learning</NavLink>
                 <NavLink to="/passport" onClick={onClose} style={{ padding: '14px 0', fontSize: 'var(--text-xl)', fontFamily: 'var(--font-display)', fontWeight: 600, letterSpacing: '-0.02em', borderBottom: '1px solid var(--line)' }}>Minister passport</NavLink>
               </>
             )}
+            {user?.accountKind === 'church' && memberships[0] ? (
+              <NavLink to={`/manage/${memberships[0].churchSlug}`} onClick={onClose}
+                style={{ padding: '14px 0', fontSize: 'var(--text-xl)', fontFamily: 'var(--font-display)', fontWeight: 600, letterSpacing: '-0.02em', borderBottom: '1px solid var(--line)' }}>
+                Church dashboard
+              </NavLink>
+            ) : null}
           </nav>
           {user ? (
             <button type="button" className="btn btn-outline btn-block" onClick={() => { logout(); onClose(); }}>Sign out</button>
           ) : (
             <div className="stack stack-3">
-              <Link to="/login" className="btn btn-outline btn-block" onClick={onClose}>Sign in</Link>
-              <Link to="/signup" className="btn btn-primary btn-block" onClick={onClose}>Create an account</Link>
+              <Link to="/login" className="btn btn-primary btn-block" onClick={onClose}>Sign in</Link>
+              <Link to="/church/register" className="church-register-link" onClick={onClose}>Register church</Link>
             </div>
           )}
         </div>
@@ -207,10 +214,11 @@ const MobileNav = ({ onClose }) => {
 };
 
 const Header = () => {
-  const { user, ready } = useAuth();
+  const { user, memberships, ready } = useAuth();
   const { count } = useCart();
   const [mobileOpen, setMobileOpen] = useState(false);
   const { pathname } = useLocation();
+  const churchDashboard = memberships[0]?.churchSlug ?? user?.churchSlug;
 
   useEffect(() => { setMobileOpen(false); }, [pathname]);
   useEffect(() => {
@@ -244,16 +252,30 @@ const Header = () => {
             </Link>
 
             {ready && (user ? (
-              <>
-                <Link to="/passport" className="btn btn-ghost btn-sm hide-on-narrow">My passport</Link>
-                <AccountMenu />
-              </>
+              user.accountKind === 'church' ? (
+                churchDashboard ? (
+                  <Link to={`/manage/${churchDashboard}`} className="btn btn-primary btn-sm hide-on-narrow">
+                    Dashboard
+                  </Link>
+                ) : null
+              ) : (
+                <>
+                  <Link to="/passport" className="btn btn-ghost btn-sm hide-on-narrow">My passport</Link>
+                  <AccountMenu />
+                </>
+              )
             ) : (
               <div className="row" style={{ gap: 8 }}>
-                <Link to="/login" className="btn btn-ghost btn-sm hide-on-narrow">Sign in</Link>
-                <Link to="/signup" className="btn btn-primary btn-sm hide-on-narrow">Create account</Link>
+                <Link to="/church/register" className="church-register-link hide-on-narrow">Register church</Link>
+                <Link to="/login" className="btn btn-primary btn-sm hide-on-narrow">Sign in</Link>
               </div>
             ))}
+
+            {ready && !user ? (
+              <Link to="/login" className="btn btn-primary btn-sm church-entry-mobile">
+                Sign in
+              </Link>
+            ) : null}
 
             <button type="button" className="icon-btn hide-lg" onClick={() => setMobileOpen(true)} aria-label="Open menu">
               <Menu size={20} />
@@ -310,7 +332,8 @@ const Footer = () => (
         <div>
           <h5>For churches</h5>
           <ul>
-            <li><Link to="/for-churches">List what you issue</Link></li>
+            <li><Link to="/church/register">Register your church</Link></li>
+            <li><Link to="/for-churches">How Kingdom Network works</Link></li>
             <li><Link to="/churches">Church directory</Link></li>
           </ul>
         </div>

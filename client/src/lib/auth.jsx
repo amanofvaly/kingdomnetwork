@@ -24,22 +24,35 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   useEffect(() => {
-    if (!getToken()) {
+    const requestedToken = getToken();
+    if (!requestedToken) {
       setReady(true);
       return;
     }
     api
       .get('/auth/me')
       .then((session) => {
+        if (getToken() !== requestedToken) return;
         setUser(session.user);
         setMemberships(session.memberships ?? []);
       })
-      .catch(() => setToken(null))
+      .catch(() => {
+        if (getToken() === requestedToken) setToken(null);
+      })
       .finally(() => setReady(true));
   }, []);
 
   const signup = useCallback(async (payload) => adopt(await api.post('/auth/signup', payload)), [adopt]);
-  const login = useCallback(async (payload) => adopt(await api.post('/auth/login', payload)), [adopt]);
+  const registerChurch = useCallback(async (payload) => {
+    const session = await api.post('/auth/church-register', payload);
+    adopt(session);
+    return session;
+  }, [adopt]);
+  const login = useCallback(async (payload) => {
+    const session = await api.post('/auth/login', payload);
+    adopt(session);
+    return session;
+  }, [adopt]);
 
   const refresh = useCallback(async () => {
     const session = await api.get('/auth/me');
@@ -60,6 +73,7 @@ export const AuthProvider = ({ children }) => {
       memberships,
       ready,
       signup,
+      registerChurch,
       login,
       logout,
       refresh,
@@ -75,7 +89,7 @@ export const AuthProvider = ({ children }) => {
         return membership.permissions.includes('*') || membership.permissions.includes(permission);
       },
     }),
-    [user, memberships, ready, signup, login, logout, refresh, adopt],
+    [user, memberships, ready, signup, registerChurch, login, logout, refresh, adopt],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

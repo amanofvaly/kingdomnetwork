@@ -1,6 +1,6 @@
 import { Router } from 'express';
 
-import { requireAuth } from '../middleware/auth.js';
+import { requireAuth, requirePersonal } from '../middleware/auth.js';
 import * as application from '../controllers/application.controller.js';
 import * as assessment from '../controllers/assessment.controller.js';
 import * as interview from '../controllers/interview.controller.js';
@@ -13,10 +13,10 @@ const router = Router();
 // Scoped to the paths this file owns, not applied blanket: a router mounted
 // without a prefix runs its middleware for every request that reaches it, which
 // would put a sign-in wall in front of the Pesapal IPN further down the chain.
-router.use('/applications', requireAuth);
-router.use('/interviews', requireAuth);
-router.use('/me', requireAuth);
-router.use('/learn', requireAuth);
+router.use('/applications', requireAuth, requirePersonal);
+router.use('/interviews', requireAuth, requirePersonal);
+router.use('/me', requireAuth, requirePersonal);
+router.use('/learn', requireAuth, requirePersonal);
 
 // ── applying ──
 router.get('/applications', application.list);

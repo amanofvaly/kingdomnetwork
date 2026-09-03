@@ -25,7 +25,7 @@ export const Overview = () => {
         title="Overview"
         sub={church.status === 'draft' ? 'Your page is not published yet' : 'Your page is live'}
       >
-        <Link className="btn btn-outline btn-sm" to={`/churches/${churchSlug}`}>View public page</Link>
+        <Link className="btn btn-outline btn-sm" to={`/churches/${churchSlug}`} target="_blank" rel="noopener noreferrer">View public page</Link>
       </ConsoleHeader>
 
       <div className="console-body">

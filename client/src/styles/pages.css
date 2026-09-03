@@ -198,6 +198,7 @@
    =========================================================================== */
 .detail-head { background: var(--bg-warm); border-bottom: 1px solid var(--line); padding-block: var(--s-6) var(--s-7); }
 .detail-grid { display: grid; grid-template-columns: minmax(0, 1fr) 372px; gap: var(--s-7); align-items: start; }
+.detail-grid-single { grid-template-columns: minmax(0, 1fr); }
 .detail-main { min-width: 0; }
 
 /* `align-items: start` shrinks the column to its content, which leaves a
@@ -281,20 +282,105 @@
 .stage:last-child .stage-body { padding-bottom: 0; }
 
 /* ===========================================================================
-   Church profile
+   Church public profile
    =========================================================================== */
-.church-hero { position: relative; }
-.church-hero .media { border-radius: 0; aspect-ratio: 24 / 7; min-height: 240px; }
-.church-headline { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: var(--s-7); align-items: start; }
-@media (max-width: 900px) { .church-headline { grid-template-columns: 1fr; } .church-hero .media { aspect-ratio: 16/9; } }
+.church-profile { background: var(--bg); }
+.church-profile-top { padding-top: var(--s-5); }
+.church-profile-cover { aspect-ratio: 24 / 8; min-height: 300px; border-radius: var(--r-lg); background: var(--bg-sunken); }
+.church-profile-cover > img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: center; }
+.church-profile-cover::after { content: ''; position: absolute; inset: 0; background: linear-gradient(to top, rgba(21, 18, 48, .88) 0%, rgba(21, 18, 48, .42) 42%, transparent 72%); pointer-events: none; }
+.church-profile-identity { position: absolute; z-index: 1; inset: auto 0 0; display: grid; grid-template-columns: 96px minmax(0, 1fr) auto; gap: var(--s-5); align-items: start; padding: var(--s-6); color: #fff; }
+.church-profile-mark { align-self: start; width: 96px; height: 96px; padding: 5px; border-radius: 14px; background: var(--bg); box-shadow: 0 7px 24px rgba(20, 23, 26, .18); }
+.church-profile-actions { align-self: end; display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 8px; }
+.church-profile-mark > img, .church-profile-mark > .monogram { width: 100%; height: 100%; border-radius: 9px; object-fit: cover; font-size: var(--text-2xl); }
+.church-profile-name h1 { color: #fff; font-size: clamp(1.8rem, 3.5vw, 2.7rem); letter-spacing: -.035em; }
+.church-profile-name .verified { color: #fff; }
+.church-profile-title-row { display: flex; align-items: center; justify-content: space-between; gap: var(--s-3); }
+.church-profile-mail { display: grid; place-items: center; flex: none; width: 36px; height: 36px; border: 1px solid rgba(255,255,255,.42); border-radius: var(--r-md); color: #fff; background: rgba(21,18,48,.18); }
+.church-profile-mail:hover { border-color: #fff; background: rgba(255,255,255,.14); }
+.church-profile-name > p { max-width: 62ch; margin: 6px 0 0; color: rgba(255,255,255,.88); }
+.church-profile-meta { display: flex; flex-wrap: wrap; gap: 6px var(--s-4); margin-top: 8px; color: rgba(255,255,255,.72); font-size: var(--text-sm); }
+.church-profile-meta span { display: inline-flex; align-items: center; gap: 5px; }
+.church-profile-tabs { display: flex; gap: var(--s-5); min-height: 52px; padding-inline: var(--s-5); overflow-x: auto; scrollbar-width: none; }
+.church-profile-tabs::-webkit-scrollbar { display: none; }
+.church-profile-tabs a { display: grid; place-items: center; flex: none; color: var(--ink-2); font-size: var(--text-sm); font-weight: 500; border-bottom: 2px solid transparent; }
+.church-profile-tabs a:hover { color: var(--green-700); border-bottom-color: var(--green-700); }
 
-.stat-row { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--s-4); }
-.stat { padding: var(--s-4); background: var(--bg-warm); border-radius: var(--r-md); }
-.stat strong { display: block; font-family: var(--font-display); font-size: var(--text-xl); font-weight: 600; letter-spacing: -0.025em; }
-.stat span { font-size: var(--text-xs); color: var(--ink-3); }
-@media (max-width: 620px) { .stat-row { grid-template-columns: repeat(2, 1fr); } }
+.church-profile-body { padding-block: var(--s-6) var(--s-8); background: var(--bg-sunken); border-top: 1px solid var(--line); }
+.church-profile-layout { display: grid; grid-template-columns: 310px minmax(0, 1fr); gap: var(--s-5); align-items: start; }
+.church-profile-aside { display: grid; gap: var(--s-4); position: sticky; top: calc(var(--header-h) + var(--s-4)); }
+.church-profile-panel, .church-profile-section { background: var(--bg); border: 1px solid var(--line); border-radius: var(--r-lg); }
+.church-profile-panel { padding: var(--s-5); }
+.church-profile-panel h2, .church-profile-section-head h2 { font-size: var(--text-lg); letter-spacing: -.02em; }
+.church-profile-panel > p { margin: var(--s-3) 0 0; color: var(--ink-2); font-size: var(--text-sm); line-height: 1.65; }
+.church-profile-tags { gap: 6px; margin-top: var(--s-4); }
+.church-profile-facts, .church-profile-services { display: grid; gap: var(--s-3); margin-top: var(--s-4); }
+.church-profile-facts li { display: grid; grid-template-columns: 18px minmax(0, 1fr); gap: 9px; color: var(--ink-2); font-size: var(--text-sm); }
+.church-profile-facts svg { color: var(--ink-3); margin-top: 2px; }
+.church-profile-contact { display: grid; gap: 10px; margin-top: var(--s-4); }
+.church-profile-contact a { display: flex; align-items: center; gap: 9px; min-width: 0; color: var(--green-700); font-size: var(--text-sm); overflow-wrap: anywhere; }
+.church-profile-services li { display: grid; gap: 2px; padding-top: var(--s-3); border-top: 1px solid var(--line); font-size: var(--text-sm); }
+.church-profile-services li:first-child { padding-top: 0; border: 0; }
+.church-profile-services strong { font-weight: 500; color: var(--ink-2); }
 
-.leader { display: grid; grid-template-columns: 84px minmax(0, 1fr); gap: var(--s-4); align-items: start; }
+.church-profile-feed { display: grid; gap: var(--s-5); min-width: 0; }
+.church-profile-section { padding: var(--s-5); }
+.church-profile-section-head { display: flex; align-items: flex-start; justify-content: space-between; gap: var(--s-4); margin-bottom: var(--s-5); }
+.church-profile-section-head p { margin: 5px 0 0; color: var(--ink-2); font-size: var(--text-sm); }
+.church-profile-section-head > span { flex: none; color: var(--ink-3); font-size: var(--text-sm); }
+.church-profile-rail + .church-profile-rail { margin-top: var(--s-7); padding-top: var(--s-6); border-top: 1px solid var(--line); }
+.church-profile-rail > h3 { margin-bottom: var(--s-4); font-size: var(--text-md); }
+.church-profile-rail .grid-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.church-resource-card .media { border-radius: 0; }
+.church-profile-empty { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: var(--s-4); align-items: center; min-height: 132px; padding: var(--s-5); background: var(--bg-warm); border-radius: var(--r-md); }
+.church-profile-empty-icon { display: grid; place-items: center; width: 44px; height: 44px; border-radius: var(--r-full); background: var(--bg); color: var(--green-700); }
+.church-profile-empty h3 { font-size: var(--text-md); }
+.church-profile-empty p { margin: 4px 0 0; color: var(--ink-2); font-size: var(--text-sm); }
+.church-profile-photos-empty { padding: var(--s-4); }
+.church-profile-people { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--s-3); }
+.church-profile-person { display: grid; grid-template-columns: 58px minmax(0, 1fr); gap: var(--s-3); align-items: start; padding: var(--s-4); background: var(--bg-warm); border-radius: var(--r-md); }
+.church-profile-person > img, .church-profile-person > .monogram { width: 58px; height: 58px; border-radius: var(--r-full); object-fit: cover; }
+.church-profile-person h3 { font-size: var(--text-base); }
+.church-profile-person p { margin: 2px 0 0; color: var(--ink-3); font-size: var(--text-xs); }
+.church-profile-person div > span { display: block; margin-top: 7px; color: var(--ink-2); font-size: var(--text-sm); line-height: 1.5; }
+.church-profile-person > .stars, .church-profile-person > small { grid-column: 2; }
+.church-profile-person > small { display: flex; align-items: center; gap: 5px; color: var(--ink-3); }
+.church-profile-gallery { display: grid; grid-template-columns: 1.5fr 1fr 1fr; grid-auto-rows: 170px; gap: 8px; }
+.church-profile-gallery figure { margin: 0; overflow: hidden; border-radius: var(--r-md); background: var(--bg-sunken); }
+.church-profile-gallery figure:first-child { grid-row: span 2; }
+.church-profile-gallery img { width: 100%; height: 100%; object-fit: cover; transition: transform .5s cubic-bezier(.2,.6,.2,1); }
+.church-profile-gallery figure:hover img { transform: scale(1.035); }
+
+@media (max-width: 1080px) {
+  .church-profile-rail .grid-3 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 820px) {
+  .church-profile-cover { aspect-ratio: 16 / 8; min-height: 330px; }
+  .church-profile-identity { grid-template-columns: 76px minmax(0, 1fr); padding: var(--s-4); }
+  .church-profile-mark { width: 76px; height: 76px; }
+  .church-profile-actions { grid-column: 1 / -1; justify-content: flex-start; }
+  .church-profile-tabs { padding-inline: var(--s-3); }
+  .church-profile-layout { grid-template-columns: 1fr; }
+  .church-profile-aside { position: static; }
+}
+@media (max-width: 560px) {
+  .church-profile-top { padding-top: 0; padding-inline: 0; }
+  .church-profile-cover { min-height: 280px; border-radius: 0; aspect-ratio: auto; }
+  .church-profile-identity { grid-template-columns: 62px minmax(0, 1fr); gap: var(--s-3); padding: var(--s-4); }
+  .church-profile-mark { width: 62px; height: 62px; padding: 4px; border-radius: 11px; }
+  .church-profile-name h1 { font-size: 1.65rem; }
+  .church-profile-name > p { font-size: var(--text-sm); }
+  .church-profile-actions .btn { flex: 1; padding-inline: var(--s-3); }
+  .church-profile-body { padding-block: var(--s-3) var(--s-6); }
+  .church-profile-layout { padding-inline: var(--s-3); gap: var(--s-3); }
+  .church-profile-panel, .church-profile-section { border-radius: var(--r-md); }
+  .church-profile-section { padding: var(--s-4); }
+  .church-profile-rail .grid-3, .church-profile-people { grid-template-columns: 1fr; }
+  .church-profile-empty { grid-template-columns: auto 1fr; }
+  .church-profile-empty .link { grid-column: 2; }
+  .church-profile-gallery { grid-template-columns: 1fr 1fr; grid-auto-rows: 130px; }
+  .church-profile-gallery figure:first-child { grid-column: 1 / -1; grid-row: auto; height: 210px; }
+}
 
 /* ===========================================================================
    Cart, checkout, orders
@@ -805,6 +891,242 @@
 @media (max-width: 460px) {
   .hero-search-btn .btn-label { display: none; }
   .hero-search-btn { padding-inline: var(--s-4); }
+}
+
+.church-entry-mobile { display: none; }
+.church-register-link {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  min-height: 36px;
+  padding-inline: 4px;
+  color: var(--green-900);
+  font-size: var(--text-sm);
+  font-weight: 650;
+  white-space: nowrap;
+  transition: color .18s;
+}
+.church-register-link::after {
+  content: '';
+  position: absolute;
+  left: 4px;
+  right: 4px;
+  bottom: 5px;
+  height: 2px;
+  border-radius: 2px;
+  background: var(--green-500);
+  transform-origin: left;
+  transition: transform .2s cubic-bezier(.16,1,.3,1);
+}
+.church-register-link:hover { color: var(--green-600); }
+.church-register-link:hover::after { transform: scaleX(.62); }
+@media (max-width: 900px) {
+  .church-entry-mobile { display: inline-flex; padding-inline: 12px; }
+}
+@media (max-width: 410px) {
+  .church-entry-mobile { min-height: 36px; padding-inline: 10px; font-size: 12px; }
+}
+
+/* Church registration — a live public-page composition, not an admin wizard. */
+.church-register {
+  min-height: 100svh;
+  position: relative;
+  overflow: hidden;
+  background: #24204a;
+  color: #fff;
+}
+.church-register-header {
+  position: absolute;
+  z-index: 20;
+  inset: 0 0 auto;
+  height: 72px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 clamp(18px, 4vw, 56px);
+}
+.church-register-header .brand-name { color: #fff; }
+.church-register-signin {
+  padding: 9px 13px;
+  border-radius: var(--r-md);
+  color: rgba(255,255,255,.82);
+  font-size: var(--text-sm);
+  font-weight: 500;
+}
+.church-register-signin:hover { color: #fff; background: rgba(255,255,255,.1); }
+.church-register-intro {
+  position: absolute;
+  inset: 0;
+  min-height: 100svh;
+  isolation: isolate;
+  transition: transform .8s cubic-bezier(.16,1,.3,1), filter .8s cubic-bezier(.16,1,.3,1), opacity .45s ease;
+}
+.church-register-intro > img { width: 100%; height: 100svh; object-fit: cover; background: #24204a; transform: scale(1.015); animation: church-art-arrive 1.4s cubic-bezier(.16,1,.3,1) both; }
+.church-register-intro-shade { position: absolute; inset: 0; background: linear-gradient(90deg, rgba(22,17,55,.92) 0%, rgba(28,20,64,.7) 38%, rgba(18,15,47,.08) 72%), linear-gradient(0deg, rgba(17,14,42,.56), transparent 58%); }
+.church-register-intro-copy {
+  position: absolute;
+  z-index: 2;
+  left: clamp(22px, 7vw, 108px);
+  bottom: clamp(48px, 11vh, 120px);
+  width: min(620px, calc(100% - 44px));
+}
+.church-register-intro-copy h1 { max-width: 15ch; color: #fff; font-size: clamp(2.8rem, 5.2vw, 4.9rem); line-height: .96; letter-spacing: -.04em; }
+.church-register-intro-copy h1 cite { display: flex; align-items: center; gap: 10px; margin-top: 18px; color: #ffe1a3; font-size: var(--text-sm); font-style: normal; font-weight: 600; line-height: 1; letter-spacing: .1em; text-transform: uppercase; }
+.church-register-intro-copy h1 cite::before { content: ''; width: 28px; height: 1px; background: currentColor; }
+.church-register-intro-copy p { max-width: 48ch; margin: 24px 0 30px; color: rgba(255,255,255,.78); font-size: clamp(1rem,1.4vw,1.18rem); line-height: 1.55; }
+.church-register-begin, .church-register-submit {
+  min-height: 56px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 28px;
+  padding: 0 22px;
+  border-radius: var(--r-md);
+  background: #fff;
+  color: #211e3b;
+  font-weight: 650;
+  transition: transform .2s cubic-bezier(.16,1,.3,1), box-shadow .2s ease, background .2s ease;
+}
+.church-register-begin:hover, .church-register-submit:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 14px 34px rgba(8,5,31,.28); background: #fff9ed; }
+.church-register-workspace {
+  height: 100svh;
+  display: grid;
+  grid-template-columns: minmax(430px,.82fr) minmax(560px,1.18fr);
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(26px);
+  transition: opacity .45s .18s ease, transform .7s .18s cubic-bezier(.16,1,.3,1);
+}
+.church-register.is-started .church-register-intro { opacity: 0; pointer-events: none; transform: scale(.94) translateY(-4%); filter: blur(10px); }
+.church-register.is-started .church-register-workspace { opacity: 1; pointer-events: auto; transform: none; }
+.church-register.is-started .church-register-header { pointer-events: none; }
+.church-register.is-started .church-register-signin { pointer-events: auto; }
+.church-register:not(.is-started) { height: 100svh; }
+.church-register:not(.is-started) .church-register-workspace { visibility: hidden; overflow: hidden; }
+.church-register-editor {
+  height: 100svh;
+  padding: 42px clamp(28px,4vw,64px) 56px;
+  background: #fff9ed;
+  color: var(--ink);
+  overflow-y: auto;
+}
+.church-register-back { display: inline-flex; align-items: center; gap: 7px; color: var(--ink-2); font-size: var(--text-sm); font-weight: 550; }
+.church-register-back:hover { color: var(--green-700); }
+.church-register-heading { margin: clamp(48px,8vh,82px) 0 38px; }
+.church-register-heading h1 { font-size: clamp(2.7rem,4.4vw,4.5rem); line-height: .95; letter-spacing: -.04em; }
+.church-register-heading p { max-width: 48ch; margin-top: 16px; color: var(--ink-2); }
+.church-register-form, .church-register-group, .church-register-access { display: grid; gap: 23px; }
+.church-register-pair { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+.church-register-field { display: grid; gap: 7px; }
+.church-register-field > span { font-size: var(--text-sm); font-weight: 620; }
+.church-register-field input, .church-register-field textarea {
+  width: 100%;
+  min-height: 50px;
+  padding: 10px 2px;
+  border: 0;
+  border-bottom: 1px solid #bdb4d0;
+  border-radius: 0;
+  outline: none;
+  background: transparent;
+  color: var(--ink);
+  font-size: 1.04rem;
+  line-height: 1.5;
+  caret-color: var(--green-700);
+  transition: border-color .18s, box-shadow .18s;
+}
+.church-register-field textarea { min-height: 104px; resize: vertical; }
+.church-register-field input:focus, .church-register-field textarea:focus { border-color: var(--green-700); box-shadow: 0 2px 0 var(--green-700); }
+.church-register-field input::placeholder, .church-register-field textarea::placeholder { color: #827d93; }
+.church-register-field small { color: var(--ink-3); font-size: var(--text-xs); }
+.church-register-access { margin-top: 38px; padding-top: 30px; border-top: 1px solid var(--line); }
+.church-register-access-title { display: flex; justify-content: space-between; gap: 20px; align-items: baseline; }
+.church-register-access-title > span { font-size: var(--text-lg); font-weight: 650; }
+.church-register-access-title small { color: var(--ink-3); text-align: right; }
+.church-register-submit { width: 100%; margin-top: 12px; background: #3157a4; color: #fff; border: 0; }
+.church-register-submit:hover:not(:disabled) { background: #263f82; }
+.church-register-submit:disabled { opacity: .65; cursor: wait; }
+.church-register-promise { display: flex; align-items: flex-start; justify-content: center; gap: 7px; margin: -10px 0 0; color: var(--ink-3); font-size: var(--text-xs); text-align: center; }
+.church-register-promise svg { flex: none; margin-top: 2px; color: var(--green-600); }
+.church-register-error { padding: 12px 14px; border-radius: var(--r-md); background: var(--red-50); color: var(--red-600); font-size: var(--text-sm); }
+.church-register-preview {
+  height: 100svh;
+  position: sticky;
+  top: 0;
+  display: grid;
+  place-items: center;
+  padding: clamp(72px,8vw,118px);
+  background: radial-gradient(circle at 78% 12%, rgba(255,196,76,.3), transparent 29%), linear-gradient(145deg,#1746b9 0%,#334fca 48%,#7643c8 100%);
+  overflow: hidden;
+}
+.church-register-preview::before { content: ''; position: absolute; width: 520px; height: 520px; right: -270px; bottom: -210px; border: 90px solid rgba(255,255,255,.08); border-radius: 50%; }
+.church-register-preview-label { position: absolute; top: 36px; left: 42px; display: flex; align-items: center; gap: 7px; color: rgba(255,255,255,.72); font-size: var(--text-xs); font-weight: 600; letter-spacing: .025em; }
+.church-register-page { position: relative; z-index: 1; width: min(680px,100%); overflow: hidden; border-radius: 16px; background: #fff; color: var(--ink); box-shadow: 0 32px 80px rgba(15,10,62,.34); animation: church-page-float 7s ease-in-out infinite; }
+.church-register-page-hero { position: relative; aspect-ratio: 16/8.6; overflow: hidden; }
+.church-register-page-hero > img { width: 100%; height: 100%; object-fit: cover; }
+.church-register-page-overlay { position: absolute; inset: 0; background: linear-gradient(90deg,rgba(17,13,51,.82),rgba(22,17,63,.18) 76%), linear-gradient(0deg,rgba(12,9,39,.55),transparent 65%); }
+.church-register-page-copy { position: absolute; inset: auto 8% 9%; color: #fff; }
+.church-register-monogram { display: grid; place-items: center; width: 42px; height: 42px; margin-bottom: 13px; border-radius: var(--r-md); background: rgba(255,255,255,.94); color: #3157a4; font-size: var(--text-sm); font-weight: 750; }
+.church-register-page-copy h2 { max-width: 12ch; color: #fff; font-size: clamp(2rem,3.6vw,3.6rem); line-height: .94; letter-spacing: -.04em; transition: opacity .2s ease; }
+.church-register-location { display: flex; align-items: center; gap: 6px; margin-top: 14px; color: rgba(255,255,255,.78); font-size: var(--text-sm); }
+.church-register-page-body { padding: clamp(24px,4vw,42px); }
+.church-register-page-rule { display: block; width: 34px; height: 3px; margin-bottom: 12px; border-radius: 2px; background: #3157a4; }
+.church-register-page-body h3 { font-size: clamp(1.35rem,2vw,1.8rem); }
+.church-register-page-body > p { max-width: 58ch; min-height: 3.2em; margin: 14px 0 28px; color: var(--ink-2); }
+.church-register-page-foot { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding-top: 16px; border-top: 1px solid var(--line); color: var(--ink-3); font-size: var(--text-xs); }
+.church-register-page-foot span:first-child { display: flex; align-items: center; gap: 6px; color: var(--green-700); font-weight: 600; }
+.church-register-separate { display: grid; grid-template-columns: 1.05fr .95fr; background: #fff9ed; color: var(--ink); }
+.church-register-separate-art { min-height: 100svh; overflow: hidden; }
+.church-register-separate-art img { width: 100%; height: 100%; object-fit: cover; }
+.church-register-separate-copy { display: flex; flex-direction: column; justify-content: space-between; align-items: flex-start; min-height: 100svh; padding: clamp(32px,6vw,88px); }
+.church-register-separate-copy > div { max-width: 560px; }
+.church-register-separate-copy h1 { font-size: clamp(2.8rem,5vw,5.2rem); line-height: .95; letter-spacing: -.04em; }
+.church-register-separate-copy p { max-width: 46ch; margin-top: 22px; color: var(--ink-2); font-size: var(--text-lg); }
+.church-register-loading { min-height: 100svh; background: #24204a; }
+@keyframes church-art-arrive { from { transform: scale(1.09); filter: saturate(.8); } to { transform: scale(1.015); filter: saturate(1); } }
+@keyframes church-page-float { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-7px); } }
+
+@media (max-width: 980px) {
+  .church-register.is-started { height: auto; overflow: visible; }
+  .church-register-workspace { height: auto; grid-template-columns: 1fr; }
+  .church-register-preview { height: auto; min-height: auto; position: relative; order: -1; padding: 92px var(--gutter) 38px; }
+  .church-register-preview-label { top: 76px; left: var(--gutter); }
+  .church-register-page { width: min(680px,100%); margin-top: 16px; animation: none; }
+  .church-register-editor { height: auto; min-height: auto; padding: 32px var(--gutter) 56px; }
+  .church-register-heading { margin: 40px 0 32px; }
+}
+
+@media (min-width: 981px) {
+  .church-register.is-started .church-register-header .brand { opacity: 0; pointer-events: none; }
+}
+
+@media (max-width: 620px) {
+  .church-register-header { height: 64px; }
+  .church-register-header .brand-name { font-size: 13px; }
+  .church-register-intro > img { object-position: 72% center; }
+  .church-register-intro-shade { background: linear-gradient(0deg,rgba(20,15,54,.96) 0%,rgba(21,15,55,.72) 48%,rgba(17,13,47,.12) 80%); }
+  .church-register-intro-copy { top: 92px; right: 20px; bottom: 34px; left: 20px; width: auto; display: flex; flex-direction: column; justify-content: space-between; }
+  .church-register-intro-copy h1 { max-width: 12ch; font-size: clamp(2.25rem,11vw,3.25rem); }
+  .church-register-intro-copy h1 cite { margin-top: 14px; font-size: 11px; }
+  .church-register-intro-copy p { margin: 18px 0 24px; font-size: var(--text-base); }
+  .church-register-intro-bottom { display: flex; flex-direction: column; align-items: flex-start; }
+  .church-register-begin { width: 100%; }
+  .church-register-preview { display: none; }
+  .church-register-preview-label { top: 62px; left: 18px; }
+  .church-register-page { border-radius: 12px; }
+  .church-register-page-hero { aspect-ratio: 16/9.4; }
+  .church-register-page-copy h2 { font-size: clamp(1.85rem,9vw,2.5rem); }
+  .church-register-page-body { padding: 22px; }
+  .church-register-page-body > p { margin-bottom: 18px; font-size: var(--text-sm); }
+  .church-register-editor { padding: 28px 20px 48px; }
+  .church-register-heading { margin: 38px 0 30px; }
+  .church-register-heading h1 { font-size: 2.75rem; }
+  .church-register-pair { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 10px; }
+  .church-register-access-title { display: grid; gap: 4px; }
+  .church-register-access-title small { text-align: left; }
+  .church-register-separate { grid-template-columns: 1fr; }
+  .church-register-separate-art { min-height: 42svh; }
+  .church-register-separate-copy { min-height: 58svh; padding: 28px 20px 38px; }
+  .church-register-separate-copy h1 { font-size: 2.8rem; }
 }
 
 /* Outcome navigation, carried by photographs. */

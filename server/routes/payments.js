@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import express from 'express';
 
-import { requireAuth } from '../middleware/auth.js';
+import { requireAuth, requirePersonal } from '../middleware/auth.js';
 import { rateLimit } from '../middleware/rateLimit.js';
 import * as payment from '../controllers/payment.controller.js';
 
@@ -14,7 +14,7 @@ router.post('/payments/ipn', payment.ipn);
 router.get('/payments/callback', payment.callback);
 router.get('/payments/cancelled', payment.cancelled);
 
-router.post('/payments/:reference/refresh', requireAuth, rateLimit({ windowMs: 60_000, max: 20 }), payment.refreshPayment);
+router.post('/payments/:reference/refresh', requireAuth, requirePersonal, rateLimit({ windowMs: 60_000, max: 20 }), payment.refreshPayment);
 
 // The development gateway, which stands in when no credentials are configured.
 router.get('/payments/mock/:orderTrackingId', payment.mockPayPage);

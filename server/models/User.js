@@ -21,6 +21,7 @@ const userSchema = new mongoose.Schema(
     passwordHash: { type: String, select: false },
 
     role: { type: String, enum: USER_ROLES, default: 'member', index: true },
+    accountKind: { type: String, enum: ['personal', 'church'], default: 'personal', index: true },
     status: { type: String, enum: ['active', 'suspended'], default: 'active', index: true },
 
     // Kept as a convenience for the church a person most recently acted for.
@@ -66,7 +67,8 @@ userSchema.methods.toPublic = function toPublic() {
     id: this._id,
     name: this.name,
     email: this.email,
-    role: this.role,
+      role: this.role,
+      accountKind: this.accountKind,
     status: this.status,
     churchSlug: this.churchSlug,
     avatar: this.avatar,

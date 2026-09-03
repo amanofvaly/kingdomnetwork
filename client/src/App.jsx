@@ -31,7 +31,7 @@ import { Apply } from './pages/Apply.jsx';
 import { ApplicationDetail, Applications } from './pages/Applications.jsx';
 import { InterviewBooking } from './pages/InterviewBooking.jsx';
 import { Give, GiveThanks } from './pages/Give.jsx';
-import { Onboarding } from './pages/Onboarding.jsx';
+import { ChurchRegister } from './pages/ChurchRegister.jsx';
 import { AcceptInvite, ForgotPassword, ReferenceForm, ResetPassword } from './pages/Standalone.jsx';
 
 import { Overview } from './pages/manage/Overview.jsx';
@@ -58,10 +58,14 @@ import {
 const OUTCOMES = ['ordination', 'certification', 'ministry-license', 'church-affiliation', 'invitation-letter'];
 
 const RequireAuth = ({ children }) => {
-  const { user, ready } = useAuth();
+  const { user, memberships, ready } = useAuth();
   const location = useLocation();
   if (!ready) return <div className="wrap band"><Spinner /></div>;
   if (!user) return <Navigate to="/login" state={{ from: location.pathname + location.search }} replace />;
+  if (user.accountKind === 'church') {
+    const church = memberships[0];
+    return church ? <Navigate to={`/manage/${church.churchSlug}`} replace /> : <Navigate to="/login" replace />;
+  }
   return children;
 };
 
@@ -69,6 +73,7 @@ export const App = () => (
   <Routes>
     {/* Full-screen, with their own chrome. */}
     <Route path="/learn/:slug" element={<RequireAuth><Learn /></RequireAuth>} />
+    <Route path="/church/register" element={<ChurchRegister />} />
 
     {/* The church console. */}
     <Route path="/manage/:churchSlug" element={<ChurchShell />}>
@@ -135,8 +140,8 @@ export const App = () => (
       <Route path="give/:slug/thanks" element={<GiveThanks />} />
 
       {/* Onboarding a church. */}
-      <Route path="onboarding" element={<RequireAuth><Onboarding /></RequireAuth>} />
-      <Route path="onboarding/:churchSlug/:step" element={<RequireAuth><Onboarding /></RequireAuth>} />
+      <Route path="onboarding" element={<Navigate to="/church/register" replace />} />
+      <Route path="onboarding/:churchSlug/:step" element={<Navigate to="/church/register" replace />} />
       <Route path="invite/:token" element={<AcceptInvite />} />
 
       {/* Applying, and following what happens next. */}
