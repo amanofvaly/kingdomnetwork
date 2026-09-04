@@ -1,6 +1,8 @@
 import { ArrowRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
+import { CHURCH_PLACEHOLDER } from '../ui.jsx';
+
 /**
  * The vocabulary of the user area.
  *
@@ -212,8 +214,8 @@ export const Row = ({ art, artAlt = '', title, meta, end, i = 0 }) => (
  * the convention `ChurchDetail` already set. Never letters derived from the
  * name; a church that uploaded a logo should see it everywhere it appears.
  */
-export const CHURCH_PLACEHOLDER = '/media/church-profile-placeholder.jpg';
 
+/** The feed's mark, at an arbitrary pixel size. Same drawing as `ui.jsx`. */
 export const ChurchMark = ({ church, size = 40, round = true }) => (
   <img
     className="me-mark"

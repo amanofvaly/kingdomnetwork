@@ -3,7 +3,7 @@ import { Link, useParams, useSearchParams } from 'react-router-dom';
 import { Heart, Lock } from 'lucide-react';
 
 import { Checkbox, Input, Textarea } from '../components/admin/kit.jsx';
-import { ErrorState, Monogram, Spinner, Verified } from '../components/ui.jsx';
+import { ErrorState, ChurchMark, Spinner, Verified } from '../components/ui.jsx';
 import { api } from '../lib/api.js';
 import { useAuth } from '../lib/auth.jsx';
 import { money } from '../lib/format.js';
@@ -67,7 +67,7 @@ export const Give = () => {
       <div className="band band-warm">
         <div className="wrap stack stack-3">
           <Link to={`/churches/${slug}`} className="row" style={{ gap: 12, alignItems: 'center', textDecoration: 'none', color: 'inherit' }}>
-            <Monogram text={church.monogram} />
+            <ChurchMark church={church} />
             <span className="stack" style={{ gap: 0 }}>
               <span className="small">{church.name} {church.verified ? <Verified /> : null}</span>
               <span className="dim xs">{[church.city, church.country].filter(Boolean).join(', ')}</span>

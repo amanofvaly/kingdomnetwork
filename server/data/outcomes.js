@@ -85,9 +85,11 @@ export const everyCredential = {
   slug: 'all',
   name: 'Credentials',
   plural: 'Credentials',
-  verb: 'Explore credentials',
+  verb: 'Get recognised',
   lede: 'Ordination, certificates, licences, affiliation and invitation letters.',
-  blurb: 'Advance in ministry with credentials issued by churches worldwide',
+  // No blurb. The five buckets each define an unfamiliar idea and need a
+  // sentence; the index defines nothing. Heading, counts, listings.
+  blurb: '',
   types: [],
   coverImage: '/media/scenes/congregation-praying.jpg',
   coverAlt: 'A congregation praying together during a church service',

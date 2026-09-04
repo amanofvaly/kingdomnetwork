@@ -8,8 +8,9 @@ import { api } from '../lib/api.js';
 import { money } from '../lib/format.js';
 
 import { useAuth } from '../lib/auth.jsx';
+import { useToast } from '../lib/toast.jsx';
 import { useCart } from '../lib/cart.jsx';
-import { Avatar } from './ui.jsx';
+import { Avatar, ChurchMark } from './ui.jsx';
 
 // Two flows, then the issuers. Credentials are applied for, courses are
 // bought, and churches are who stands behind both.
@@ -82,7 +83,7 @@ const SearchField = ({ compactMode }) => {
               <div className="suggest-group">Listings</div>
               {hits.offerings.map((o) => (
                 <button key={o.slug} type="button" className="suggest-item" onClick={() => go(`/listing/${o.slug}`)}>
-                  <span className="monogram monogram-sm">{o.church?.monogram ?? '·'}</span>
+                  <ChurchMark church={o.church} size="monogram-sm" />
                   <span className="small grow clamp-1">
                     {o.title}
                     <span className="dim"> · {o.church?.shortName ?? ''}</span>
@@ -97,7 +98,7 @@ const SearchField = ({ compactMode }) => {
               <div className="suggest-group">Churches</div>
               {hits.churches.map((c) => (
                 <button key={c.slug} type="button" className="suggest-item" onClick={() => go(`/churches/${c.slug}`)}>
-                  <span className="monogram monogram-sm">{c.monogram}</span>
+                  <ChurchMark church={c} size="monogram-sm" />
                   <span className="small grow clamp-1">{c.name}<span className="dim"> · {c.country}</span></span>
                 </button>
               ))}
@@ -113,11 +114,28 @@ const SearchField = ({ compactMode }) => {
   );
 };
 
+/** Anywhere a signed-out visitor has no business being. */
+const PRIVATE = /^\/(me|manage|admin|applications|checkout)\b/;
+
 const AccountMenu = () => {
   const { user, logout, memberships, isPlatformAdmin } = useAuth();
   const [open, setOpen] = useState(false);
   const ref = useRef(null);
   const navigate = useNavigate();
+  const { pathname } = useLocation();
+  const { ok } = useToast();
+
+  /**
+   * Signing out cleared the session but said nothing, and navigating home from
+   * home is invisible — so on the front page it looked like the button did
+   * nothing at all.
+   */
+  const signOut = () => {
+    logout();
+    setOpen(false);
+    if (PRIVATE.test(pathname)) navigate('/', { replace: true });
+    ok('Signed out');
+  };
 
   useEffect(() => {
     if (!open) return undefined;
@@ -158,7 +176,7 @@ const AccountMenu = () => {
           {isPlatformAdmin ? (
             <Link to="/admin" onClick={() => setOpen(false)}><ShieldCheck size={16} /> Platform administration</Link>
           ) : null}
-          <button type="button" onClick={() => { logout(); setOpen(false); navigate('/'); }}>
+          <button type="button" onClick={signOut}>
             <LogOut size={16} /> Sign out
           </button>
         </div>
@@ -169,6 +187,9 @@ const AccountMenu = () => {
 
 const MobileNav = ({ onClose }) => {
   const { user, memberships, logout } = useAuth();
+  const navigate = useNavigate();
+  const { pathname } = useLocation();
+  const { ok } = useToast();
   return (
     <div style={{ position: 'fixed', inset: 0, zIndex: 100, background: 'var(--bg)' }}>
       <div className="wrap">
@@ -201,7 +222,10 @@ const MobileNav = ({ onClose }) => {
             ) : null}
           </nav>
           {user ? (
-            <button type="button" className="btn btn-outline btn-block" onClick={() => { logout(); onClose(); }}>Sign out</button>
+            <button type="button" className="btn btn-outline btn-block"
+              onClick={() => { logout(); onClose(); if (PRIVATE.test(pathname)) navigate('/', { replace: true }); ok('Signed out'); }}>
+              Sign out
+            </button>
           ) : (
             <div className="stack stack-3">
               <Link to="/login" className="btn btn-primary btn-block" onClick={onClose}>Sign in</Link>

@@ -6,7 +6,7 @@ import {
 
 import { PassportBook, Section, SectionHead, ZeroState } from '../../components/me/kit.jsx';
 import { StatusTag } from '../../components/me/application.jsx';
-import { ErrorState, Spinner } from '../../components/ui.jsx';
+import { ChurchMark, ErrorState, Spinner } from '../../components/ui.jsx';
 import { dateLong, plural } from '../../lib/format.js';
 import { getToken } from '../../lib/api.js';
 import { useApi } from '../../lib/useAsync.js';
@@ -83,7 +83,7 @@ const CredentialCard = ({ credential: c, i }) => {
           <h3 style={{ fontSize: 'var(--text-lg)', letterSpacing: '-.02em' }}>{c.title}</h3>
           {c.church ? (
             <Link to={`/churches/${c.church.slug}`} className="row small muted" style={{ gap: 8 }}>
-              <span className="monogram monogram-sm">{c.church.monogram}</span>
+              <ChurchMark church={c.church} size="monogram-sm" />
               <span className="grow clamp-1">
                 {c.church.name}
                 {c.church.verified ? (

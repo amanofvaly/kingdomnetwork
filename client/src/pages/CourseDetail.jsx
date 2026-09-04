@@ -5,7 +5,7 @@ import {
   Headphones, Infinity as InfinityIcon, PlayCircle, ShoppingBag, Signal, Sparkles, Users,
 } from 'lucide-react';
 
-import { Avatar, Breadcrumbs, ErrorState, Monogram, Price, Spinner, Stars, Verified } from '../components/ui.jsx';
+import { Avatar, Breadcrumbs, ErrorState, ChurchMark, Price, Spinner, Stars, Verified } from '../components/ui.jsx';
 import { useApi } from '../lib/useAsync.js';
 import { useCart } from '../lib/cart.jsx';
 import { useAuth } from '../lib/auth.jsx';
@@ -103,7 +103,7 @@ export const CourseDetail = () => {
 
               {church && (
                 <Link to={`/churches/${church.slug}`} className="row" style={{ gap: 12 }}>
-                  <Monogram text={church.monogram} />
+                  <ChurchMark church={church} />
                   <span>
                     <span className="strong small" style={{ display: 'block' }}>{church.name}</span>
                     <span className="row xs dim" style={{ gap: 6 }}>

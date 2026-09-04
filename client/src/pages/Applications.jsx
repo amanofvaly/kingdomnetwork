@@ -5,7 +5,7 @@ import {
   IdCard, Paperclip, Receipt, ShieldCheck, Sparkles, UserRoundCheck, X,
 } from 'lucide-react';
 
-import { ErrorState, Monogram, Spinner, Verified } from '../components/ui.jsx';
+import { ErrorState, ChurchMark, Spinner, Verified } from '../components/ui.jsx';
 import { api } from '../lib/api.js';
 import { dateShort, money } from '../lib/format.js';
 import { useToast } from '../lib/toast.jsx';
@@ -268,7 +268,7 @@ export const ApplicationDetail = () => {
           <Link to="/me/journey" className="ap-back"><ArrowLeft size={15} /> Your journey</Link>
 
           <div className="ap-church">
-            <Monogram text={a.church?.monogram} />
+            <ChurchMark church={a.church} />
             <span className="ap-church-name">
               {a.church?.name}
               {a.church?.verified ? <Verified label="" size={13} /> : null}

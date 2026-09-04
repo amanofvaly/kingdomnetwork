@@ -181,6 +181,9 @@
   border: 1px solid var(--line);
 }
 .monogram-lg { width: 60px; height: 60px; font-size: var(--text-xl); }
+/* Same footprint as the lettered mark, so swapping one for the other never
+   moves the layout around it. */
+.monogram-img { object-fit: cover; background: var(--bg); border: 1px solid var(--line); }
 
 /* ===========================================================================
    Cards

@@ -1114,14 +1114,12 @@
 .me-reels {
   display: flex;
   gap: var(--s-3);
-  padding-top: 4px;
   padding-bottom: var(--s-2);
   overflow-x: auto;
   scroll-snap-type: x proximity;
   scrollbar-width: none;
   /* Bleed to the edges on a phone so the last card is visibly cut off and the
      rail reads as scrollable without a control saying so. */
-  margin-top: -4px;
   margin-inline: calc(var(--s-4) * -1);
   padding-inline: var(--s-4);
 }
@@ -1250,232 +1248,9 @@
   transition: width var(--dur-3) var(--ease-expo);
 }
 
-/* The card that says what the rail is.
-   Rather than decorate an empty tile, it shows the thing it is describing:
-   three blanks in the proportion of the real cards, fanned like a hand
-   waiting to be dealt. The idea is the picture, so the background can stay
-   quiet underneath it. */
-.me-reel-hint {
-  background:
-    radial-gradient(120% 80% at 50% 0%, rgba(40, 86, 217, 0.55) 0%, rgba(40, 86, 217, 0) 65%),
-    linear-gradient(168deg, var(--blue-900) 0%, var(--bg-ink) 100%);
-  border: 1px dashed rgba(255, 255, 255, 0.28);
-  display: grid;
-  grid-template-rows: 1fr auto;
-  align-items: center;
-  gap: 10px;
-  padding: 14px 12px;
-  cursor: default;
-}
-.me-reel-hint::after { content: none; }
-.me-reel-hint:hover { transform: none; box-shadow: none; }
-
-.me-reel-hint-deck {
-  position: relative;
-  display: block;
-  height: 82px;
-}
-
-/* Same 9:16 as a real card, three deep. */
-.me-reel-hint-deck > span {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 40px;
-  height: 71px;
-  border-radius: 6px;
-  border: 1px solid rgba(255, 255, 255, 0.3);
-  background: rgba(255, 255, 255, 0.07);
-}
-.me-reel-hint-deck > span:nth-child(1) { transform: translate(-50%, -50%) rotate(-13deg) translateX(-13px); opacity: 0.45; }
-.me-reel-hint-deck > span:nth-child(2) { transform: translate(-50%, -50%) rotate(9deg) translateX(13px); opacity: 0.6; }
-.me-reel-hint-deck > span:nth-child(3) {
-  transform: translate(-50%, -50%);
-  background: rgba(255, 255, 255, 0.13);
-  border-color: rgba(255, 255, 255, 0.45);
-}
-
-/* The front blank carries a pill where a real card carries its action. */
-.me-reel-hint-deck > span:nth-child(3)::after {
-  content: '';
-  position: absolute;
-  left: 7px;
-  bottom: 8px;
-  width: 20px;
-  height: 6px;
-  border-radius: var(--r-full);
-  background: var(--gold-100);
-  opacity: 0.85;
-}
-
-.me-reel-hint-copy {
-  font-size: var(--text-base);
-  font-weight: 650;
-  line-height: 1.25;
-  letter-spacing: -0.018em;
-  color: #fff;
-  text-align: center;
-  text-wrap: balance;
-}
-
-/* ---------------------------------------------------------------------------
-   Two ways on.
-
-   Built in the vocabulary of the home page's issuer banners — a saturated
-   two-tone field, an oversized ring bleeding off one corner, a kicker over a
-   tight-tracked title — rather than the vocabulary of a task card. Nothing
-   here owes anybody anything, so nothing here carries a pill or a progress
-   bar.
-
-   The pair are deliberate opposites: dark ground against light, a circle
-   against a set of lines, pale ink against dark. If they read as a matching
-   set, the drawing has failed.
-   --------------------------------------------------------------------------- */
-
-.me-promo {
-  position: relative;
-  isolation: isolate;
-  flex: none;
-  width: 124px;
-  aspect-ratio: 9 / 16;
-  border-radius: 14px;
-  overflow: hidden;
-  scroll-snap-align: start;
-  display: grid;
-  grid-template-rows: 1fr auto;
-  padding: 12px 11px;
-  transition: transform var(--dur-2) var(--ease-soft), box-shadow var(--dur-2) var(--ease-soft);
-}
-.me-promo:hover { transform: translateY(-3px); box-shadow: var(--shadow-md); }
-.me-promo:focus-visible { outline: none; box-shadow: var(--focus); }
-
-.me-promo-art { position: relative; display: block; }
-.me-promo-copy { display: grid; gap: 3px; }
-
-.me-promo-kicker {
-  font-size: 9px;
-  font-weight: 760;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  opacity: 0.72;
-}
-
-.me-promo-copy strong {
-  font-size: 19px;
-  font-weight: 700;
-  line-height: 0.98;
-  letter-spacing: -0.042em;
-  text-wrap: balance;
-}
-
-.me-promo-go { position: absolute; top: 11px; right: 10px; opacity: 0.85; }
-
-/* --- credentials: a sealed document, dark field --------------------------- */
-
-.me-promo-cred {
-  background: linear-gradient(158deg, #0b2856 0%, #2f4fc8 100%);
-  color: #fff;
-}
-
-/* The ring, bleeding off the bottom-right the way the issuer banners do. */
-.me-promo-cred::before {
-  content: '';
-  position: absolute;
-  z-index: -1;
-  right: -34%;
-  bottom: -28%;
-  width: 84%;
-  aspect-ratio: 1;
-  border-radius: 50%;
-  border: 22px solid rgba(255, 204, 98, 0.5);
-  transform: rotate(-12deg);
-}
-
-/* A certificate, tilted, with its seal. */
-.me-promo-doc {
-  position: absolute;
-  left: 4px;
-  top: 8px;
-  display: grid;
-  align-content: start;
-  gap: 5px;
-  width: 58px;
-  height: 76px;
-  padding: 9px 8px;
-  border-radius: 4px;
-  background: #fffdf7;
-  box-shadow: 0 10px 20px rgba(11, 40, 86, 0.45);
-  transform: rotate(-7deg);
-}
-.me-promo-doc i { height: 3px; border-radius: 2px; background: #b9c6dd; }
-.me-promo-doc i:nth-child(1) { width: 82%; }
-.me-promo-doc i:nth-child(2) { width: 66%; }
-.me-promo-doc i:nth-child(3) { width: 74%; }
-.me-promo-doc em {
-  position: absolute;
-  right: -9px;
-  bottom: -9px;
-  width: 25px;
-  height: 25px;
-  border-radius: 50%;
-  background: var(--gold-600);
-  border: 2.5px solid #ffe8b5;
-  box-shadow: 0 4px 10px rgba(11, 40, 86, 0.4);
-}
-
-/* --- courses: a stack of lessons, light field ----------------------------- */
-
-.me-promo-course {
-  background: linear-gradient(168deg, #fff2e4 0%, #ffd9c2 100%);
-  color: #4a1f10;
-}
-
-/* No ring. A soft block, squared off, so the silhouette differs too. */
-.me-promo-course::before {
-  content: '';
-  position: absolute;
-  z-index: -1;
-  right: -18%;
-  top: -14%;
-  width: 62%;
-  aspect-ratio: 1;
-  border-radius: 20px;
-  background: rgba(232, 104, 82, 0.16);
-  transform: rotate(18deg);
-}
-
-/* Lessons as bars, each shorter than the last and the first one filled. */
-.me-promo-shelf {
-  position: absolute;
-  left: 2px;
-  top: 14px;
-  display: grid;
-  gap: 7px;
-  width: 84px;
-}
-.me-promo-shelf i {
-  height: 11px;
-  border-radius: 3px;
-  background: rgba(74, 31, 16, 0.14);
-  border-left: 3px solid rgba(74, 31, 16, 0.3);
-}
-.me-promo-shelf i:nth-child(1) {
-  width: 100%;
-  background: var(--coral);
-  border-left-color: #a8341c;
-}
-.me-promo-shelf i:nth-child(2) { width: 86%; }
-.me-promo-shelf i:nth-child(3) { width: 72%; }
-.me-promo-shelf i:nth-child(4) { width: 55%; }
-
 @media (min-width: 720px) {
   .me-reels { margin-inline: 0; padding-inline: 0; }
-  .me-reel, .me-promo { width: 136px; }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .me-promo { transition: none; }
-  .me-promo:hover { transform: none; }
+  .me-reel { width: 136px; }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -1496,6 +1271,237 @@
 /* A church's own logo, on its own ground. base.css tints every img with a
    loading placeholder, which shows through a logo saved with transparency. */
 .me-mark { flex: none; object-fit: cover; background: var(--bg); border: 1px solid var(--line); }
+
+.me-follow-text {
+  flex: none;
+  padding: 4px 2px;
+  color: var(--blue-700);
+  font-size: var(--text-sm);
+  font-weight: 650;
+  letter-spacing: -.01em;
+}
+.me-follow-text.is-on { color: var(--ink-3); font-weight: 500; }
+
+/* The feed opens on its first post; there is no banner above it. */
+.me-feed-body { padding-block: var(--s-5) clamp(56px, 8vw, 104px); }
+.me svg.spin { animation: spin .7s linear infinite; }
+
+.me-suggest { display: grid; gap: var(--s-2); }
+.me-suggest-row { display: flex; align-items: center; gap: 11px; }
+.me-suggest-row .me-suggest-copy { min-width: 0; display: grid; gap: 1px; }
+.me-suggest-row b { font-size: var(--text-sm); font-weight: 650; }
+.me-suggest-row span { color: var(--ink-3); font-size: var(--text-xs); }
+
+/* --- phone --------------------------------------------------------------- */
+
+@media (max-width: 700px) {
+  /* Media reaches both edges, the way it does in every app people already
+     use. The card loses its frame rather than shrinking inside one. */
+  .me-feed-col { gap: var(--s-4); }
+  .me-post {
+    margin-inline: calc(clamp(20px, 3.4vw, 44px) * -1);
+    border-radius: 0;
+    border-inline: 0;
+  }
+  .me-post-media-1 img { max-height: 76svh; }
+  /* Labels go, the choices and the count stay. */
+  .me-react-bar button span { display: none; }
+  .me-react-bar button em { font-size: 20px; }
+  .me-react-count { font-size: var(--text-xs); }
+  .me-cert { margin-inline: var(--s-3); }
+}
+
+/* ===========================================================================
+   First run — the area before there is anything in it
+   ---------------------------------------------------------------------------
+   The welcome and the working home are one surface, not two pages. When the
+   first thing lands, `.is-live` moves the area from one to the other in place.
+   =========================================================================== */
+
+.me-first, .me-live { transition: opacity .45s ease, transform var(--dur-3) var(--ease-expo), filter var(--dur-3) var(--ease-expo); }
+.me-arrive .me-first { opacity: 0; transform: scale(.96) translateY(-3%); filter: blur(8px); pointer-events: none; }
+.me-arrive .me-live { animation: me-rise var(--dur-3) var(--ease-expo) .18s both; }
+
+/* ===========================================================================
+   Mobile — the rail becomes a bar you can reach with a thumb
+   =========================================================================== */
+
+.me-tabs, .me-drawer, .me-scrim, .me-burger { display: none; }
+
+@media (max-width: 1000px) {
+  .me { grid-template-columns: minmax(0, 1fr); }
+  .me-rail { display: none; }
+  .me-burger { display: inline-flex; }
+
+  .me-main { padding-bottom: 78px; }
+
+  .me-tabs {
+    position: fixed;
+    inset: auto 0 0;
+    z-index: 60;
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: 1fr;
+    padding: 6px 6px calc(6px + env(safe-area-inset-bottom));
+    background: rgba(36, 32, 74, .96);
+    backdrop-filter: saturate(180%) blur(12px);
+    border-top: 1px solid rgba(255, 255, 255, .1);
+  }
+  .me-tabs a, .me-tabs button {
+    position: relative;
+    display: grid;
+    justify-items: center;
+    gap: 3px;
+    padding: 8px 2px;
+    border-radius: var(--r-md);
+    color: rgba(255, 255, 255, .62);
+    font-size: 11px;
+    font-weight: 500;
+  }
+  .me-tabs a.is-active { color: #fff; background: rgba(255, 255, 255, .1); }
+  .me-tabs .count {
+    position: absolute;
+    top: 4px;
+    right: 50%;
+    margin-right: -18px;
+    min-width: 16px;
+    height: 16px;
+    padding: 0 4px;
+    border-radius: var(--r-full);
+    background: var(--coral);
+    color: #fff;
+    font-size: 10px;
+    font-weight: 700;
+    line-height: 16px;
+  }
+
+  /* A bottom sheet, not a full-screen popup: it opens from the bar it was
+     tapped on, stays under the thumb, and groups nine destinations into four
+     pairs so nothing has to be scrolled to be reached. */
+  .me-scrim {
+    display: block;
+    position: fixed;
+    inset: 0;
+    z-index: 65;
+    background: rgba(12, 9, 34, .58);
+    animation: me-fade var(--dur-2) ease both;
+  }
+
+  .me-drawer {
+    display: block;
+    position: fixed;
+    inset: auto 0 0;
+    z-index: 70;
+    max-height: 90svh;
+    overflow-y: auto;
+    padding: 10px var(--s-5) calc(var(--s-5) + env(safe-area-inset-bottom));
+    border-radius: 22px 22px 0 0;
+    background:
+      radial-gradient(circle at 14% 0%, rgba(255, 225, 163, .14), transparent 44%),
+      linear-gradient(180deg, #2a2554 0%, #1b1740 100%);
+    color: #fff;
+    box-shadow: 0 -20px 60px rgba(8, 5, 31, .5);
+    animation: me-sheet var(--dur-2) var(--ease-expo) both;
+  }
+  .me-grip {
+    width: 38px;
+    height: 4px;
+    margin: 0 auto 16px;
+    border-radius: var(--r-full);
+    background: rgba(255, 255, 255, .26);
+  }
+  .me-sheet-head {
+    display: flex;
+    align-items: center;
+    gap: 11px;
+    padding-bottom: var(--s-4);
+    border-bottom: 1px solid rgba(255, 255, 255, .1);
+  }
+
+  /* Nine destinations, two columns, read down then across. No section
+     headings: labelling pairs costs four more lines to read and four more
+     rows of height, to organise a list short enough to take in at a glance. */
+  .me-sheet-grid {
+    display: grid;
+    grid-template-rows: repeat(5, auto);
+    grid-auto-flow: column;
+    column-gap: var(--s-5);
+    margin-top: var(--s-2);
+  }
+  .me-sheet-grid a {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-height: 46px;
+    color: rgba(255, 255, 255, .8);
+    font-size: var(--text-md);
+    font-weight: 500;
+    letter-spacing: -.01em;
+  }
+  .me-sheet-grid a svg { flex: none; opacity: .62; }
+  .me-sheet-grid a.is-active { color: #fff; font-weight: 600; }
+  .me-sheet-grid a.is-active svg { opacity: 1; color: var(--tone-on-dark, #ffe1a3); }
+  .me-sheet-grid .count {
+    margin-left: auto;
+    min-width: 20px;
+    height: 20px;
+    padding: 0 6px;
+    border-radius: var(--r-full);
+    background: var(--coral);
+    color: #fff;
+    font-size: 11px;
+    font-weight: 700;
+    line-height: 20px;
+    text-align: center;
+  }
+
+  .me-sheet-foot {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    column-gap: var(--s-4);
+    margin-top: var(--s-5);
+    padding-top: var(--s-3);
+    border-top: 1px solid rgba(255, 255, 255, .1);
+  }
+  .me-sheet-foot a, .me-sheet-foot button {
+    display: flex;
+    align-items: center;
+    gap: 11px;
+    min-height: 46px;
+    color: rgba(255, 255, 255, .58);
+    font-size: var(--text-base);
+    font-weight: 500;
+  }
+
+  .me-hero { min-height: 260px; }
+  .me-hero-tall { min-height: 62svh; }
+  .me-split-aside { position: static; }
+}
+
+@media (max-width: 560px) {
+  .me-hero-figures { gap: var(--s-5) var(--s-6); }
+  .me-stamp { width: 74px; height: 74px; }
+}
+
+.me-follow { min-width: 92px; }
+/* Bright blue, the way every feed marks its follow action. The brand indigo
+   is too muted to read as the one thing on the row you are meant to press. */
+.me-follow.btn-primary { background: #1877f2; }
+.me-follow.btn-primary:hover:not(:disabled) { background: #0f6ae0; }
+.me-follow-text { color: #1877f2; }
+.me-follow-text:hover { color: #0f6ae0; }
+
+/* A church's own logo, on its own ground. base.css tints every img with a
+   loading placeholder, which shows through a logo saved with transparency. */
+.me-mark { flex: none; object-fit: cover; background: var(--bg); border: 1px solid var(--line); }
+.me-mark-text {
+  display: grid;
+  place-items: center;
+  border-color: transparent;
+  font-family: var(--font-display);
+  font-weight: 650;
+  letter-spacing: -0.02em;
+}
 
 .me-follow-text {
   flex: none;

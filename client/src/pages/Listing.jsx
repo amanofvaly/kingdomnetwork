@@ -5,7 +5,7 @@ import {
 } from 'lucide-react';
 
 import { ACQUISITION, AcquisitionTag, OfferingCard, confersStanding } from '../components/market.jsx';
-import { Breadcrumbs, ErrorState, Spinner, Stars } from '../components/ui.jsx';
+import { Breadcrumbs, ChurchMark, ErrorState, Spinner, Stars } from '../components/ui.jsx';
 import { useApi } from '../lib/useAsync.js';
 import { useAuth } from '../lib/auth.jsx';
 import { compact, money, plural } from '../lib/format.js';
@@ -189,7 +189,7 @@ export const Listing = () => {
 
             {church && (
               <Link to={`/churches/${church.slug}`} className="row" style={{ gap: 12 }}>
-                <span className="monogram">{church.monogram}</span>
+                <ChurchMark church={church} />
                 <span>
                   <span className="strong small" style={{ display: 'block' }}>Issued and signed by {church.name}</span>
                   <span className="row xs dim" style={{ gap: 6 }}>

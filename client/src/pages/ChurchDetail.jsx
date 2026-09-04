@@ -4,7 +4,7 @@ import { ArrowUpRight, BookOpen, Calendar, ExternalLink, Globe2, GraduationCap, 
 
 import { CourseCard } from '../components/cards.jsx';
 import { OfferingCard } from '../components/market.jsx';
-import { ErrorState, Monogram, Spinner, Stars, Verified } from '../components/ui.jsx';
+import { CHURCH_PLACEHOLDER, ErrorState, Monogram, Spinner, Stars, Verified } from '../components/ui.jsx';
 import { FollowButton } from '../components/me/feed.jsx';
 import { useApi } from '../lib/useAsync.js';
 import { useAuth } from '../lib/auth.jsx';
@@ -89,7 +89,7 @@ export const ChurchDetail = () => {
             onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = FALLBACK_COVER; }} />
           <section className="church-profile-identity" aria-labelledby="church-name">
             <div className="church-profile-mark">
-              <img src={church.logoImage || '/media/church-profile-placeholder.jpg'} alt="" />
+              <img src={church.logoImage || CHURCH_PLACEHOLDER} alt="" />
             </div>
             <div className="church-profile-name">
               <div className="church-profile-title-row">

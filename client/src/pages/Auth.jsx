@@ -27,10 +27,18 @@ const Shell = ({ mode, title, lede, children, footer }) => (
   </div>
 );
 
+/**
+ * Where signing in leaves you.
+ *
+ * Wherever you were sent from — otherwise the main site, not /me. Dropping a
+ * personal account into their own area emptied the page they were on, which
+ * cost applications: someone signing in part-way through paying a fee lost the
+ * offering they were paying for. The user area stays a click away in the header.
+ */
 const useAfterAuth = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  return () => navigate(location.state?.from ?? '/me', { replace: true });
+  return () => navigate(location.state?.from ?? '/', { replace: true });
 };
 
 export const Login = () => {
@@ -47,12 +55,10 @@ export const Login = () => {
     setBusy(true);
     try {
       const session = await login(form);
-      if (session.user?.role === 'platform_admin') {
-        navigate('/admin', { replace: true });
-      } else if (session.user?.accountKind === 'church' && session.memberships?.[0]) {
+      if (session.user?.accountKind === 'church' && session.memberships?.[0]) {
         navigate(`/manage/${session.memberships[0].churchSlug}`, { replace: true });
       } else {
-        navigate(location.state?.from ?? '/me', { replace: true });
+        navigate(location.state?.from ?? '/', { replace: true });
       }
     } catch (err) {
       setError(err instanceof ApiError ? err.message : 'Could not sign you in.');

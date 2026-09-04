@@ -3,7 +3,7 @@ import { Link, useSearchParams } from 'react-router-dom';
 import { BadgeCheck, Check, SlidersHorizontal, X } from 'lucide-react';
 
 import { ACQUISITION, OfferingCard } from '../components/market.jsx';
-import { Empty, ErrorState, SkeletonGrid } from '../components/ui.jsx';
+import { ChurchMark, Empty, ErrorState, SkeletonGrid } from '../components/ui.jsx';
 import { useApi } from '../lib/useAsync.js';
 import { plural } from '../lib/format.js';
 
@@ -93,7 +93,7 @@ export const Search = () => {
                 <div className="church-strip">
                   {data.churches.map((c) => (
                     <Link key={c.slug} to={`/churches/${c.slug}`} className="church-chip">
-                      <span className="monogram">{c.monogram}</span>
+                      <ChurchMark church={c} />
                       <span>
                         <span className="small strong clamp-1" style={{ display: 'block' }}>{c.shortName ?? c.name}</span>
                         <span className="xs dim row" style={{ gap: 4 }}>

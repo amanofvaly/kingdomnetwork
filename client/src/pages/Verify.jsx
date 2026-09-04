@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { BadgeCheck, ShieldCheck, ShieldX } from 'lucide-react';
 
-import { Monogram, Spinner } from '../components/ui.jsx';
+import { ChurchMark, Spinner } from '../components/ui.jsx';
 import { useApi } from '../lib/useAsync.js';
 import { dateLong } from '../lib/format.js';
 
@@ -100,7 +100,7 @@ export const Verify = () => {
                 <div className="stack stack-2">
                   <span className="xs dim">Issued by</span>
                   <Link to={`/churches/${data.church.slug}`} className="row" style={{ gap: 10 }}>
-                    <Monogram text={data.church.shortName?.slice(0, 2).toUpperCase()} size="monogram-sm" />
+                    <ChurchMark church={data.church} size="monogram-sm" />
                     <span>
                       <span className="strong small" style={{ display: 'block' }}>{data.church.name}</span>
                       <span className="xs dim">{data.church.city}, {data.church.country}</span>

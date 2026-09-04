@@ -31,6 +31,27 @@ export const Verified = ({ label = 'Verified church', size = 14 }) => (
   </span>
 );
 
+/**
+ * A church's mark: its logo where it has one, the placeholder church image
+ * where it does not.
+ *
+ * Never initials. Two letters on a tinted square is a stand-in for a picture,
+ * not a picture, and it reads as a stray character rather than as a church.
+ */
+export const CHURCH_PLACEHOLDER = '/media/church-profile-placeholder.jpg';
+
+export const ChurchMark = ({ church, size = '', round = false }) => (
+  <img
+    className={`monogram monogram-img ${size}`}
+    src={church?.logoImage || CHURCH_PLACEHOLDER}
+    alt=""
+    loading="lazy"
+    style={round ? { borderRadius: 'var(--r-full)' } : undefined}
+    onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = CHURCH_PLACEHOLDER; }}
+  />
+);
+
+/** Kept for the few places that have letters but no church object. */
 export const Monogram = ({ text, size = '' }) => (
   <span className={`monogram ${size}`} aria-hidden="true">
     {text}

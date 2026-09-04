@@ -349,7 +349,7 @@ export const callback = asyncHandler(async (req, res) => {
     $or: [{ 'pesapal.orderTrackingId': orderTrackingId }, { reference: merchantReference }],
   });
 
-  if (!payment) return res.redirect('/payment/not-found');
+  if (!payment) return res.redirect(`${env.appOrigin}/`);
 
   try {
     await refresh(payment);
@@ -357,7 +357,7 @@ export const callback = asyncHandler(async (req, res) => {
     console.error('[kingdom-network] callback status check failed:', err.message);
   }
 
-  res.redirect(await destinationFor(payment));
+  res.redirect(env.appOrigin + await destinationFor(payment));
 });
 
 const destinationFor = async (payment) => {
@@ -387,7 +387,7 @@ export const cancelled = asyncHandler(async (req, res) => {
     payment.pesapal.statusDescription = 'Cancelled by the payer';
     await payment.save();
   }
-  res.redirect(payment ? await destinationFor(payment) : '/');
+  res.redirect(env.appOrigin + (payment ? await destinationFor(payment) : '/'));
 });
 
 /** A support tool: re-poll the gateway for a payment that looks stuck. */

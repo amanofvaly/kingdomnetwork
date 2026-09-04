@@ -75,20 +75,16 @@ export const Outcome = ({ slug: slugProp }) => {
         </div>
         <div className="wrap outcome-hero-inner">
           <div className="stack stack-4" style={{ maxWidth: '58ch' }}>
-            {outcome.slug !== 'all' && (
-              <span className="row eyebrow" style={{ gap: 8 }}>
-                <OutcomeIcon name={outcome.icon} size={15} /> {outcome.name}
-              </span>
-            )}
+            <span className="row eyebrow" style={{ gap: 8 }}>
+              <OutcomeIcon name={outcome.icon} size={15} /> {outcome.name}
+            </span>
             <h1 style={{ fontSize: 'clamp(2rem, 3.8vw, 3rem)' }}>{outcome.verb}.</h1>
             {outcome.blurb ? <p className="lede">{outcome.blurb}</p> : null}
-            {outcome.slug !== 'all' && (
-              <div className="row-wrap small outcome-meta" style={{ gap: 'var(--s-5)' }}>
-                <span>{plural(total, 'listing')}</span>
-                <span>{plural(facets.churches.length, 'church', 'churches')}</span>
-                {priceRange && <span>{money(priceRange.min)} to {money(priceRange.max)}</span>}
-              </div>
-            )}
+            <div className="row-wrap small outcome-meta" style={{ gap: 'var(--s-5)' }}>
+              <span>{plural(total, 'listing')}</span>
+              <span>{plural(facets.churches.length, 'church', 'churches')}</span>
+              {priceRange && <span>{money(priceRange.min)} to {money(priceRange.max)}</span>}
+            </div>
           </div>
         </div>
       </section>

@@ -31,6 +31,17 @@ export const env = {
   // API answers on its own port; in production one process serves both.
   publicBaseUrl: (process.env.PUBLIC_BASE_URL ?? `http://localhost:${num(process.env.PORT, 4000)}`).replace(/\/+$/, ''),
 
+  // Where a person's browser belongs after the gateway hands it back.
+  //
+  // Not the same as publicBaseUrl in development: Pesapal must reach the API
+  // on its own port, but the app — and the session token in its localStorage —
+  // lives on the Vite origin. Redirecting to the API origin lands the payer on
+  // a different origin with no token, which reads as a failed payment even
+  // when the money went through. In production one process serves both.
+  appOrigin: isProduction
+    ? (process.env.PUBLIC_BASE_URL ?? '').replace(/\/+$/, '')
+    : (process.env.CLIENT_ORIGIN ?? 'http://localhost:5173').replace(/\/+$/, ''),
+
   // Uploads live outside the repo tree in production, on an attached disk.
   uploadDir: process.env.UPLOAD_DIR ?? './server/uploads',
 
