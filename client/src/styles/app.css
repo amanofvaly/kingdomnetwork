@@ -320,7 +320,10 @@
 .header-search { flex: 1; max-width: 420px; }
 .header-search .search { height: 40px; background: var(--bg-warm); }
 
-.icon-btn { display: grid; place-items: center; width: 40px; height: 40px; border-radius: var(--r-md); color: var(--ink-2); position: relative; transition: .15s; }
+/* `justify-content` as well as `place-items`, because .hide-lg flips this to
+   display:flex on mobile — and `justify-items` does nothing in flexbox, so the
+   glyph fell to the left of its own 40px box. */
+.icon-btn { display: grid; place-items: center; justify-content: center; width: 40px; height: 40px; border-radius: var(--r-md); color: var(--ink-2); position: relative; transition: .15s; }
 .icon-btn:hover { background: var(--bg-sunken); color: var(--ink); }
 .cart-count { position: absolute; top: 3px; right: 3px; min-width: 17px; height: 17px; padding: 0 4px; border-radius: var(--r-full); background: var(--blue-700); color: #fff; font-size: 10px; font-weight: 600; display: grid; place-items: center; }
 
