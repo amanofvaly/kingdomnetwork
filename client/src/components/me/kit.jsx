@@ -1,8 +1,6 @@
 import { ArrowRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
-import { initials } from '../../lib/format.js';
-
 /**
  * The vocabulary of the user area.
  *
@@ -209,16 +207,22 @@ export const Row = ({ art, artAlt = '', title, meta, end, i = 0 }) => (
   </div>
 );
 
-export const Monogram = ({ name, size = 40, tone = 'var(--tone)' }) => (
-  <span
-    aria-hidden="true"
-    style={{
-      display: 'grid', placeItems: 'center', flex: 'none',
-      width: size, height: size, borderRadius: 'var(--r-md)',
-      background: tone, color: '#fff',
-      fontSize: size * 0.34, fontWeight: 700, letterSpacing: '-.02em',
-    }}
-  >
-    {initials(name)}
-  </span>
+/**
+ * A church's mark: its own logo, falling back to the shared placeholder —
+ * the convention `ChurchDetail` already set. Never letters derived from the
+ * name; a church that uploaded a logo should see it everywhere it appears.
+ */
+export const CHURCH_PLACEHOLDER = '/media/church-profile-placeholder.jpg';
+
+export const ChurchMark = ({ church, size = 40, round = true }) => (
+  <img
+    className="me-mark"
+    src={church?.logoImage || CHURCH_PLACEHOLDER}
+    alt=""
+    width={size}
+    height={size}
+    loading="lazy"
+    style={{ width: size, height: size, borderRadius: round ? 'var(--r-full)' : 'var(--r-md)' }}
+    onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = CHURCH_PLACEHOLDER; }}
+  />
 );

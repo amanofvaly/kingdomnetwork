@@ -95,7 +95,7 @@ export const MeLibrary = () => {
         art="/media/scenes/theology-shelf.webp"
         artAlt="A shelf of theology books"
         kicker="Library"
-        title={items.length ? 'Yours to keep.' : 'Nothing on your shelf yet.'}
+        title="Books and materials you own."
         lede={items.length
           ? 'Everything you have bought from a church on this network, ready to download.'
           : 'Books, study guides and audio published by the churches themselves gather here once you buy them.'}
@@ -115,7 +115,7 @@ export const MeLibrary = () => {
             </div>
           ) : (
             <ZeroState
-              title="Your shelf is empty"
+              title="No materials yet"
               lede="Churches on this network publish their own books, workbooks and teaching audio. Anything you buy lands here to download, for good."
               art="/media/scenes/books-colorful.webp"
               action={<Link to="/search" className="btn btn-primary">Browse materials <ArrowRight size={16} /></Link>}

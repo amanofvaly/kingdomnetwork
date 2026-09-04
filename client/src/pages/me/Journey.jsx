@@ -90,7 +90,7 @@ export const MeJourney = () => {
         art="/media/scenes/seminar-room.webp"
         artAlt="An empty seminar room"
         kicker="Your journey"
-        title={pending.length ? 'What happens next.' : 'Nothing is outstanding.'}
+        title="Your applications."
         lede={pending.length
           ? 'Every church has told us what it still needs from you. This is that list, in the order it can be done.'
           : 'When you apply to a church for standing, each step it asks of you appears here.'}

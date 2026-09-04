@@ -32,6 +32,7 @@ import { AcceptInvite, ForgotPassword, ReferenceForm, ResetPassword } from './pa
 
 import { MeShell } from './components/me/Shell.jsx';
 import { MeHome } from './pages/me/Home.jsx';
+import { MeDiscover } from './pages/me/Discover.jsx';
 import { MeJourney } from './pages/me/Journey.jsx';
 import { MePassport } from './pages/me/Passport.jsx';
 import { MeLearning } from './pages/me/Learning.jsx';
@@ -49,6 +50,7 @@ import { AssessmentEditor, Assessments } from './pages/manage/Assessments.jsx';
 import { Media } from './pages/manage/Media.jsx';
 import { Interviews } from './pages/manage/Interviews.jsx';
 import { PageBuilder } from './pages/manage/PageBuilder.jsx';
+import { Posts } from './pages/manage/Posts.jsx';
 import { Donations } from './pages/manage/Donations.jsx';
 import { Finance } from './pages/manage/Finance.jsx';
 import { Team } from './pages/manage/Team.jsx';
@@ -87,6 +89,7 @@ export const App = () => (
         give a person somewhere of their own. */}
     <Route path="/me" element={<MeShell />}>
       <Route index element={<MeHome />} />
+      <Route path="discover" element={<MeDiscover />} />
       <Route path="journey" element={<MeJourney />} />
       <Route path="passport" element={<MePassport />} />
       <Route path="learning" element={<MeLearning />} />
@@ -112,6 +115,7 @@ export const App = () => (
       <Route path="interviews" element={<Interviews />} />
       <Route path="issued" element={<Issued />} />
       <Route path="page" element={<PageBuilder />} />
+      <Route path="posts" element={<Posts />} />
       <Route path="donations" element={<Donations />} />
       <Route path="finance" element={<Finance />} />
       <Route path="team" element={<Team />} />

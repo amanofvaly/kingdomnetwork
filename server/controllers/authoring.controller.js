@@ -7,6 +7,7 @@ import { Assessment } from '../models/Assessment.js';
 import { Course } from '../models/Course.js';
 import { Interview } from '../models/Interview.js';
 import { InterviewSlot } from '../models/InterviewSlot.js';
+import { Post } from '../models/Post.js';
 import { Offering } from '../models/Offering.js';
 import { Resource } from '../models/Resource.js';
 
@@ -181,6 +182,20 @@ export const publishOffering = asyncHandler(async (req, res) => {
   await offering.save();
 
   await audit(req, { action: 'offering:published', entity: 'Offering', entityId: offering._id, after: { slug: offering.slug } });
+
+  // Publishing is itself news to the people who follow this church. Only the
+  // first time: republishing after an edit is not a new thing to announce.
+  const announced = await Post.findOne({ kind: 'offering', offeringSlug: offering.slug }, '_id');
+  if (!announced) {
+    await Post.create({
+      kind: 'offering',
+      authorKind: 'church',
+      churchSlug: offering.churchSlug,
+      offeringSlug: offering.slug,
+      body: offering.summary ?? '',
+      images: offering.coverImage ? [{ url: offering.coverImage, alt: offering.coverAlt ?? '' }] : [],
+    });
+  }
 
   res.json({ success: true, data: { status: offering.status, slug: offering.slug, publishedAt: offering.publishedAt } });
 });

@@ -1,6 +1,7 @@
 import { Router } from 'express';
 
 import { optionalAuth } from '../middleware/auth.js';
+import * as feed from '../controllers/feed.controller.js';
 import { rateLimit } from '../middleware/rateLimit.js';
 import * as market from '../controllers/market.controller.js';
 import * as learning from '../controllers/learning.controller.js';
@@ -20,6 +21,7 @@ router.get('/offerings/:slug', optionalAuth, market.offeringDetail);
 router.get('/offerings/:slug/preview.pdf', passport.previewDocument);
 router.get('/churches', market.listChurches);
 router.get('/churches/:slug', market.churchDetail);
+router.get('/churches/:slug/posts', optionalAuth, feed.churchPosts);
 router.get('/courses', learning.listCourses);
 router.get('/courses/:slug', learning.courseDetail);
 router.get('/resources', market.listResources);

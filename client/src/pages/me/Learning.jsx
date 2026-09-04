@@ -73,7 +73,7 @@ export const MeLearning = () => {
         art="/media/scenes/hands-open-bible.webp"
         artAlt="Open hands holding a Bible"
         kicker="Learning"
-        title={active.length ? 'Pick up where you left off.' : done.length ? 'Everything is finished.' : 'Nothing to study yet.'}
+        title="Your coursework."
         lede={active.length
           ? `About ${duration(minutes)} of teaching still open across ${plural(active.length, 'course')}.`
           : 'Courses unlock here when you buy them, or when a credential you applied for requires study.'}

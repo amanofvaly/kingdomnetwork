@@ -6,6 +6,7 @@ import * as media from '../controllers/media.controller.js';
 import * as authoring from '../controllers/authoring.controller.js';
 import * as applicants from '../controllers/applicants.controller.js';
 import * as finance from '../controllers/finance.controller.js';
+import * as feed from '../controllers/feed.controller.js';
 
 /**
  * The church console. Everything under here is scoped to one church by
@@ -36,6 +37,12 @@ scoped.get('/page', requireChurchRole('page:edit'), church.getPage);
 scoped.put('/page', requireChurchRole('page:edit'), church.updatePage);
 scoped.patch('/donations', requireChurchRole('church:edit'), church.updateDonations);
 scoped.post('/verification', requireChurchRole('church:edit'), church.submitVerification);
+
+// ── what the church says to the people who follow it ──
+scoped.get('/posts', requireChurchRole('church:edit'), feed.listChurchPosts);
+scoped.post('/posts', requireChurchRole('church:edit'), feed.createChurchPost);
+scoped.patch('/posts/:id', requireChurchRole('church:edit'), feed.updateChurchPost);
+scoped.delete('/posts/:id', requireChurchRole('church:edit'), feed.removeChurchPost);
 
 // ── the team ──
 scoped.get('/team', requireChurchRole('people:write'), church.listTeam);

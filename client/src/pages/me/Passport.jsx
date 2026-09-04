@@ -157,7 +157,7 @@ export const MePassport = () => {
         art="/media/church-registration-cross.jpg"
         artAlt="A cross lit in blue, gold and red"
         kicker="Minister passport"
-        title={counts.issued ? `${plural(counts.issued, 'document')} in your name.` : 'Your passport, unstamped.'}
+        title="Your minister passport."
         lede={counts.issued
           ? 'Each of these is downloadable, and anyone you show it to can check it against this network.'
           : 'Every credential a church issues you lands here — downloadable, and verifiable by anyone you show it to.'}

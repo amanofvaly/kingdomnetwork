@@ -770,6 +770,11 @@
 @media (max-width: 620px) {
   .me-row { flex-wrap: wrap; }
   .me-row-end { margin-left: 0; width: 100%; justify-content: space-between; }
+
+  /* A row whose only action is one short button keeps it on the same line —
+     wrapping doubles the height of every entry to gain nothing. */
+  .me-row-tight { flex-wrap: nowrap; }
+  .me-row-tight .me-row-end { margin-left: auto; width: auto; justify-content: flex-end; }
 }
 
 .me-money { font-family: var(--font-display); font-weight: 600; font-variant-numeric: tabular-nums; letter-spacing: -.02em; }
@@ -829,6 +834,283 @@
 .me-switch-copy { display: grid; gap: 2px; }
 .me-switch-copy b { font-size: var(--text-base); font-weight: 600; }
 .me-switch-copy span { color: var(--ink-3); font-size: var(--text-sm); line-height: 1.5; }
+
+/* ===========================================================================
+   The feed
+   ---------------------------------------------------------------------------
+   Instagram and Facebook grammar in this system's tokens: a column you can
+   thumb through, media that reaches both edges on a phone, and one row of
+   controls under each post. Nothing hovers, nothing needs a mouse.
+   =========================================================================== */
+
+.me-feed {
+  display: grid;
+  grid-template-columns: minmax(0, 620px) 296px;
+  gap: clamp(20px, 3vw, 40px);
+  justify-content: center;
+  align-items: start;
+}
+.me-feed-aside { position: sticky; top: calc(64px + var(--s-4)); display: grid; gap: var(--s-4); }
+.me-feed-col { display: grid; gap: var(--s-5); min-width: 0; }
+
+@media (max-width: 1100px) {
+  .me-feed { grid-template-columns: minmax(0, 620px); }
+  .me-feed-aside { display: none; }
+}
+
+/* --- one post ------------------------------------------------------------ */
+
+.me-post {
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--bg);
+  overflow: hidden;
+}
+.me-post-head {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  padding: var(--s-4) var(--s-4) var(--s-3);
+}
+.me-post-who { min-width: 0; display: grid; gap: 1px; }
+.me-post-who b {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: var(--text-base);
+  font-weight: 650;
+  letter-spacing: -.01em;
+}
+.me-post-who b svg { color: var(--green-600); flex: none; }
+.me-post-when { color: var(--ink-3); font-size: var(--text-xs); }
+.me-post-kind {
+  margin-left: auto;
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 9px;
+  border-radius: var(--r-full);
+  font-size: var(--text-xs);
+  font-weight: 600;
+}
+.me-post-kind-offering { background: var(--green-50); color: var(--green-700); }
+.me-post-kind-credential { background: var(--gold-50); color: var(--gold-700); }
+
+.me-post-body {
+  padding: 0 var(--s-4) var(--s-4);
+  color: var(--ink);
+  font-size: var(--text-md);
+  line-height: 1.6;
+  text-wrap: pretty;
+  white-space: pre-wrap;
+}
+
+.me-post-media { position: relative; display: grid; gap: 2px; background: var(--bg-sunken); }
+.me-post-media-2 { grid-template-columns: 1fr 1fr; }
+.me-post-media img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.me-post-media-1 img { max-height: 560px; }
+
+/* What the post is about, when it is about a thing on this network. */
+.me-post-card {
+  display: flex;
+  align-items: center;
+  gap: var(--s-4);
+  margin: 0 var(--s-4) var(--s-4);
+  padding: var(--s-3);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--bg-warm);
+  transition: border-color var(--dur-1), box-shadow var(--dur-1);
+}
+.me-post-card:hover { border-color: var(--line-strong); box-shadow: var(--shadow-sm); }
+.me-post-card-art { flex: none; width: 68px; aspect-ratio: 1; overflow: hidden; border-radius: var(--r-md); }
+.me-post-card-art img { width: 100%; height: 100%; object-fit: cover; }
+.me-post-card-copy { min-width: 0; display: grid; gap: 2px; }
+.me-post-card-copy b { font-size: var(--text-base); font-weight: 650; letter-spacing: -.01em; }
+.me-post-card-copy span { color: var(--ink-3); font-size: var(--text-sm); }
+
+/* A shared credential shown as the thing it is, not as an attachment. */
+.me-post-cred {
+  position: relative;
+  margin: 0 var(--s-4) var(--s-4);
+  padding: var(--s-5);
+  overflow: hidden;
+  border-radius: 12px;
+  background: linear-gradient(150deg, #24204a 0%, #2c2456 52%, #1b1740 100%);
+  color: #fff;
+}
+.me-post-cred::before {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto;
+  height: 3px;
+  background: linear-gradient(90deg, var(--green-700), var(--gold-600), var(--green-700));
+}
+.me-post-cred-kind {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--gold-100);
+  font-size: var(--text-xs);
+  font-weight: 600;
+  letter-spacing: .11em;
+  text-transform: uppercase;
+}
+.me-post-cred b {
+  display: block;
+  margin-top: 9px;
+  font-family: var(--font-display);
+  font-size: clamp(1.15rem, 2.2vw, 1.5rem);
+  font-weight: 600;
+  letter-spacing: -.03em;
+  line-height: 1.1;
+}
+.me-post-cred span { display: block; margin-top: 6px; color: rgba(255, 255, 255, .62); font-size: var(--text-sm); }
+
+/* --- reactions ----------------------------------------------------------- */
+
+.me-react-summary {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 0 var(--s-4) var(--s-3);
+  color: var(--ink-3);
+  font-size: var(--text-sm);
+}
+.me-react-faces { display: flex; }
+.me-react-faces span {
+  display: grid;
+  place-items: center;
+  width: 21px;
+  height: 21px;
+  margin-right: -5px;
+  border-radius: var(--r-full);
+  background: var(--bg);
+  box-shadow: 0 0 0 1.5px var(--bg);
+  font-size: 12px;
+}
+
+.me-react-bar {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 1fr;
+  gap: 2px;
+  padding: 4px;
+  border-top: 1px solid var(--line);
+}
+.me-react-bar button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  min-height: 42px;
+  border-radius: var(--r-md);
+  color: var(--ink-2);
+  font-size: var(--text-sm);
+  font-weight: 550;
+  transition: background-color var(--dur-1), color var(--dur-1);
+}
+.me-react-bar button:hover { background: var(--bg-sunken); }
+.me-react-bar button em { font-style: normal; font-size: 17px; line-height: 1; transition: transform var(--dur-1) var(--ease-soft); }
+.me-react-bar button:hover em { transform: scale(1.18); }
+.me-react-bar button.is-on { background: var(--tone-soft); color: var(--tone); font-weight: 650; }
+.me-react-bar button.is-on em { animation: me-pop .34s var(--ease-expo); }
+@keyframes me-pop { 0% { transform: scale(1); } 45% { transform: scale(1.42); } 100% { transform: scale(1); } }
+
+/* --- the rail of what you have open -------------------------------------- */
+
+.me-stories {
+  display: flex;
+  gap: var(--s-4);
+  padding-bottom: var(--s-2);
+  overflow-x: auto;
+  scroll-snap-type: x proximity;
+  scrollbar-width: none;
+}
+.me-stories::-webkit-scrollbar { display: none; }
+.me-story {
+  flex: none;
+  display: grid;
+  justify-items: center;
+  gap: 7px;
+  width: 78px;
+  scroll-snap-align: start;
+  text-align: center;
+}
+.me-story-ring {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 66px;
+  height: 66px;
+  border-radius: var(--r-full);
+  background: conic-gradient(var(--tone) calc(var(--pct, 0) * 1%), var(--line) 0);
+}
+.me-story-ring > span {
+  display: grid;
+  place-items: center;
+  width: 58px;
+  height: 58px;
+  border-radius: var(--r-full);
+  background: var(--bg);
+  color: var(--tone);
+  overflow: hidden;
+}
+.me-story-ring img { width: 100%; height: 100%; object-fit: cover; }
+.me-story small {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  color: var(--ink-2);
+  font-size: var(--text-xs);
+  line-height: 1.3;
+}
+
+/* --- follow -------------------------------------------------------------- */
+
+.me-follow { min-width: 92px; }
+
+/* A church's own logo, on its own ground. base.css tints every img with a
+   loading placeholder, which shows through a logo saved with transparency. */
+.me-mark { flex: none; object-fit: cover; background: var(--bg); border: 1px solid var(--line); }
+
+.me-follow-text {
+  flex: none;
+  padding: 4px 2px;
+  color: var(--green-700);
+  font-size: var(--text-sm);
+  font-weight: 650;
+  letter-spacing: -.01em;
+}
+.me-follow-text:hover { color: var(--green-900); }
+.me-follow-text.is-on { color: var(--ink-3); font-weight: 500; }
+
+/* The feed opens on its first post; there is no banner above it. */
+.me-feed-body { padding-block: var(--s-5) clamp(56px, 8vw, 104px); }
+.me svg.spin { animation: spin .7s linear infinite; }
+
+.me-suggest { display: grid; gap: var(--s-2); }
+.me-suggest-row { display: flex; align-items: center; gap: 11px; }
+.me-suggest-row .me-suggest-copy { min-width: 0; display: grid; gap: 1px; }
+.me-suggest-row b { font-size: var(--text-sm); font-weight: 650; }
+.me-suggest-row span { color: var(--ink-3); font-size: var(--text-xs); }
+
+/* --- phone --------------------------------------------------------------- */
+
+@media (max-width: 700px) {
+  /* Media reaches both edges, the way it does in every app people already
+     use. The card loses its frame rather than shrinking inside one. */
+  .me-feed-col { gap: var(--s-4); }
+  .me-post {
+    margin-inline: calc(clamp(20px, 3.4vw, 44px) * -1);
+    border-radius: 0;
+    border-inline: 0;
+  }
+  .me-post-media-1 img { max-height: 76svh; }
+  .me-react-bar button { gap: 5px; font-size: var(--text-xs); }
+}
 
 /* ===========================================================================
    First run — the area before there is anything in it

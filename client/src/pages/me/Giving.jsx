@@ -82,7 +82,7 @@ export const MeGiving = () => {
         art="/media/scenes/congregation-gathering.webp"
         artAlt="A congregation gathered together"
         kicker="Giving"
-        title={totals.giftCount ? 'What you have given.' : 'Nothing given yet.'}
+        title="Your giving."
         lede={totals.giftCount
           ? 'Every gift you have made through Kingdom Network, and everything else you have paid.'
           : 'Gifts you make to a church on this network are recorded here, alongside everything else you have paid.'}
@@ -102,7 +102,7 @@ export const MeGiving = () => {
             </div>
           ) : (
             <ZeroState
-              title="You have not given yet"
+              title="No gifts yet"
               lede="Churches on this network receive gifts towards named causes — a building fund, a mission, a benevolence fund. Anything you give is recorded here for your own records."
               art="/media/scenes/hands-raised-dark.webp"
               action={<Link to="/churches" className="btn btn-primary">Find a church <ArrowRight size={16} /></Link>}

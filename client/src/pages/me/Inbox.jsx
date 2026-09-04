@@ -89,7 +89,7 @@ export const MeInbox = () => {
         art="/media/scenes/discussion-table.webp"
         artAlt="People talking around a table"
         kicker="Inbox"
-        title={unread ? `${unread} thing${unread === 1 ? '' : 's'} to read.` : 'You are up to date.'}
+        title="Your notifications."
         lede={notes.length
           ? 'Everything the churches you deal with have told you, newest first.'
           : 'When a church asks you for something, marks your paper or reaches a decision, it will appear here.'}
@@ -112,7 +112,7 @@ export const MeInbox = () => {
             </div>
           ) : (
             <ZeroState
-              title="Nothing yet"
+              title="No notifications yet"
               lede="This fills up once you are dealing with a church — a request for a document, a marked paper, a booked interview, a decision."
               art="/media/scenes/table-meeting.webp"
               action={<Link to="/ordination" className="btn btn-primary">Find a credential <ArrowRight size={16} /></Link>}

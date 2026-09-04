@@ -5,6 +5,7 @@ import * as application from '../controllers/application.controller.js';
 import * as assessment from '../controllers/assessment.controller.js';
 import * as interview from '../controllers/interview.controller.js';
 import * as learning from '../controllers/learning.controller.js';
+import * as feed from '../controllers/feed.controller.js';
 import * as me from '../controllers/me.controller.js';
 import * as passport from '../controllers/passport.controller.js';
 import * as payment from '../controllers/payment.controller.js';
@@ -48,6 +49,16 @@ router.get('/me/credentials/:id/document.pdf', passport.downloadDocument);
 router.get('/me/library', me.library);
 router.get('/me/statement', me.statement);
 router.get('/me/interviews', me.interviews);
+
+// ── the feed, and the two relationships behind it ──
+router.get('/me/feed', feed.feed);
+router.get('/me/following', feed.following);
+router.get('/me/suggestions', feed.suggestions);
+router.post('/me/follow/:churchSlug', feed.follow);
+router.delete('/me/follow/:churchSlug', feed.unfollow);
+router.post('/me/posts/:id/react', feed.react);
+router.get('/me/shared-credentials', feed.sharedCredentials);
+router.post('/me/credentials/:id/share', feed.shareCredential);
 
 // ── coursework ──
 router.get('/learn/:slug', learning.player);

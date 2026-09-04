@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link, NavLink, Navigate, Outlet, useParams } from 'react-router-dom';
 import {
-  Award, BadgeCheck, BookOpen, Building2, CalendarClock, ClipboardList, Coins, FileText, Gauge,
+  Award, BadgeCheck, BookOpen, Building2, CalendarClock, ClipboardList, Coins, FileText, Gauge, MessageSquare,
   GraduationCap, HandCoins, Image, Layers, LogOut, ScrollText, Settings, ShieldCheck, Users, Wallet,
 } from 'lucide-react';
 
@@ -114,6 +114,7 @@ export const ChurchShell = () => {
       label: 'Your page',
       items: [
         { to: `${base}/page`, label: 'Public page', icon: <Layers size={16} strokeWidth={1.7} /> },
+        { to: `${base}/posts`, label: 'Posts', icon: <MessageSquare size={16} strokeWidth={1.7} /> },
         { to: `${base}/donations`, label: 'Giving', icon: <HandCoins size={16} strokeWidth={1.7} /> },
       ],
     },

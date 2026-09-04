@@ -11,6 +11,7 @@ import mongoose from 'mongoose';
 
 import { env } from '../config/env.js';
 import { churches, instructors, courses, offerings, outcomes, reviews, categories } from '../data/index.js';
+import { posts as churchPosts } from '../data/posts.js';
 import { hashPassword } from '../lib/auth.js';
 import { runMigrations } from '../migrations/runner.js';
 import { Church } from '../models/Church.js';
@@ -25,6 +26,9 @@ import { Enrollment } from '../models/Enrollment.js';
 import { Credential } from '../models/Credential.js';
 import { Application } from '../models/Application.js';
 import { PlatformSettings } from '../models/PlatformSettings.js';
+import { Post } from '../models/Post.js';
+import { Follow } from '../models/Follow.js';
+import { Reaction } from '../models/Reaction.js';
 
 const wipeAll = process.argv.includes('--all');
 const DEMO_PASSWORD = process.env.DEMO_PASSWORD ?? 'kingdom-demo-2026';
@@ -72,6 +76,94 @@ const seedAccounts = async () => {
   return { admin: admin.email, owners, password: DEMO_PASSWORD };
 };
 
+/**
+ * A feed with something in it.
+ *
+ * Three kinds of post, because a feed showing only one of them does not
+ * demonstrate a feed. Community members are created here so credential posts
+ * have a real author and a real credential behind them rather than a name
+ * printed onto a row.
+ */
+const MEMBERS = [
+  { name: 'Grace Achieng', email: 'grace@member.demo', avatar: '/media/people/p-woman-blazer.webp', ministryRole: 'Church planter',
+    credential: { id: 'KN-DEMO-A1', title: 'Ordained Minister', kind: 'ordination', churchSlug: 'grace-covenant-institute' },
+    caption: 'Three years of study, two of them while working nights. Set apart on Sunday. To God be the glory.',
+    daysAgo: 3, reactions: { amen: 94, pray: 11, love: 76, celebrate: 118 } },
+  { name: 'Samuel Otieno', email: 'samuel@member.demo', avatar: '/media/people/p-man-dark-beard.webp', ministryRole: 'Associate pastor',
+    credential: { id: 'KN-DEMO-A2', title: 'Certificate in Pastoral Theology', kind: 'certificate', churchSlug: 'new-horizon-bible-college' },
+    caption: 'Finished the pastoral theology certificate. The module on grief changed how I sit with people.',
+    daysAgo: 7, reactions: { amen: 41, pray: 6, love: 52, celebrate: 37 } },
+  { name: 'Ruth Wanjiru', email: 'ruth@member.demo', avatar: '/media/people/p-woman-bun.webp', ministryRole: 'Childrens ministry lead',
+    credential: { id: 'KN-DEMO-A3', title: 'Ministry Licence', kind: 'license', churchSlug: 'faith-life-church' },
+    caption: 'Licensed this week. Same work, same children, same Tuesdays — but it is good to be recognised.',
+    daysAgo: 11, reactions: { amen: 28, pray: 4, love: 45, celebrate: 30 } },
+];
+
+const ago = (days) => new Date(Date.now() - days * 24 * 60 * 60 * 1000);
+const total = (r) => Object.values(r).reduce((n, v) => n + v, 0);
+
+const seedFeed = async (passwordHash) => {
+  const rows = [];
+
+  for (const p of churchPosts) {
+    rows.push({
+      kind: 'update', authorKind: 'church', churchSlug: p.churchSlug,
+      body: p.body, images: p.images ?? [],
+      demoReactions: p.reactions, reactionCounts: p.reactions, reactionTotal: total(p.reactions),
+      publishedAt: ago(p.daysAgo), demo: true,
+    });
+  }
+
+  // A handful of the published listings, announced the way a real one would be.
+  const announced = offerings.filter((o) => o.status === 'published').slice(0, 4);
+  announced.forEach((o, i) => {
+    const reactions = { amen: 9 + i * 4, pray: 3, love: 7 + i * 2, celebrate: 5 + i };
+    rows.push({
+      kind: 'offering', authorKind: 'church', churchSlug: o.churchSlug, offeringSlug: o.slug,
+      body: o.summary ?? '',
+      images: o.coverImage ? [{ url: o.coverImage, alt: o.coverAlt ?? '' }] : [],
+      demoReactions: reactions, reactionCounts: reactions, reactionTotal: total(reactions),
+      publishedAt: ago(9 + i * 3), demo: true,
+    });
+  });
+
+  if (!env.isProduction) {
+    for (const m of MEMBERS) {
+      const user = await User.findOneAndUpdate(
+        { email: m.email },
+        {
+          $set: { name: m.name, avatar: m.avatar, ministryRole: m.ministryRole, accountKind: 'personal', status: 'active' },
+          $setOnInsert: { passwordHash, role: 'member' },
+        },
+        { upsert: true, new: true, setDefaultsOnInsert: true },
+      );
+
+      await Credential.findOneAndUpdate(
+        { credentialId: m.credential.id },
+        {
+          $set: {
+            userId: user._id, title: m.credential.title, kind: m.credential.kind,
+            churchSlug: m.credential.churchSlug, status: 'issued',
+            issuedAt: ago(m.daysAgo + 1), verifyCode: m.credential.id.replace(/-/g, ''),
+          },
+        },
+        { upsert: true, setDefaultsOnInsert: true },
+      );
+
+      rows.push({
+        kind: 'credential', authorKind: 'user', userId: user._id,
+        churchSlug: m.credential.churchSlug, credentialId: m.credential.id,
+        body: m.caption,
+        demoReactions: m.reactions, reactionCounts: m.reactions, reactionTotal: total(m.reactions),
+        publishedAt: ago(m.daysAgo), demo: true,
+      });
+    }
+  }
+
+  await Post.insertMany(rows);
+  return rows.length;
+};
+
 const run = async () => {
   await mongoose.connect(env.mongoUri);
   console.log(`connected to ${mongoose.connection.name}`);
@@ -84,6 +176,7 @@ const run = async () => {
     Course.deleteMany({ demo: true }),
     Offering.deleteMany({ demo: true }),
     Review.deleteMany({ demo: true }),
+    Post.deleteMany({ demo: true }),
   ]);
 
   if (wipeAll) {
@@ -94,6 +187,8 @@ const run = async () => {
       Credential.deleteMany({}),
       Application.deleteMany({}),
       ChurchMembership.deleteMany({}),
+      Follow.deleteMany({}),
+      Reaction.deleteMany({}),
     ]);
     console.log('cleared user-owned collections (--all)');
   }
@@ -123,6 +218,7 @@ const run = async () => {
 
   await PlatformSettings.load();
   const accounts = await seedAccounts();
+  const feedPosts = await seedFeed(await hashPassword(DEMO_PASSWORD));
 
   const lectures = courses.reduce(
     (n, c) => n + c.curriculum.reduce((m, s) => m + s.lectures.length, 0),
@@ -137,6 +233,7 @@ const run = async () => {
       `offerings     ${offerings.length}  (${outcomes.length} outcomes)`,
       `reviews       ${dated.length}`,
       `categories    ${categories.length}`,
+      `posts         ${feedPosts}`,
     ].join('\n'),
   );
 
