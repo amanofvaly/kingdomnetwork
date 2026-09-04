@@ -19,6 +19,16 @@ const SORTS = [
 export const Search = () => {
   const [params, setParams] = useSearchParams();
   const q = params.get('q') ?? '';
+
+  /**
+   * Credentials and materials are counted apart because they are different
+   * kinds of thing — but a bare "0 listings" printed above a book someone can
+   * plainly see is not a count, it is a contradiction.
+   */
+  const found = (data) => [
+    plural(data?.total ?? 0, 'listing'),
+    data?.materials?.length ? plural(data.materials.length, 'material') : null,
+  ].filter(Boolean).join(' and ');
   const [filtersOpen, setFiltersOpen] = useState(false);
 
   const query = useMemo(() => `/search?${new URLSearchParams(params)}`, [params]);
@@ -50,7 +60,7 @@ export const Search = () => {
         <div className="wrap stack stack-2">
           <h1 style={{ fontSize: 'var(--text-3xl)' }}>{q ? `“${q}”` : 'Browse everything'}</h1>
           <p className="muted" style={{ margin: 0 }}>
-            {loading ? 'Searching…' : `${plural(data.total, 'listing')} from churches worldwide`}
+            {loading ? 'Searching…' : `${found(data)} from churches worldwide`}
           </p>
         </div>
       </div>
@@ -114,7 +124,7 @@ export const Search = () => {
                 <SlidersHorizontal size={15} /> Filters
               </button>
               <span className="small muted num results-count">
-                {loading ? '\u00a0' : plural(data.total, 'listing')}
+                {loading ? '\u00a0' : found(data)}
               </span>
               <label className="row small muted sort-control" style={{ gap: 8 }}>
                 <span className="wide-only">Sort</span>

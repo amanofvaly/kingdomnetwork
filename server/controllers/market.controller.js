@@ -400,7 +400,10 @@ export const churchDetail = asyncHandler(async (req, res) => {
       { ...visible, churchSlug: church.slug },
       'slug title subtitle coverImage totalMinutes lectureCount level price rating ratingCount',
     ).sort({ learners: -1 }),
-    Resource.find({ status: 'published', churchSlug: church.slug }, 'slug title subtitle kind coverImage price pages durationMinutes').limit(12),
+    Resource.find(
+      { status: 'published', churchSlug: church.slug },
+      'slug title subtitle kind coverImage coverAlt price compareAtPrice currency pages durationMinutes authorName churchSlug',
+    ).limit(12),
     Instructor.find({ churchSlug: church.slug }),
     church.galleryMediaIds?.length ? MediaAsset.find({ _id: { $in: church.galleryMediaIds } }, 'storageKey alt filename') : [],
   ]);

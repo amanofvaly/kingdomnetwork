@@ -12,11 +12,11 @@ import { useToast } from '../lib/toast.jsx';
 import { useCart } from '../lib/cart.jsx';
 import { Avatar, ChurchMark } from './ui.jsx';
 
-// Two flows, then the issuers. Credentials are applied for, courses are
+// Two flows, then the issuers. Credentials are applied for, learning is
 // bought, and churches are who stands behind both.
 const NAV = [
   { to: '/credentials', label: 'Credentials' },
-  { to: '/courses', label: 'Courses' },
+  { to: '/learning', label: 'Learning' },
   { to: '/churches', label: 'Churches' },
 ];
 

@@ -1,3 +1,4 @@
+import { Fragment } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowRight, Award, Clock, Layers, MapPin, ShoppingBag } from 'lucide-react';
 
@@ -180,7 +181,9 @@ export const MaterialCard = ({ item }) => {
         ) : null}
         {facts.length ? (
           <div className="course-meta">
-            {facts.map((fact, i) => <span key={fact}>{i > 0 && <span className="dot" />}{fact}</span>)}
+            {facts.map((fact, i) => (
+              <Fragment key={fact}>{i > 0 && <span className="dot" />}<span>{fact}</span></Fragment>
+            ))}
           </div>
         ) : null}
         <div className="course-foot">

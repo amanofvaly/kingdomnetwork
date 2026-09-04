@@ -1,3 +1,4 @@
+import { Fragment } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { BookOpen, Download } from 'lucide-react';
 
@@ -66,7 +67,9 @@ export const Material = () => {
 
             {facts.length ? (
               <div className="course-meta">
-                {facts.map((fact, i) => <span key={fact}>{i > 0 && <span className="dot" />}{fact}</span>)}
+                {facts.map((fact, i) => (
+                  <Fragment key={fact}>{i > 0 && <span className="dot" />}<span>{fact}</span></Fragment>
+                ))}
               </div>
             ) : null}
           </div>
@@ -90,7 +93,7 @@ export const Material = () => {
               </div>
             ) : (
               <div className="stack stack-3">
-                <Price amount={resource.price} was={resource.compareAtPrice} currency={resource.currency} size="lg" />
+                <Price amount={resource.price} was={resource.compareAtPrice} currency={resource.currency} size="var(--text-2xl)" />
                 {inCart ? (
                   <Link to="/cart" className="btn btn-primary btn-block">In your basket</Link>
                 ) : (

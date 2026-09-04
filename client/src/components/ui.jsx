@@ -73,9 +73,12 @@ export const Avatar = ({ src, name, size = 36 }) => (
   />
 );
 
+/** Nothing costs $0. Something either has a price or it is free. */
 export const Price = ({ amount, was, currency = 'USD', size }) => (
   <span className="row" style={{ gap: 8 }}>
-    <span className="price" style={size ? { fontSize: size } : undefined}>{money(amount, currency)}</span>
+    <span className="price" style={size ? { fontSize: size } : undefined}>
+      {amount ? money(amount, currency) : 'Free'}
+    </span>
     {was > amount && <span className="price-was">{money(was, currency)}</span>}
   </span>
 );
