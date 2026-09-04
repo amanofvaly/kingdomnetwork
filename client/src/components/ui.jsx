@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom';
 import { BadgeCheck, Inbox, Star } from 'lucide-react';
 
-import { compact, initials, money } from '../lib/format.js';
+import { compact, money } from '../lib/format.js';
 
 export const Stars = ({ rating = 0, size = 14, showNumber = true, count }) => (
   <span className="row" style={{ gap: 6 }}>
@@ -51,29 +51,27 @@ export const ChurchMark = ({ church, size = '', round = false }) => (
   />
 );
 
-/** Kept for the few places that have letters but no church object. */
-export const Monogram = ({ text, size = '' }) => (
-  <span className={`monogram ${size}`} aria-hidden="true">
-    {text}
-  </span>
-);
+export const PERSON_PLACEHOLDER = '/media/person-placeholder.svg';
 
-export const Avatar = ({ src, name, size = 36 }) =>
-  src ? (
-    <img className="avatar" src={src} alt="" width={size} height={size} style={{ width: size, height: size }} />
-  ) : (
-    <span
-      className="avatar"
-      aria-hidden="true"
-      style={{
-        width: size, height: size, display: 'grid', placeItems: 'center',
-        background: 'var(--blue-50)', color: 'var(--blue-700)',
-        fontSize: size * 0.36, fontWeight: 600,
-      }}
-    >
-      {initials(name)}
-    </span>
-  );
+/**
+ * A person's photograph, or the placeholder portrait when there is none.
+ *
+ * Never initials. Letters in a box are a stand-in for a picture rather than a
+ * picture, and a page of them reads as one repeated pattern — the same reason
+ * churches stopped drawing their monogram.
+ */
+export const Avatar = ({ src, name, size = 36 }) => (
+  <img
+    className="avatar"
+    src={src || PERSON_PLACEHOLDER}
+    alt=""
+    width={size}
+    height={size}
+    loading="lazy"
+    style={{ width: size, height: size }}
+    onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = PERSON_PLACEHOLDER; }}
+  />
+);
 
 export const Price = ({ amount, was, currency = 'USD', size }) => (
   <span className="row" style={{ gap: 8 }}>

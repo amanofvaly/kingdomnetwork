@@ -4,7 +4,7 @@ import { ArrowUpRight, BookOpen, Calendar, ExternalLink, Globe2, GraduationCap, 
 
 import { CourseCard } from '../components/cards.jsx';
 import { OfferingCard } from '../components/market.jsx';
-import { CHURCH_PLACEHOLDER, ErrorState, Monogram, Spinner, Stars, Verified } from '../components/ui.jsx';
+import { CHURCH_PLACEHOLDER, ErrorState, PERSON_PLACEHOLDER, Spinner, Stars, Verified } from '../components/ui.jsx';
 import { FollowButton } from '../components/me/feed.jsx';
 import { useApi } from '../lib/useAsync.js';
 import { useAuth } from '../lib/auth.jsx';
@@ -163,7 +163,8 @@ export const ChurchDetail = () => {
             {people.length ? <section className="church-profile-section" id="people">
               <div className="church-profile-section-head"><div><h2>People</h2><p>Leaders and teachers serving this community.</p></div></div>
               <div className="church-profile-people">{people.map((person) => <article className="church-profile-person" key={person.slug || person.name}>
-                {person.image ? <img src={person.image} alt="" loading="lazy" /> : <Monogram text={person.name?.slice(0, 2)} />}<div><h3>{person.name}</h3><p>{person.title || 'Church team'}</p>{person.bio ? <span>{person.bio}</span> : null}</div>{person.rating ? <Stars rating={person.rating} size={13} /> : null}{person.learners ? <small><Users size={13} />{compact(person.learners)} learners</small> : null}
+                <img src={person.image || PERSON_PLACEHOLDER} alt="" loading="lazy"
+                  onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = PERSON_PLACEHOLDER; }} /><div><h3>{person.name}</h3><p>{person.title || 'Church team'}</p>{person.bio ? <span>{person.bio}</span> : null}</div>{person.rating ? <Stars rating={person.rating} size={13} /> : null}{person.learners ? <small><Users size={13} />{compact(person.learners)} learners</small> : null}
               </article>)}</div>
             </section> : null}
 
