@@ -73,3 +73,23 @@ export const outcomes = [
 ];
 
 export const outcomeBySlug = Object.fromEntries(outcomes.map((o) => [o.slug, o]));
+
+/**
+ * Every credential at once.
+ *
+ * The five buckets above are how a church lists; they are not how everyone
+ * shops. Someone who knows they want standing but not which kind needs one
+ * page carrying all of it, with the bucket demoted to a filter.
+ */
+export const everyCredential = {
+  slug: 'all',
+  name: 'Credentials',
+  plural: 'Credentials',
+  verb: 'Explore credentials',
+  lede: 'Ordination, certificates, licences, affiliation and invitation letters.',
+  blurb: 'Advance in ministry with credentials issued by churches worldwide',
+  types: [],
+  coverImage: '/media/scenes/congregation-praying.jpg',
+  coverAlt: 'A congregation praying together during a church service',
+  icon: 'award',
+};

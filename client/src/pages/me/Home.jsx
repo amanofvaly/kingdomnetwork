@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import {
-  ArrowRight, Award, BookOpen, Compass, IdCard, Loader2, Route as RouteIcon, Sparkles, UserRoundPen,
+  ArrowRight, Award, BookOpen, CalendarClock, Compass, FileCheck2, IdCard, Loader2,
+  Route as RouteIcon, Sparkles, UserRoundPen,
 } from 'lucide-react';
 
 import { Pathway, Section, SectionHead, ZeroState } from '../../components/me/kit.jsx';
@@ -25,32 +26,88 @@ import { useAuth } from '../../lib/auth.jsx';
 
 const firstNameOf = (name = '') => name.split(/\s+/)[0] || 'friend';
 
-/** What this person has open, as a rail across the top. */
+/** States where the church holds the ball, so the pill reports rather than invites. */
+const WAITING = new Set(['submitted', 'under_review', 'final_review', 'approved']);
+
+/** What each waiting application is actually asking of this person. */
+const ACTION = {
+  fee_pending: 'Pay the fee',
+  draft: 'Finish applying',
+  info_requested: 'Reply',
+  coursework: 'Study',
+  assessment: 'Sit the paper',
+  interview: 'Book a time',
+  submitted: 'With the church',
+  under_review: 'Under review',
+  final_review: 'Under review',
+  approved: 'Approved',
+};
+
+/**
+ * The rail: everything this person can act on, as cards.
+ *
+ * `Continue` is under way, `Start` has never been opened. Both refer only to
+ * things already theirs — nothing from the catalogue reaches this rail.
+ *
+ * One card per application, and its verb comes from the step actually next in
+ * the queue, not from the status. Emitting a card per outstanding step would
+ * offer to book an interview that is still sitting behind an unpaid fee.
+ */
+
+/** The imperative for whatever the application is waiting on. */
+const stepVerb = (step, status) => {
+  if (!step) return WAITING.has(status) ? (ACTION[status] ?? 'Open') : 'Open';
+  switch (step.type) {
+    case 'fee': return 'Pay the fee';
+    case 'course': return (step.progress ?? 0) > 0 ? 'Continue' : 'Start the course';
+    case 'assessment': return 'Sit the paper';
+    case 'interview': return step.meta?.booked ? 'See details' : 'Book a time';
+    case 'document': return 'Send it';
+    case 'reference': return 'Add referees';
+    case 'review': return 'Under review';
+    default: return ACTION[status] ?? 'Open';
+  }
+};
+
 const storiesFrom = (dash) => {
   if (!dash) return [];
   const stories = [];
+  const seenCourse = new Set();
 
   for (const a of dash.pending ?? []) {
-    const course = a.steps?.find((s) => s.type === 'course');
+    // The server hands back only outstanding steps, in order, so the first is
+    // the one thing this person can actually move today.
+    const next = a.steps?.[0];
+    const resting = !next || next.type === 'review' || WAITING.has(a.status);
     stories.push({
       key: a.reference,
       to: `/applications/${a.reference}`,
       label: a.offering?.title ?? a.offeringTitle,
-      percent: course?.progress ?? 0,
+      action: stepVerb(next, a.status),
+      waiting: resting,
+      starter: !resting && next?.type !== 'fee' && !(next?.progress > 0),
+      percent: next?.progress ?? 0,
       image: a.offering?.coverImage,
-      icon: <RouteIcon size={20} />,
+      icon: <RouteIcon size={14} />,
     });
   }
 
+  // Coursework this person owns. Available whatever an application is doing,
+  // so it earns its own card — and a course at zero is a start, not a resume.
   for (const { course, enrollment } of dash.courses ?? []) {
     if (enrollment.status === 'completed') continue;
+    if (seenCourse.has(course.slug)) continue;
+    seenCourse.add(course.slug);
+    const begun = (enrollment.progress ?? 0) > 0;
     stories.push({
       key: `course-${course.slug}`,
       to: `/learn/${course.slug}`,
       label: course.title,
+      action: begun ? 'Continue' : 'Start',
+      starter: !begun,
       percent: enrollment.progress ?? 0,
       image: course.coverImage,
-      icon: <BookOpen size={20} />,
+      icon: <BookOpen size={14} />,
     });
   }
 
@@ -146,23 +203,13 @@ export const MeHome = () => {
   return (
     <>
       <div className="me-wrap me-feed-body">
-        {stories.length ? (
-          <Section tone="journey" style={{ marginBottom: 'var(--s-5)' }}>
-            <StoryRail items={stories} />
-          </Section>
-        ) : null}
-
         <div className="me-feed">
           <div className="me-feed-col">
-            {state.discovery ? (
-              <div className="notice notice-blue">
-                <Sparkles size={15} />
-                <span>
-                  You are not following any churches yet. These are popular posts to start with.{' '}
-                  <Link className="link" to="/churches">Find churches to follow</Link>
-                </span>
-              </div>
-            ) : null}
+            {/* Inside the column, not above the grid: spanning the full width
+                would push the aside down by the height of the whole rail. */}
+            {stories.length ? <StoryRail items={stories} /> : null}
+
+
 
             {posts?.length ? (
               posts.map((post) => <PostCard key={post.id} post={post} />)

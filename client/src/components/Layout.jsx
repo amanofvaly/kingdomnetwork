@@ -11,9 +11,11 @@ import { useAuth } from '../lib/auth.jsx';
 import { useCart } from '../lib/cart.jsx';
 import { Avatar } from './ui.jsx';
 
+// Two flows, then the issuers. Credentials are applied for, courses are
+// bought, and churches are who stands behind both.
 const NAV = [
-  { to: '/ordination', label: 'Ordination' },
-  { to: '/certification', label: 'Certificates' },
+  { to: '/credentials', label: 'Credentials' },
+  { to: '/courses', label: 'Courses' },
   { to: '/churches', label: 'Churches' },
 ];
 

@@ -142,6 +142,7 @@ export const App = () => (
         <Route key={slug} path={slug} element={<Outcome slug={slug} />} />
       ))}
 
+      <Route path="credentials" element={<Outcome slug="all" />} />
       <Route path="listing/:slug" element={<Listing />} />
       <Route path="search" element={<Search />} />
       <Route path="courses" element={<Courses />} />

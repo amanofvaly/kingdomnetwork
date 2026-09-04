@@ -15,7 +15,7 @@ import { Offering } from '../models/Offering.js';
 import { PlatformSettings } from '../models/PlatformSettings.js';
 import { Resource } from '../models/Resource.js';
 import { Review } from '../models/Review.js';
-import { outcomes, outcomeBySlug } from '../data/outcomes.js';
+import { outcomes, outcomeBySlug, everyCredential } from '../data/outcomes.js';
 
 const CARD =
   'slug churchSlug type tier outcome title subtitle price fee currency acquisition coverImage coverAlt rating ratingCount issuedCount featured editorsPick badge demo award.title award.postNominal award.validityMonths award.renewable letter.destinationCountry letter.destinationCity letter.turnaroundDays requires.credentials requires.courses requires.assessment requires.review requires.interview';
@@ -70,23 +70,30 @@ export const listOutcomes = asyncHandler(async (_req, res) => {
 
 /** The comparison page. Many churches, one outcome, ranked and filterable. */
 export const outcomeDetail = asyncHandler(async (req, res) => {
-  const outcome = outcomeBySlug[req.params.slug];
+  // `all` is every bucket at once, which makes the bucket itself a facet
+  // rather than the destination.
+  const everything = req.params.slug === 'all';
+  const outcome = everything ? everyCredential : outcomeBySlug[req.params.slug];
   if (!outcome) return res.status(404).json({ success: false, message: 'That outcome does not exist.' });
 
-  const { church, acquisition, destination, maxPrice, sort = 'recommended' } = req.query;
+  const { church, acquisition, destination, maxPrice, outcome: pick, sort = 'recommended' } = req.query;
 
-  const base = await live({ outcome: outcome.slug });
+  const base = await live(everything ? {} : { outcome: outcome.slug });
   const filter = { ...base };
+  if (everything && pick && outcomeBySlug[pick]) filter.outcome = pick;
   if (church) filter.churchSlug = church;
   if (acquisition) filter.acquisition = acquisition;
   if (destination) filter['letter.destinationCountry'] = destination;
   if (maxPrice) filter.price = { $lte: Number(maxPrice) };
 
-  const [docs, facetChurch, facetMode, facetDest, range] = await Promise.all([
+  const [docs, facetChurch, facetMode, facetDest, facetOutcome, range] = await Promise.all([
     Offering.find(filter, CARD).sort(SORTS[sort] ?? RANK),
     Offering.aggregate([{ $match: base }, { $group: { _id: '$churchSlug', count: { $sum: 1 }, from: { $min: '$price' } } }, { $sort: { count: -1 } }]),
     Offering.aggregate([{ $match: base }, { $group: { _id: '$acquisition', count: { $sum: 1 } } }]),
     Offering.aggregate([{ $match: base }, { $group: { _id: '$letter.destinationCountry', count: { $sum: 1 } } }]),
+    everything
+      ? Offering.aggregate([{ $match: base }, { $group: { _id: '$outcome', count: { $sum: 1 } } }])
+      : Promise.resolve([]),
     Offering.aggregate([{ $match: base }, { $group: { _id: null, min: { $min: '$price' }, max: { $max: '$price' } } }]),
   ]);
 
@@ -111,6 +118,10 @@ export const outcomeDetail = asyncHandler(async (req, res) => {
         })),
         acquisition: facetMode.map((f) => ({ value: f._id, count: f.count })),
         destinations: facetDest.filter((f) => f._id).map((f) => ({ value: f._id, count: f.count })),
+        // Only present on `all`, where the bucket is something to narrow by.
+        outcomes: outcomes
+          .map((o) => ({ value: o.slug, label: o.name, count: facetOutcome.find((f) => f._id === o.slug)?.count ?? 0 }))
+          .filter((f) => f.count > 0),
       },
     },
   });

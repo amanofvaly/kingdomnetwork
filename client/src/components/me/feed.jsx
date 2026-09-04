@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { BadgeCheck, Check, Plus, Sparkles } from 'lucide-react';
+import { ArrowUpRight, BadgeCheck, Check, Plus, Sparkles } from 'lucide-react';
 
 import { Avatar } from '../ui.jsx';
 import { ChurchMark } from './kit.jsx';
@@ -298,15 +298,61 @@ export const PostCard = ({ post, onReact }) => (
 export const StoryRail = ({ items }) => {
   if (!items.length) return null;
   return (
-    <div className="me-stories">
+    <div className="me-reels">
       {items.map((it) => (
-        <Link key={it.key} to={it.to} className="me-story">
-          <span className="me-story-ring" style={{ '--pct': it.percent ?? 0 }}>
-            <span>{it.image ? <img src={it.image} alt="" /> : it.icon ?? <Sparkles size={20} />}</span>
+        <Link key={it.key} to={it.to} className="me-reel" style={{ '--pct': it.percent ?? 0 }}>
+          <span className="me-reel-art">
+            {it.image ? <img src={it.image} alt="" loading="lazy" /> : it.icon ?? <Sparkles size={22} />}
           </span>
-          <small>{it.label}</small>
+          {it.image ? <span className="me-reel-kind">{it.icon ?? <Sparkles size={13} />}</span> : null}
+          <span className="me-reel-copy">
+            <span className="me-reel-label">{it.label}</span>
+            {it.action ? (
+              <span className={`me-reel-do ${it.waiting ? 'is-waiting' : ''} ${it.starter ? 'is-starter' : ''}`}>
+                {it.action}
+              </span>
+            ) : null}
+          </span>
+          {it.starter ? null : <span className="me-reel-bar"><span /></span>}
         </Link>
       ))}
+
+      {/* Only when the rail is short enough that the card is filling space
+          rather than taking it. A full rail explains itself. */}
+      {items.length < 4 ? (
+        <div className="me-reel me-reel-hint" aria-hidden="true">
+          {/* Three blanks in the shape of the real cards, waiting to be dealt. */}
+          <span className="me-reel-hint-deck">
+            <span /><span /><span />
+          </span>
+          <span className="me-reel-hint-copy">Your pending actions show up here</span>
+        </div>
+      ) : null}
+
+      {/* Two ways on, drawn as opposites: a sealed document on a dark field,
+          and a stack of lessons on a light one. Neither wears the vocabulary
+          of a task card, so neither can be mistaken for work you owe. */}
+      <Link to="/credentials" className="me-promo me-promo-cred">
+        <span className="me-promo-art" aria-hidden="true">
+          <span className="me-promo-doc"><i /><i /><i /><em /></span>
+        </span>
+        <span className="me-promo-copy">
+          <span className="me-promo-kicker">Credentials</span>
+          <strong>Get recognised</strong>
+        </span>
+        <ArrowUpRight className="me-promo-go" size={17} strokeWidth={2.4} />
+      </Link>
+
+      <Link to="/courses" className="me-promo me-promo-course">
+        <span className="me-promo-art" aria-hidden="true">
+          <span className="me-promo-shelf"><i /><i /><i /><i /></span>
+        </span>
+        <span className="me-promo-copy">
+          <span className="me-promo-kicker">Courses</span>
+          <strong>Learn the work</strong>
+        </span>
+        <ArrowUpRight className="me-promo-go" size={17} strokeWidth={2.4} />
+      </Link>
     </div>
   );
 };
