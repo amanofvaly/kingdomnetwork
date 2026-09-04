@@ -254,3 +254,36 @@ describe('search', () => {
     expect(data.materials[0].church.shortName).toBe('Grace');
   });
 });
+
+describe('what the shelf shows before anyone filters it', () => {
+  it('does not rank materials behind every course by default', async () => {
+    if (!available) return;
+    // Enrolments are a measure only courses carry. Sorting the shelf by them
+    // puts every book behind every course permanently, however new the book
+    // is — so the neutral view must not be that sort.
+    await Course.create(
+      Array.from({ length: 10 }, (_, n) => ({
+        slug: `filler-${n}`, title: `Filler ${n}`, churchSlug: 'grace',
+        price: 30, status: 'published', category: 'Bible', level: 'Beginner',
+        learners: 500 + n,
+      })),
+    );
+    const fresh = await Resource.create({
+      slug: 'just-published', kind: 'book', title: 'Just Published',
+      churchSlug: 'grace', price: 5, status: 'published',
+    });
+
+    const data = await ask({ limit: '48' });
+    const positionOf = (slug) => data.items.findIndex((i) => i.slug === slug);
+
+    expect(fresh.slug).toBe('just-published');
+    expect(positionOf('just-published')).toBeLessThan(positionOf('filler-0'));
+  });
+
+  it('still offers enrolment as a sort someone can choose', async () => {
+    if (!available) return;
+    const data = await ask({ sort: 'popular', limit: '2' });
+
+    expect(data.items[0].slug).toBe('homiletics');
+  });
+});

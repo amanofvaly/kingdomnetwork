@@ -14,10 +14,12 @@ import { useApi } from '../lib/useAsync.js';
  * one list — so the split shows up as a filter rather than as two pages.
  */
 
+// Newest leads, and is the default: only courses carry enrolments, so ranking
+// the shelf by them would hide every book behind every course.
 const SORTS = [
+  { value: 'newest', label: 'Newest' },
   { value: 'popular', label: 'Most enrolled' },
   { value: 'rating', label: 'Highest rated' },
-  { value: 'newest', label: 'Newest' },
   { value: 'price-asc', label: 'Price: low to high' },
   { value: 'price-desc', label: 'Price: high to low' },
 ];
@@ -49,7 +51,7 @@ export const Learning = () => {
   const category = params.get('category') ?? '';
   const level = params.get('level') ?? '';
   const church = params.get('church') ?? '';
-  const sort = params.get('sort') ?? 'popular';
+  const sort = params.get('sort') ?? 'newest';
   const page = Number(params.get('page') ?? 1);
 
   const query = useMemo(() => {

@@ -14,10 +14,16 @@ import { Resource } from '../models/Resource.js';
  * than one half plus an estimate.
  */
 
+/**
+ * `newest` is the default rather than `popular`, because only a course carries
+ * enrolments — sorting the shelf by them puts every book behind every course
+ * and makes the combined catalogue a course list with materials past the fold.
+ * Enrolment is still offered as a choice; it is just not the neutral view.
+ */
 const SORTS = {
+  newest: { createdAt: -1 },
   popular: { learners: -1, createdAt: -1 },
   rating: { rating: -1, createdAt: -1 },
-  newest: { createdAt: -1 },
   'price-asc': { price: 1, createdAt: -1 },
   'price-desc': { price: -1, createdAt: -1 },
 };
@@ -93,7 +99,7 @@ const unionStages = async ({ q, category, level, church }) => {
 };
 
 export const list = asyncHandler(async (req, res) => {
-  const { q, format, category, level, church, sort = 'popular', page = '1', limit = '12' } = req.query;
+  const { q, format, category, level, church, sort = 'newest', page = '1', limit = '12' } = req.query;
 
   const perPage = Math.min(Number(limit) || 12, 48);
   const current = Math.max(Number(page) || 1, 1);
@@ -108,7 +114,7 @@ export const list = asyncHandler(async (req, res) => {
       ...formatMatch,
       {
         $facet: {
-          items: [{ $sort: SORTS[sort] ?? SORTS.popular }, { $skip: skip }, { $limit: perPage }],
+          items: [{ $sort: SORTS[sort] ?? SORTS.newest }, { $skip: skip }, { $limit: perPage }],
           total: [{ $count: 'n' }],
           categories: [{ $match: { category: { $ne: null } } }, { $group: { _id: '$category', count: { $sum: 1 } } }, { $sort: { _id: 1 } }],
           levels: [{ $match: { level: { $ne: null } } }, { $group: { _id: '$level', count: { $sum: 1 } } }],
