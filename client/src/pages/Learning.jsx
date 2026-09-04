@@ -42,6 +42,33 @@ const FilterItem = ({ on, label, count, onToggle }) => (
   </button>
 );
 
+/**
+ * A group disappears when it has nothing to offer.
+ *
+ * Subject and level describe coursework only, so choosing Book or Sermon
+ * series empties them — and a heading with no options under it reads as a
+ * filter that is broken rather than one that does not apply here.
+ */
+const FilterGroup = ({ title, options, selected, onToggle, label = (v) => v, first }) => {
+  if (!options?.length) return null;
+  return (
+    <div className="filter-group" style={first ? { borderTop: 'none', paddingTop: 0 } : undefined}>
+      <h5>{title}</h5>
+      <div className="filter-list">
+        {options.map((f) => (
+          <FilterItem
+            key={f.value}
+            label={label(f)}
+            count={f.count}
+            on={selected === f.value}
+            onToggle={() => onToggle(f.value)}
+          />
+        ))}
+      </div>
+    </div>
+  );
+};
+
 export const Learning = () => {
   const [params, setParams] = useSearchParams();
   const [filtersOpen, setFiltersOpen] = useState(false);
@@ -106,38 +133,35 @@ export const Learning = () => {
       <div className="wrap band-tight">
         <div className="catalogue">
           <aside className={`filters ${filtersOpen ? 'is-open' : ''}`} aria-label="Filters">
-            <div className="filter-group" style={{ borderTop: 'none', paddingTop: 0 }}>
-              <h5>Format</h5>
-              <div className="filter-list">
-                {(data?.facets.formats ?? []).map((f) => (
-                  <FilterItem key={f.value} label={label(f.value)} count={f.count} on={format === f.value} onToggle={() => toggle('format', f.value)} />
-                ))}
-              </div>
-            </div>
-            <div className="filter-group">
-              <h5>Subject</h5>
-              <div className="filter-list">
-                {(data?.facets.categories ?? []).map((f) => (
-                  <FilterItem key={f.value} label={f.value} count={f.count} on={category === f.value} onToggle={() => toggle('category', f.value)} />
-                ))}
-              </div>
-            </div>
-            <div className="filter-group">
-              <h5>Level</h5>
-              <div className="filter-list">
-                {(data?.facets.levels ?? []).map((f) => (
-                  <FilterItem key={f.value} label={f.value} count={f.count} on={level === f.value} onToggle={() => toggle('level', f.value)} />
-                ))}
-              </div>
-            </div>
-            <div className="filter-group">
-              <h5>Issuing church</h5>
-              <div className="filter-list">
-                {(data?.facets.churches ?? []).map((f) => (
-                  <FilterItem key={f.value} label={f.label} count={f.count} on={church === f.value} onToggle={() => toggle('church', f.value)} />
-                ))}
-              </div>
-            </div>
+            <FilterGroup
+              first
+              title="Format"
+              options={data?.facets.formats}
+              selected={format}
+              label={(f) => label(f.value)}
+              onToggle={(v) => toggle('format', v)}
+            />
+            <FilterGroup
+              title="Subject"
+              options={data?.facets.categories}
+              selected={category}
+              label={(f) => f.value}
+              onToggle={(v) => toggle('category', v)}
+            />
+            <FilterGroup
+              title="Level"
+              options={data?.facets.levels}
+              selected={level}
+              label={(f) => f.value}
+              onToggle={(v) => toggle('level', v)}
+            />
+            <FilterGroup
+              title="Issuing church"
+              options={data?.facets.churches}
+              selected={church}
+              label={(f) => f.label}
+              onToggle={(v) => toggle('church', v)}
+            />
           </aside>
 
           <div>
