@@ -1308,3 +1308,59 @@
   .art-three-stack { width: 68%; height: 43%; right: 4%; top: auto; bottom: 2%; }
   .art-three-track { display: none; }
 }
+
+/* --- media player -------------------------------------------------------- */
+
+.media-player {
+  width: 100%;
+  border-radius: var(--r-md);
+  background: var(--bg-ink);
+  display: block;
+}
+
+.media-player-audio {
+  border-radius: var(--r-sm);
+  background: var(--bg-sunken);
+  height: 44px;
+}
+
+/* --- one material -------------------------------------------------------- */
+
+.material-head {
+  border-bottom: 1px solid var(--line);
+  padding-block: var(--s-7);
+}
+
+.material-head-grid {
+  display: grid;
+  grid-template-columns: 200px minmax(0, 1fr) 300px;
+  gap: var(--s-6);
+  align-items: start;
+}
+
+.material-cover img {
+  width: 100%;
+  border-radius: var(--r-md);
+  box-shadow: 0 12px 32px rgb(20 23 26 / 18%);
+}
+
+.material-buy {
+  padding: var(--s-5);
+  position: sticky;
+  top: var(--s-5);
+}
+
+.material-body {
+  max-width: 68ch;
+}
+
+@media (width < 900px) {
+  .material-head-grid {
+    grid-template-columns: 140px minmax(0, 1fr);
+  }
+
+  .material-buy {
+    grid-column: 1 / -1;
+    position: static;
+  }
+}

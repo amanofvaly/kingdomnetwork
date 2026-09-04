@@ -32,14 +32,14 @@ export const Cart = () => {
     return (
       <div className="wrap band">
         <Empty icon={ShoppingBag} title="Your basket is empty"
-          action={<Link to="/courses" className="btn btn-primary">Browse the coursework</Link>}>
+          action={<Link to="/learning" className="btn btn-primary">Browse courses and materials</Link>}>
           Courses and books only. Credentials are applied for from their own page.
         </Empty>
       </div>
     );
   }
 
-  const path = (i) => (i.kind === 'resource' ? `/resources/${i.slug}` : `/courses/${i.slug}`);
+  const path = (i) => (i.kind === 'resource' ? `/materials/${i.slug}` : `/courses/${i.slug}`);
 
   return (
     <div className="wrap band-tight stack stack-6">
