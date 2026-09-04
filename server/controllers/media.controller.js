@@ -108,7 +108,10 @@ export const upload = asyncHandler(async (req, res) => {
     churchSlug: req.church.slug,
     uploadedBy: req.user._id,
     folder,
-    visibility: 'public',
+    // A file a church sells is private; its cover and its sample are not. The
+    // console says which, because only the console knows what it is attaching
+    // the file to.
+    visibility: req.get('x-media-visibility') === 'private' ? 'private' : 'public',
     title: req.get('x-title') ? decodeURIComponent(req.get('x-title')).slice(0, 200) : undefined,
     alt: req.get('x-alt') ? decodeURIComponent(req.get('x-alt')).slice(0, 300) : undefined,
   });
