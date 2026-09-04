@@ -19,6 +19,10 @@ const settingsSchema = new mongoose.Schema(
     pesapal: {
       ipnId: String,
       ipnUrl: String,
+      // Which Pesapal account issued this id. An id from the live account is
+      // meaningless on sandbox and vice versa, so the environment is part of
+      // what makes a stored registration still valid.
+      environment: String,
       registeredAt: Date,
     },
 

@@ -69,11 +69,19 @@ export const accessToken = async () => {
  * twice is harmless, so this is safe to call on every boot, but the stored id
  * means it normally does nothing.
  */
-export const ensureIpnRegistered = async () => {
+export const ensureIpnRegistered = async ({ force = false } = {}) => {
   const settings = await PlatformSettings.load();
   const url = `${env.publicBaseUrl}/api/payments/ipn`;
 
-  if (settings.pesapal?.ipnId && settings.pesapal?.ipnUrl === url) {
+  // The URL alone is not enough. Switching PESAPAL_ENV leaves the URL identical
+  // while the account behind it changes completely, so a cached live id would be
+  // handed to sandbox — Pesapal answers `InvalidIpnId` and the payer gets a 502.
+  if (
+    settings.pesapal?.ipnId
+    && settings.pesapal?.ipnUrl === url
+    && settings.pesapal?.environment === env.pesapal.mode
+    && !force
+  ) {
     return settings.pesapal.ipnId;
   }
 
@@ -82,10 +90,10 @@ export const ensureIpnRegistered = async () => {
     body: { url, ipn_notification_type: 'GET' },
   });
 
-  settings.pesapal = { ipnId: payload.ipn_id, ipnUrl: url, registeredAt: new Date() };
+  settings.pesapal = { ipnId: payload.ipn_id, ipnUrl: url, environment: env.pesapal.mode, registeredAt: new Date() };
   await settings.save();
 
-  console.log(`[kingdom-network] Pesapal IPN registered: ${payload.ipn_id} → ${url}`);
+  console.log(`[kingdom-network] Pesapal IPN registered (${env.pesapal.mode}): ${payload.ipn_id} → ${url}`);
   return payload.ipn_id;
 };
 
@@ -94,27 +102,38 @@ const cleanReference = (ref) => String(ref).replace(/[^A-Za-z0-9\-_.:]/g, '-').s
 const cleanDescription = (text) => String(text ?? 'Kingdom Network').replace(/\s+/g, ' ').trim().slice(0, 100);
 
 export const submitOrder = async ({ reference, amount, currency = 'USD', description, payer, callbackUrl, cancellationUrl }) => {
-  const notificationId = await ensureIpnRegistered();
-
-  const payload = await request('/api/Transactions/SubmitOrderRequest', {
-    token: await accessToken(),
-    body: {
-      id: cleanReference(reference),
-      currency,
-      amount: Number(amount),
-      description: cleanDescription(description),
-      callback_url: callbackUrl,
-      cancellation_url: cancellationUrl,
-      notification_id: notificationId,
-      billing_address: {
-        email_address: payer?.email || undefined,
-        phone_number: payer?.phone || undefined,
-        first_name: payer?.firstName || undefined,
-        last_name: payer?.lastName || undefined,
-        country_code: payer?.countryCode || undefined,
+  const send = async (notificationId) =>
+    request('/api/Transactions/SubmitOrderRequest', {
+      token: await accessToken(),
+      body: {
+        id: cleanReference(reference),
+        currency,
+        amount: Number(amount),
+        description: cleanDescription(description),
+        callback_url: callbackUrl,
+        cancellation_url: cancellationUrl,
+        notification_id: notificationId,
+        billing_address: {
+          email_address: payer?.email || undefined,
+          phone_number: payer?.phone || undefined,
+          first_name: payer?.firstName || undefined,
+          last_name: payer?.lastName || undefined,
+          country_code: payer?.countryCode || undefined,
+        },
       },
-    },
-  });
+    });
+
+  let payload;
+  try {
+    payload = await send(await ensureIpnRegistered());
+  } catch (err) {
+    // A stored id can stop being valid without the URL changing — the account
+    // switched, or someone deleted the registration at Pesapal. Re-register once
+    // and try again rather than turning it into a 502 in front of the payer.
+    if (err?.pesapal?.error?.code !== 'InvalidIpnId') throw err;
+    console.warn('[kingdom-network] Pesapal rejected the stored IPN id; re-registering.');
+    payload = await send(await ensureIpnRegistered({ force: true }));
+  }
 
   return {
     orderTrackingId: payload.order_tracking_id,
