@@ -9,7 +9,10 @@ import morgan from 'morgan';
 import compression from 'compression';
 
 import { connectDB } from './config/db.js';
-import { env } from './config/env.js';
+import { assertProductionEnv, env } from './config/env.js';
+import { runMigrations } from './migrations/runner.js';
+import { storage } from './lib/storage/index.js';
+import { ensureIpnRegistered } from './lib/pesapal/index.js';
 import apiRoutes from './routes/index.js';
 import { notFound } from './middleware/notFound.js';
 import { errorHandler } from './middleware/errorHandler.js';
@@ -23,7 +26,9 @@ app.set('trust proxy', 1);
 
 app.use(helmet({ contentSecurityPolicy: false }));
 app.use(compression());
-app.use(express.json({ limit: '1mb' }));
+// The IPN and the mock gateway aside, nothing here posts anything large; a
+// media upload streams its body straight through, so it is excluded.
+app.use(/^\/(?!api\/(?:manage\/[^/]+\/media$|applications\/[^/]+\/documents\/)).*/, express.json({ limit: '1mb' }));
 app.use(express.urlencoded({ extended: true }));
 app.use(morgan(env.isProduction ? 'combined' : 'dev'));
 
@@ -66,7 +71,16 @@ app.use(notFound);
 app.use(errorHandler);
 
 const start = async () => {
+  assertProductionEnv();
   await connectDB();
+  await runMigrations();
+  await storage.ensureReady();
+
+  // Pesapal issues an id when a notification URL is registered, and every order
+  // has to quote it. Registering is idempotent and normally a no-op.
+  ensureIpnRegistered().catch((err) => {
+    console.warn('[kingdom-network] could not register the Pesapal IPN URL:', err.message);
+  });
 
   const server = app.listen(env.port, () => {
     console.log(`[kingdom-network] ${env.nodeEnv} server listening on http://localhost:${env.port}`);

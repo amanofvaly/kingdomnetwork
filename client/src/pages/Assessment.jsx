@@ -1,128 +1,221 @@
-import { useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { ArrowLeft, Award, Check, X } from 'lucide-react';
+import { Check, Clock, X } from 'lucide-react';
 
 import { ErrorState, Spinner } from '../components/ui.jsx';
 import { api } from '../lib/api.js';
+import { useToast } from '../lib/toast.jsx';
 import { useApi } from '../lib/useAsync.js';
-import { plural } from '../lib/format.js';
 
+/**
+ * Sitting a paper the church wrote.
+ *
+ * The served questions come from the server with no answers attached, and are
+ * marked there — nothing on this page knows what is correct until the result
+ * comes back.
+ */
 export const Assessment = () => {
-  const { id } = useParams();
-  const { data, error, loading, reload } = useApi(`/me/credentials/${id}/assessment`);
-  const [answers, setAnswers] = useState({});
+  const { reference } = useParams();
+  const { fail } = useToast();
+  const { data, error, loading, reload } = useApi(`/applications/${reference}/assessment`);
+
+  const [responses, setResponses] = useState({});
   const [result, setResult] = useState(null);
   const [busy, setBusy] = useState(false);
+  const [now, setNow] = useState(Date.now());
 
-  if (loading) return <div className="wrap band"><Spinner label="Loading the paper" /></div>;
+  useEffect(() => {
+    if (!data?.dueAt || result) return undefined;
+    const id = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(id);
+  }, [data?.dueAt, result]);
+
+  const remaining = useMemo(() => {
+    if (!data?.dueAt) return null;
+    const ms = new Date(data.dueAt) - now;
+    if (ms <= 0) return '0:00';
+    return `${Math.floor(ms / 60000)}:${String(Math.floor((ms % 60000) / 1000)).padStart(2, '0')}`;
+  }, [data?.dueAt, now]);
+
+  if (loading) return <div className="wrap band"><Spinner /></div>;
   if (error) return <div className="wrap band"><ErrorState error={error} onRetry={reload} /></div>;
 
-  const answered = Object.keys(answers).length;
-  const total = data.questions.length;
+  if (data.passed && !result) {
+    return (
+      <div className="wrap band">
+        <div className="wrap-narrow stack stack-4">
+          <span className="pill pill-good"><Check size={11} strokeWidth={3} /> Passed</span>
+          <h1>You have already passed this.</h1>
+          <p className="lede">You scored {data.score}%. Nothing more is needed here.</p>
+          <Link className="btn btn-primary" to={`/applications/${reference}`}>Back to your application</Link>
+        </div>
+      </div>
+    );
+  }
+
+  const questions = data.questions ?? [];
+  const answered = questions.filter((q) =>
+    q.type === 'short-answer' || q.type === 'essay'
+      ? (responses[q.key]?.text ?? '').trim().length > 0
+      : (responses[q.key]?.chosen ?? []).length > 0,
+  ).length;
 
   const submit = async () => {
     setBusy(true);
     try {
-      const res = await api.post(`/me/credentials/${id}/assessment`, {
-        answers: data.questions.map((_, i) => answers[i] ?? -1),
-      });
-      setResult(res);
+      setResult(await api.post(`/applications/${reference}/assessment`, {
+        responses: questions.map((q) => ({ key: q.key, ...(responses[q.key] ?? {}) })),
+      }));
       window.scrollTo({ top: 0, behavior: 'smooth' });
+    } catch (err) {
+      fail(err);
     } finally {
       setBusy(false);
     }
   };
 
-  const retake = () => { setAnswers({}); setResult(null); window.scrollTo({ top: 0 }); };
+  const choose = (q, index) => {
+    setResponses((r) => {
+      const current = r[q.key]?.chosen ?? [];
+      if (q.type === 'multiple') {
+        return { ...r, [q.key]: { chosen: current.includes(index) ? current.filter((n) => n !== index) : [...current, index] } };
+      }
+      return { ...r, [q.key]: { chosen: [index] } };
+    });
+  };
+
+  if (result) return <Result result={result} reference={reference} />;
 
   return (
-    <div className="wrap band-tight">
-      <div className="wrap-narrow stack stack-6" style={{ padding: 0, margin: '0 auto' }}>
-        <Link to="/passport" className="link small" style={{ alignSelf: 'flex-start' }}>
-          <ArrowLeft size={15} /> Back to passport
-        </Link>
-
+    <div className="wrap band">
+      <div className="wrap-narrow stack stack-5">
         <div className="stack stack-2">
-          <span className="eyebrow">Assessment</span>
-          <h1 style={{ fontSize: 'var(--text-2xl)' }}>{data.title}</h1>
-          <p className="muted" style={{ margin: 0 }}>
-            {plural(total, 'question')} · {data.minutes} minutes · pass mark {data.passMark}%. You can retake it as many times as you need.
+          <h1>{data.title}</h1>
+          <p className="lede">
+            {questions.length} question{questions.length === 1 ? '' : 's'} · {data.passMark}% to pass
+            {remaining ? <> · <Clock size={14} strokeWidth={1.9} style={{ verticalAlign: -2 }} /> {remaining} left</> : null}
           </p>
         </div>
 
-        {result && (
-          <div className={`panel ${result.passed ? '' : ''}`} style={{
-            background: result.passed ? 'var(--green-50)' : 'var(--gold-50)',
-            borderColor: result.passed ? 'var(--green-100)' : 'var(--gold-100)',
-          }}>
-            <div className="row" style={{ gap: 'var(--s-4)', alignItems: 'flex-start' }}>
-              {result.passed ? <Award size={24} color="var(--green-600)" /> : <X size={24} color="var(--gold-700)" />}
-              <div className="stack stack-2 grow">
-                <h3>{result.passed ? 'Passed.' : 'Not this time.'}</h3>
-                <p className="small muted" style={{ margin: 0 }}>
-                  You scored {result.score}% ({result.correct} of {result.total}). Pass mark is {result.passMark}%.
-                  {result.passed
-                    ? ' Your credential has been issued and is in your passport now.'
-                    : ' Read the explanations below and take it again when you are ready.'}
-                </p>
-                <div className="row-wrap" style={{ gap: 10 }}>
-                  {result.passed
-                    ? <Link to="/passport" className="btn btn-primary btn-sm">Open my passport</Link>
-                    : <button type="button" className="btn btn-primary btn-sm" onClick={retake}>Take it again</button>}
-                </div>
-              </div>
-            </div>
+        {data.instructions?.length ? (
+          <div className="notice">
+            {data.instructions.map((line, i) => <p key={i} style={{ margin: i ? '6px 0 0' : 0 }}>{line}</p>)}
           </div>
-        )}
+        ) : null}
 
-        <div className="panel">
-          {(result ? result.review : data.questions).map((q, qi) => {
-            const given = result ? q.given : answers[qi];
-            return (
-              <fieldset key={qi} className="q stack stack-3" style={{ border: 'none', padding: 0, margin: 0 }}>
-                <legend className="row" style={{ gap: 10, alignItems: 'flex-start', padding: 0, marginBottom: 'var(--s-2)' }}>
-                  <span className="q-num">{qi + 1}</span>
-                  <span className="strong grow">{q.prompt}</span>
-                </legend>
+        <ol className="stack stack-4" style={{ listStyle: 'none', padding: 0, margin: 0 }}>
+          {questions.map((q, i) => (
+            <li key={q.key} className="panel" style={{ padding: 'var(--s-5)' }}>
+              <p className="strong" style={{ marginTop: 0 }}>
+                <span className="dim">{i + 1}.</span> {q.prompt}
+                {q.points > 1 ? <span className="dim small"> ({q.points} marks)</span> : null}
+              </p>
+
+              {['single', 'multiple', 'true-false'].includes(q.type) ? (
                 <div className="stack stack-2">
-                  {q.options.map((opt, oi) => {
-                    const picked = given === oi;
-                    const right = result && oi === q.answer;
-                    const wrong = result && picked && oi !== q.answer;
-                    return (
-                      <button key={oi} type="button" disabled={Boolean(result)}
-                        className={`quiz-option ${picked && !result ? 'is-picked' : ''} ${right ? 'is-right' : ''} ${wrong ? 'is-wrong' : ''}`}
-                        onClick={() => setAnswers({ ...answers, [qi]: oi })}>
-                        <span className="radio-dot" style={{ borderColor: picked || right ? 'var(--green-600)' : undefined }}>
-                          {(picked || right) && (
-                            <span style={{ width: 9, height: 9, borderRadius: '50%', background: wrong ? 'var(--red-600)' : 'var(--green-600)' }} />
-                          )}
-                        </span>
-                        <span className="grow small">{opt}</span>
-                        {right && <Check size={16} color="var(--green-600)" />}
-                        {wrong && <X size={16} color="var(--red-600)" />}
-                      </button>
-                    );
-                  })}
+                  {q.options.map((option, oi) => (
+                    <button
+                      key={oi}
+                      type="button"
+                      className={`quiz-option ${(responses[q.key]?.chosen ?? []).includes(oi) ? 'is-chosen' : ''}`}
+                      onClick={() => choose(q, oi)}
+                    >
+                      {option}
+                    </button>
+                  ))}
+                  {q.type === 'multiple' ? <p className="dim xs" style={{ margin: 0 }}>Choose every one that applies.</p> : null}
                 </div>
-                {result && (
-                  <p className="small muted" style={{ margin: 0, paddingLeft: 'var(--s-4)', borderLeft: '2px solid var(--line)' }}>
-                    {q.explanation}
-                  </p>
-                )}
-              </fieldset>
-            );
-          })}
+              ) : (
+                <textarea
+                  className="textarea"
+                  rows={q.type === 'essay' ? 8 : 2}
+                  value={responses[q.key]?.text ?? ''}
+                  onChange={(e) => setResponses({ ...responses, [q.key]: { text: e.target.value } })}
+                  placeholder={q.type === 'essay' ? 'Write your answer.' : 'Your answer'}
+                />
+              )}
+            </li>
+          ))}
+        </ol>
+      </div>
+
+      <div className="buy-bar" style={{ display: 'flex' }}>
+        <span className="small">{answered} of {questions.length} answered</span>
+        <button type="button" className="btn btn-primary" onClick={submit} disabled={busy || answered < questions.length}>
+          {busy ? 'Sending…' : 'Submit'}
+        </button>
+      </div>
+    </div>
+  );
+};
+
+const Result = ({ result, reference }) => {
+  if (result.awaitingGrading) {
+    return (
+      <div className="wrap band">
+        <div className="wrap-narrow stack stack-4">
+          <h1>Submitted.</h1>
+          <p className="lede">
+            Part of this paper is marked by a person at the church rather than automatically, so your result is not
+            final yet. You will be told when it has been read.
+          </p>
+          <Link className="btn btn-primary" to={`/applications/${reference}`}>Back to your application</Link>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="wrap band">
+      <div className="wrap-narrow stack stack-5">
+        <div className="stack stack-3">
+          <span className={`pill pill-${result.passed ? 'good' : 'bad'}`}>
+            {result.passed ? <Check size={11} strokeWidth={3} /> : <X size={11} strokeWidth={3} />}
+            {result.passed ? 'Passed' : 'Not passed'}
+          </span>
+          <h1>{result.score}%</h1>
+          <p className="lede">
+            {result.correct} of {result.total} right. The pass mark is {result.passMark}%.
+            {result.passed ? ' This requirement is now met.' : ' You can sit it again.'}
+          </p>
+          <div className="row" style={{ gap: 12 }}>
+            <Link className="btn btn-primary" to={`/applications/${reference}`}>Back to your application</Link>
+            {!result.passed ? <Link className="btn btn-outline" to={`/applications/${reference}/assessment`} reloadDocument>Try again</Link> : null}
+          </div>
         </div>
 
-        {!result && (
-          <div className="row-between" style={{ position: 'sticky', bottom: 0, background: 'var(--bg)', padding: 'var(--s-4) 0', borderTop: '1px solid var(--line)' }}>
-            <span className="small muted num">{answered} of {total} answered</span>
-            <button type="button" className="btn btn-primary btn-lg" disabled={answered < total || busy} onClick={submit}>
-              {busy ? <span className="spinner" /> : 'Submit answers'}
-            </button>
-          </div>
-        )}
+        {result.review ? (
+          <section className="stack stack-4">
+            <h2>How it was marked</h2>
+            {result.review.map((q, i) => (
+              <div key={i} className={`panel ${q.correct ? '' : 'panel-warm'}`} style={{ padding: 'var(--s-5)' }}>
+                <p className="strong" style={{ marginTop: 0 }}>
+                  <span className="dim">{i + 1}.</span> {q.prompt}
+                </p>
+                {q.options?.length ? (
+                  <div className="stack stack-2">
+                    {q.options.map((option, oi) => {
+                      const right = (q.answers ?? []).includes(oi);
+                      const chosen = Array.isArray(q.given) && q.given.includes(oi);
+                      return (
+                        <div key={oi} className={`quiz-option ${right ? 'is-right' : chosen ? 'is-wrong' : ''}`}>
+                          {option}
+                          {right ? <Check size={14} strokeWidth={2.4} /> : chosen ? <X size={14} strokeWidth={2.4} /> : null}
+                        </div>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <p className="small">
+                    You wrote: <b>{q.given || '—'}</b>
+                    {q.accepted?.length ? <span className="dim"> · accepted: {q.accepted.join(', ')}</span> : null}
+                  </p>
+                )}
+                {q.explanation ? <p className="muted small" style={{ marginBottom: 0 }}>{q.explanation}</p> : null}
+              </div>
+            ))}
+          </section>
+        ) : null}
       </div>
     </div>
   );

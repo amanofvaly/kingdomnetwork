@@ -72,7 +72,7 @@ export const Courses = () => {
         <div className="wrap stack stack-2">
           <h1 style={{ fontSize: 'var(--text-3xl)' }}>{q ? `Results for “${q}”` : 'Courses'}</h1>
           <p className="muted" style={{ maxWidth: '62ch', margin: 0 }}>
-            Every course is taught and issued by a named church. Filter by subject, level or issuing ministry.
+            Filter by subject, level or church.
           </p>
         </div>
       </div>

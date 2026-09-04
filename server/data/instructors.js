@@ -2,7 +2,7 @@ export const instructors = [
   // Faith Life Church
   {
     slug: 'henry-byamukama', name: 'Henry Byamukama', title: 'Senior Pastor and Principal, Faith Life Church',
-    churchSlug: 'faith-life-church', image: '/media/people/p-man-white-vneck.webp', avatar: '/media/people/p-man-white-vneck@200.webp',
+    churchSlug: 'faith-life-church', image: '/media/churches/faith-life-pastor-speaking.jpg', avatar: '/media/churches/faith-life-pastor-speaking.jpg',
     bio: 'Founded Faith Life Church in Kampala in 1998 and has led its training work since. Teaches the pastoral theology core and chairs the ordination review board. Still pastors the congregation every Sunday.',
     credentials: ['MDiv, Uganda Christian University', 'Ordained 1996', '27 years in pastoral ministry'],
     yearsExperience: 27, rating: 4.8, ratingCount: 913, learners: 4820, courseCount: 2,

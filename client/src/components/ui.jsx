@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom';
 import { BadgeCheck, Inbox, Star } from 'lucide-react';
 
-import { compact, initials, money } from '../lib/format.js';
+import { compact, money } from '../lib/format.js';
 
 export const Stars = ({ rating = 0, size = 14, showNumber = true, count }) => (
   <span className="row" style={{ gap: 6 }}>
@@ -31,28 +31,47 @@ export const Verified = ({ label = 'Verified church', size = 14 }) => (
   </span>
 );
 
-export const Monogram = ({ text, size = '' }) => (
-  <span className={`monogram ${size}`} aria-hidden="true">
-    {text}
-  </span>
+/**
+ * A church's mark: its logo where it has one, the placeholder church image
+ * where it does not.
+ *
+ * Never initials. Two letters on a tinted square is a stand-in for a picture,
+ * not a picture, and it reads as a stray character rather than as a church.
+ */
+export const CHURCH_PLACEHOLDER = '/media/church-profile-placeholder.jpg';
+
+export const ChurchMark = ({ church, size = '', round = false }) => (
+  <img
+    className={`monogram monogram-img ${size}`}
+    src={church?.logoImage || CHURCH_PLACEHOLDER}
+    alt=""
+    loading="lazy"
+    style={round ? { borderRadius: 'var(--r-full)' } : undefined}
+    onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = CHURCH_PLACEHOLDER; }}
+  />
 );
 
-export const Avatar = ({ src, name, size = 36 }) =>
-  src ? (
-    <img className="avatar" src={src} alt="" width={size} height={size} style={{ width: size, height: size }} />
-  ) : (
-    <span
-      className="avatar"
-      aria-hidden="true"
-      style={{
-        width: size, height: size, display: 'grid', placeItems: 'center',
-        background: 'var(--green-50)', color: 'var(--green-700)',
-        fontSize: size * 0.36, fontWeight: 600,
-      }}
-    >
-      {initials(name)}
-    </span>
-  );
+export const PERSON_PLACEHOLDER = '/media/person-placeholder.svg';
+
+/**
+ * A person's photograph, or the placeholder portrait when there is none.
+ *
+ * Never initials. Letters in a box are a stand-in for a picture rather than a
+ * picture, and a page of them reads as one repeated pattern — the same reason
+ * churches stopped drawing their monogram.
+ */
+export const Avatar = ({ src, name, size = 36 }) => (
+  <img
+    className="avatar"
+    src={src || PERSON_PLACEHOLDER}
+    alt=""
+    width={size}
+    height={size}
+    loading="lazy"
+    style={{ width: size, height: size }}
+    onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = PERSON_PLACEHOLDER; }}
+  />
+);
 
 export const Price = ({ amount, was, currency = 'USD', size }) => (
   <span className="row" style={{ gap: 8 }}>

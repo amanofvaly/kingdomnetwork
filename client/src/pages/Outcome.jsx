@@ -5,7 +5,6 @@ import { Check, SlidersHorizontal, X } from 'lucide-react';
 import { ACQUISITION, OfferingRow, OutcomeIcon } from '../components/market.jsx';
 import { Empty, ErrorState, Spinner } from '../components/ui.jsx';
 import { useApi } from '../lib/useAsync.js';
-import { useCart } from '../lib/cart.jsx';
 import { useAuth } from '../lib/auth.jsx';
 import { money, plural } from '../lib/format.js';
 
@@ -33,7 +32,6 @@ export const Outcome = ({ slug: slugProp }) => {
   const params0 = useParams();
   const slug = slugProp ?? params0.slug;
   const [params, setParams] = useSearchParams();
-  const { add } = useCart();
   const [filtersOpen, setFiltersOpen] = useState(false);
   const { user } = useAuth();
   const { data: ent } = useApi('/me/entitlements', { skip: !user });
@@ -56,9 +54,13 @@ export const Outcome = ({ slug: slugProp }) => {
   if (loading && !data) return <div className="wrap band"><Spinner label="Loading listings" /></div>;
 
   const { outcome, offerings, facets, priceRange, total } = data;
-  const owned = new Set((ent?.offerings ?? []).map((o) => o.slug));
+  // Held credentials and live applications are different states, and the row
+  // says something different for each.
+  const owned = new Set((ent?.credentials ?? []).filter((c) => c.status === 'issued').map((c) => c.slug));
+  const applied = new Map((ent?.applications ?? []).map((a) => [a.slug, a]));
 
   const active = [
+    params.get('outcome') && { key: 'outcome', label: facets.outcomes?.find((o) => o.value === params.get('outcome'))?.label ?? params.get('outcome') },
     params.get('church') && { key: 'church', label: facets.churches.find((c) => c.value === params.get('church'))?.label ?? params.get('church') },
     params.get('acquisition') && { key: 'acquisition', label: ACQUISITION[params.get('acquisition')]?.label ?? params.get('acquisition') },
     params.get('destination') && { key: 'destination', label: params.get('destination') },
@@ -77,7 +79,7 @@ export const Outcome = ({ slug: slugProp }) => {
               <OutcomeIcon name={outcome.icon} size={15} /> {outcome.name}
             </span>
             <h1 style={{ fontSize: 'clamp(2rem, 3.8vw, 3rem)' }}>{outcome.verb}.</h1>
-            <p className="lede">{outcome.blurb}</p>
+            {outcome.blurb ? <p className="lede">{outcome.blurb}</p> : null}
             <div className="row-wrap small outcome-meta" style={{ gap: 'var(--s-5)' }}>
               <span>{plural(total, 'listing')}</span>
               <span>{plural(facets.churches.length, 'church', 'churches')}</span>
@@ -90,7 +92,19 @@ export const Outcome = ({ slug: slugProp }) => {
       <div className="wrap band-tight">
         <div className="catalogue">
           <aside className={`filters ${filtersOpen ? 'is-open' : ''}`} aria-label="Filters">
-            <div className="filter-group" style={{ borderTop: 'none', paddingTop: 0 }}>
+            {facets.outcomes?.length ? (
+              <div className="filter-group" style={{ borderTop: 'none', paddingTop: 0 }}>
+                <h5>Kind of credential</h5>
+                <div className="filter-list">
+                  {facets.outcomes.map((f) => (
+                    <Facet key={f.value} label={f.label} count={f.count}
+                      on={params.get('outcome') === f.value} onToggle={() => toggle('outcome', f.value)} />
+                  ))}
+                </div>
+              </div>
+            ) : null}
+
+            <div className="filter-group" style={facets.outcomes?.length ? undefined : { borderTop: 'none', paddingTop: 0 }}>
               <h5>Issuing church</h5>
               <div className="filter-list">
                 {facets.churches.map((f) => (
@@ -168,8 +182,8 @@ export const Outcome = ({ slug: slugProp }) => {
             ) : (
               <div>
                 {offerings.map((o) => (
-                  <OfferingRow key={o.slug} offering={o} owned={owned.has(o.slug)}
-                    onAdd={(x) => add({ kind: 'offering', slug: x.slug })} />
+                  <OfferingRow key={o.slug} offering={o} owned={owned.has(o.slug)} applied={applied.get(o.slug)}
+                    />
                 ))}
               </div>
             )}

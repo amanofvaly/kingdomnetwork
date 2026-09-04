@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { BadgeCheck, ShieldCheck, ShieldX } from 'lucide-react';
 
-import { Monogram, Spinner } from '../components/ui.jsx';
+import { ChurchMark, Spinner } from '../components/ui.jsx';
 import { useApi } from '../lib/useAsync.js';
 import { dateLong } from '../lib/format.js';
 
@@ -18,7 +18,6 @@ export const Verify = () => {
     <div className="wrap band-tight">
       <div className="wrap-narrow stack stack-6" style={{ padding: 0, margin: '0 auto' }}>
         <div className="stack stack-3">
-          <span className="eyebrow">Credential verification</span>
           <h1 style={{ fontSize: 'var(--text-3xl)' }}>Check a credential.</h1>
           <p className="lede">
             Enter the verification code printed on a certificate or shared by its holder. The result shows
@@ -42,19 +41,51 @@ export const Verify = () => {
               <div>
                 <h4 style={{ color: 'var(--red-600)' }}>No credential matches that code</h4>
                 <p className="small" style={{ margin: 0, color: 'var(--red-600)' }}>
-                  Check the code and try again. Only issued credentials can be verified.
+                  Check the code and try again.
                 </p>
               </div>
             </div>
           </div>
         )}
 
-        {data && (
-          <div className="credential is-issued">
+        {/* A revoked credential is reported as revoked, not as missing. Someone
+            checking a document has to be told it was withdrawn — that is the
+            whole reason verification exists. */}
+        {data?.state === 'revoked' && (
+          <div className="panel stack stack-3" style={{ borderColor: '#efd7d0', background: 'var(--red-50)' }}>
+            <div className="row" style={{ gap: 'var(--s-3)' }}>
+              <ShieldX size={22} color="var(--red-600)" />
+              <div>
+                <h4 style={{ color: 'var(--red-600)' }}>This credential has been withdrawn</h4>
+                <p className="small" style={{ margin: 0, color: 'var(--red-600)' }}>
+                  {data.title} was issued to {data.holderName} and later revoked by the issuing church
+                  {data.revokedAt ? ` on ${dateLong(data.revokedAt)}` : ''}.
+                  {data.reason ? ` ${data.reason}` : ''}
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {data && data.state !== 'revoked' && (
+          <div className={`credential ${data.state === 'issued' ? 'is-issued' : ''}`}>
             <span className="seal" aria-hidden="true" />
             <div className="row" style={{ gap: 10 }}>
-              <BadgeCheck size={20} color="var(--green-600)" />
-              <span className="strong small" style={{ color: 'var(--green-700)' }}>Verified — this credential is genuine and currently issued</span>
+              {data.state === 'issued' ? (
+                <>
+                  <BadgeCheck size={20} color="var(--blue-600)" />
+                  <span className="strong small" style={{ color: 'var(--blue-700)' }}>
+                    Verified. Issued by this church and currently valid.
+                  </span>
+                </>
+              ) : (
+                <>
+                  <ShieldX size={20} color="var(--gold-700)" />
+                  <span className="strong small" style={{ color: 'var(--gold-700)' }}>
+                    Expired. Issued by the church below, now lapsed.
+                  </span>
+                </>
+              )}
             </div>
             <div className="stack stack-3" style={{ paddingTop: 'var(--s-4)', borderTop: '1px solid var(--gold-100)' }}>
               <div className="stack" style={{ gap: 2 }}>
@@ -69,7 +100,7 @@ export const Verify = () => {
                 <div className="stack stack-2">
                   <span className="xs dim">Issued by</span>
                   <Link to={`/churches/${data.church.slug}`} className="row" style={{ gap: 10 }}>
-                    <Monogram text={data.church.shortName?.slice(0, 2).toUpperCase()} size="monogram-sm" />
+                    <ChurchMark church={data.church} size="monogram-sm" />
                     <span>
                       <span className="strong small" style={{ display: 'block' }}>{data.church.name}</span>
                       <span className="xs dim">{data.church.city}, {data.church.country}</span>

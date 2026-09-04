@@ -1,15 +1,11 @@
 // Terse authoring helpers so a course curriculum reads like an outline
 // instead of a wall of object literals.
 
-const KIND = { v: 'video', a: 'audio', r: 'reading', q: 'quiz', x: 'assignment' };
+import { assignCurriculumKeys, slugify, tallyCurriculum } from '../lib/derive.js';
 
-export const slugify = (s) =>
-  s
-    .toLowerCase()
-    .replace(/['’]/g, '')
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-|-$/g, '')
-    .slice(0, 60);
+export { slugify };
+
+const KIND = { v: 'video', a: 'audio', r: 'reading', q: 'quiz', x: 'assignment' };
 
 /**
  * sec('Section title', 'summary', [ [kind, title, minutes, extra?], ... ])
@@ -32,26 +28,26 @@ export const sec = (title, summary, lectures) => ({
 });
 
 /** Roll section data up into the counters the course cards display. */
-export const tally = (curriculum) => {
-  let totalMinutes = 0;
-  let lectureCount = 0;
-  let articleCount = 0;
-  let quizCount = 0;
-  for (const s of curriculum) {
-    for (const l of s.lectures) {
-      totalMinutes += l.minutes || 0;
-      lectureCount += 1;
-      if (l.kind === 'reading') articleCount += 1;
-      if (l.kind === 'quiz') quizCount += 1;
-    }
-  }
-  return { totalMinutes, lectureCount, articleCount, quizCount };
-};
+export const tally = tallyCurriculum;
 
-/** Attach derived counters to every course in a list. */
+/**
+ * Attach the derived counters, and give every lecture a stable key.
+ *
+ * The keys are derived from the course slug and the lecture's authored id, so
+ * reseeding produces the same keys and does not orphan the progress of anyone
+ * already part-way through a course.
+ */
 export const finalise = (courses) =>
-  courses.map((c) => ({
-    ...c,
-    ...tally(c.curriculum ?? []),
-    resourceCount: c.resourceCount ?? Math.max(3, Math.round((c.curriculum?.length ?? 0) * 1.5)),
-  }));
+  courses.map((c) => {
+    const curriculum = assignCurriculumKeys(c.curriculum ?? [], { seedFrom: c.slug });
+    return {
+      ...c,
+      curriculum,
+      ...tallyCurriculum(curriculum),
+      resourceCount: c.resourceCount ?? Math.max(3, Math.round(curriculum.length * 1.5)),
+      status: 'published',
+      published: true,
+      publishedAt: new Date(),
+      demo: true,
+    };
+  });

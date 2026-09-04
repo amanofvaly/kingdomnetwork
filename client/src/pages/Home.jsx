@@ -5,36 +5,35 @@ import { ArrowRight, BadgeCheck, BookOpen, ChevronRight, Church, Headphones, Pla
 import { OfferingCard } from '../components/market.jsx';
 import { ErrorState, SkeletonGrid } from '../components/ui.jsx';
 import { useApi } from '../lib/useAsync.js';
-import { useCart } from '../lib/cart.jsx';
 import { money } from '../lib/format.js';
-
-// Imported (not referenced from /public) so Vite fingerprints it: a new filename
-// on every edit means the swap goes live immediately, past every cache.
 import heroFeatured from '../assets/hero-featured-henry.jpg';
 
 /**
- * A photographic banner with the offer on it, the way a storefront opens.
- * Search sits inside it because this is a marketplace, not a brochure.
+ * The opening banner.
+ *
+ * The original art-directed storefront banner. The artwork is imported so Vite
+ * fingerprints every revision, while real controls keep its pictured actions
+ * keyboard-accessible.
  */
 const Hero = ({ data }) => {
   const navigate = useNavigate();
   const [term, setTerm] = useState('');
-  const { add } = useCart();
-  const featured = data?.featured?.[0];
 
-  const buy = () => {
-    if (!featured) return;
-    add({ kind: 'offering', slug: featured.slug });
-    navigate('/checkout');
-  };
+  const slot = data?.hero;
+  const featuredSlug = 'pastoral-care-certificate-seminole';
+
+  // A credential is never a basket item — a fee starts an application, it never
+  // confers standing — so the banner's action opens the application instead.
+  const applyForFeatured = () => navigate(`/apply/${featuredSlug}`);
 
   return (
     <section className="market-hero">
       <div className="wrap market-hero-inner">
         <div className="hero-copy">
-          <span className="eyebrow">Kingdom Network marketplace</span>
-          <h1>Find your next ministry step.</h1>
-          <p className="hero-sub">Compare church-issued courses, credentials, ordination pathways and invitations.</p>
+          <h1>{slot?.headline ?? 'Find your next ministry step.'}</h1>
+          <p className="hero-sub">
+            {slot?.blurb ?? 'Discover pathways to ordination, licensing, and ministry training. Find the church community that aligns with your calling.'}
+          </p>
           <form
             className="search hero-search"
             role="search"
@@ -42,7 +41,7 @@ const Hero = ({ data }) => {
           >
             <Search size={19} strokeWidth={1.8} color="var(--ink-3)" />
             <input value={term} onChange={(e) => setTerm(e.target.value)} type="search"
-              placeholder="What are you looking for?" aria-label="Search the marketplace" />
+              placeholder="What are you looking for?" aria-label="Search credentials and churches" />
             <button type="submit" className="btn btn-primary hero-search-btn" aria-label="Search">
               <Search size={17} strokeWidth={2} />
               <span className="btn-label">Search</span>
@@ -53,29 +52,28 @@ const Hero = ({ data }) => {
           </div>
         </div>
 
-        {featured && (
-          <article className="hero-feature-banner">
-            <img src={heroFeatured}
-              alt="Featured Pastoral Care Certificate from Seminole Assembly, $40" fetchPriority="high" />
-            <button type="button" className="hero-hotspot hero-hotspot-buy" onClick={buy} aria-label="Buy Pastoral Care Certificate now" />
-            <Link to={`/listing/${featured.slug}`} className="hero-hotspot hero-hotspot-details" aria-label="View Pastoral Care Certificate details" />
-          </article>
-        )}
+        <article className="hero-feature-banner">
+          <img
+            src={heroFeatured}
+            alt="Featured Pastoral Care Certificate from Seminole Assembly, $40"
+            fetchPriority="high"
+          />
+          <button
+            type="button"
+            className="hero-hotspot hero-hotspot-buy"
+            onClick={applyForFeatured}
+            aria-label="Apply for the Pastoral Care Certificate"
+          />
+          <Link
+            to={`/listing/${featuredSlug}`}
+            className="hero-hotspot hero-hotspot-details"
+            aria-label="View Pastoral Care Certificate details"
+          />
+        </article>
       </div>
     </section>
   );
 };
-
-const isImmediate = (o) => o.acquisition === 'instant'
-  && !(o.requires?.credentials?.length)
-  && !(o.requires?.courses?.length)
-  && !o.requires?.assessment?.required
-  && !o.requires?.review?.required;
-
-const instantFirst = (items = []) => items
-  .map((item, index) => ({ item, index }))
-  .sort((a, b) => Number(isImmediate(b.item)) - Number(isImmediate(a.item)) || a.index - b.index)
-  .map(({ item }) => item);
 
 const OutcomeRail = ({ outcomes }) => (
   <section className="category-showcase">
@@ -106,7 +104,7 @@ const OutcomeRail = ({ outcomes }) => (
   </section>
 );
 
-const Rail = ({ title, sub, to, toLabel, items, loading, cols = 'grid-4', onAdd, has }) => (
+const Rail = ({ title, sub, to, toLabel, items, loading, cols = 'grid-4' }) => (
   <section className="band band-tight">
     <div className="wrap">
       <div className="rail-head">
@@ -118,7 +116,7 @@ const Rail = ({ title, sub, to, toLabel, items, loading, cols = 'grid-4', onAdd,
       </div>
       {loading ? <SkeletonGrid count={4} cols={cols} /> : (
         <div className={`grid ${cols}`}>
-          {instantFirst(items).map((o) => <OfferingCard key={o.slug} offering={o} showOutcome onAdd={onAdd} added={has?.('offering', o.slug)} />)}
+          {items.map((o) => <OfferingCard key={o.slug} offering={o} showOutcome />)}
         </div>
       )}
     </div>
@@ -177,7 +175,6 @@ const ChurchBanner = ({ church, index }) => {
 
 export const Home = () => {
   const { data, error, loading, reload } = useApi('/home');
-  const { add, has } = useCart();
   if (error) return <div className="wrap band"><ErrorState error={error} onRetry={reload} /></div>;
 
   return (
@@ -189,9 +186,9 @@ export const Home = () => {
           <div className="wrap stack stack-4">
             <div className="rail-head">
               <div>
-                <h2>The churches issuing them</h2>
+                <h2>Churches on the network</h2>
                 <p className="small muted" style={{ margin: '4px 0 0' }}>
-                  Every credential names the ministry that signed it. Read who they are before you buy.
+                  Every credential names the church that issued it.
                 </p>
               </div>
               <Link to="/churches" className="link">All churches <ArrowRight size={15} /></Link>
@@ -213,7 +210,6 @@ export const Home = () => {
         sub="Start with the pathways people are choosing most."
         to="/search" toLabel="Browse everything"
         items={data?.featured ?? []} loading={loading}
-        onAdd={(o) => add({ kind: 'offering', slug: o.slug })} has={has}
       />
 
       {data && <OutcomeRail outcomes={data.outcomes} />}
@@ -224,14 +220,14 @@ export const Home = () => {
             <div>
               <h2 className="row" style={{ gap: 10 }}><Plane size={24} strokeWidth={1.7} /> Invitations abroad</h2>
               <p className="small muted" style={{ margin: '4px 0 0' }}>
-                Signed invitations from host churches, issued on their own letterhead for conferences and ministry engagements.
+                Invitation letters from host churches, on their own letterhead.
               </p>
             </div>
             <Link to="/invitation-letter" className="link">All invitations <ArrowRight size={15} /></Link>
           </div>
           {loading ? <SkeletonGrid count={4} /> : (
             <div className="grid grid-4">
-              {instantFirst(data.letters).map((o) => <OfferingCard key={o.slug} offering={o} />)}
+              {data.letters.map((o) => <OfferingCard key={o.slug} offering={o} />)}
             </div>
           )}
         </div>
@@ -240,7 +236,7 @@ export const Home = () => {
       {!loading && data.picks.length > 0 && (
         <Rail
           title="Our picks"
-          sub="Listings we rate for the standard behind them, not the price."
+          sub="Selected by our team."
           items={data.picks} loading={false}
         />
       )}
@@ -248,7 +244,6 @@ export const Home = () => {
       <section className="band-ink">
         <div className="wrap for-churches">
           <div className="stack stack-5">
-            <span className="eyebrow">For churches and ministries</span>
             <h2>List what you already issue.</h2>
             <p className="lede" style={{ color: 'rgba(255,255,255,.74)' }}>
               Set your own titles, your own requirements and your own prices. Take payment in mobile money and
@@ -257,10 +252,10 @@ export const Home = () => {
             <ul className="tick-list">
               <li><BadgeCheck size={16} /> Define your credentials and what each one requires</li>
               <li><BadgeCheck size={16} /> Issue certificates and letters on your own letterhead</li>
-              <li><BadgeCheck size={16} /> Nothing to approve — your listings go live when you publish them</li>
+              <li><BadgeCheck size={16} /> No approval needed. Listings go live when you publish them</li>
             </ul>
             <div className="row-wrap" style={{ gap: 12 }}>
-              <Link to="/teach" className="btn btn-inverse">Start listing</Link>
+              <Link to="/church/register" className="btn btn-inverse">Register your church</Link>
               <Link to="/churches" className="btn btn-inverse-outline">See who is here</Link>
             </div>
           </div>

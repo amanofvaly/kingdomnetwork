@@ -1,20 +1,22 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import {
-  BookOpen, ChevronDown, Compass, IdCard, LogOut, Menu, Search, ShoppingBag, User, X,
+  ChevronDown, Compass, IdCard, LayoutDashboard, LogOut, Menu, Search, ShieldCheck, ShoppingBag, X,
 } from 'lucide-react';
 
 import { api } from '../lib/api.js';
 import { money } from '../lib/format.js';
 
 import { useAuth } from '../lib/auth.jsx';
+import { useToast } from '../lib/toast.jsx';
 import { useCart } from '../lib/cart.jsx';
-import { Avatar } from './ui.jsx';
+import { Avatar, ChurchMark } from './ui.jsx';
 
+// Two flows, then the issuers. Credentials are applied for, courses are
+// bought, and churches are who stands behind both.
 const NAV = [
-  { to: '/ordination', label: 'Ordination' },
-  { to: '/certification', label: 'Certificates' },
-  { to: '/invitation-letter', label: 'Invitations' },
+  { to: '/credentials', label: 'Credentials' },
+  { to: '/courses', label: 'Courses' },
   { to: '/churches', label: 'Churches' },
 ];
 
@@ -58,8 +60,8 @@ const SearchField = ({ compactMode }) => {
           value={term}
           onChange={(e) => { setTerm(e.target.value); setOpen(true); }}
           onFocus={() => setOpen(true)}
-          placeholder={compactMode ? 'Search credentials, churches, destinations' : 'Search the marketplace'}
-          aria-label="Search the marketplace"
+          placeholder={compactMode ? 'Search credentials, churches, destinations' : 'Search credentials and churches'}
+          aria-label="Search credentials and churches"
         />
       </form>
 
@@ -81,7 +83,7 @@ const SearchField = ({ compactMode }) => {
               <div className="suggest-group">Listings</div>
               {hits.offerings.map((o) => (
                 <button key={o.slug} type="button" className="suggest-item" onClick={() => go(`/listing/${o.slug}`)}>
-                  <span className="monogram monogram-sm">{o.church?.monogram ?? '·'}</span>
+                  <ChurchMark church={o.church} size="monogram-sm" />
                   <span className="small grow clamp-1">
                     {o.title}
                     <span className="dim"> · {o.church?.shortName ?? ''}</span>
@@ -96,7 +98,7 @@ const SearchField = ({ compactMode }) => {
               <div className="suggest-group">Churches</div>
               {hits.churches.map((c) => (
                 <button key={c.slug} type="button" className="suggest-item" onClick={() => go(`/churches/${c.slug}`)}>
-                  <span className="monogram monogram-sm">{c.monogram}</span>
+                  <ChurchMark church={c} size="monogram-sm" />
                   <span className="small grow clamp-1">{c.name}<span className="dim"> · {c.country}</span></span>
                 </button>
               ))}
@@ -112,11 +114,28 @@ const SearchField = ({ compactMode }) => {
   );
 };
 
+/** Anywhere a signed-out visitor has no business being. */
+const PRIVATE = /^\/(me|manage|admin|applications|checkout)\b/;
+
 const AccountMenu = () => {
-  const { user, logout } = useAuth();
+  const { user, logout, memberships, isPlatformAdmin } = useAuth();
   const [open, setOpen] = useState(false);
   const ref = useRef(null);
   const navigate = useNavigate();
+  const { pathname } = useLocation();
+  const { ok } = useToast();
+
+  /**
+   * Signing out cleared the session but said nothing, and navigating home from
+   * home is invisible — so on the front page it looked like the button did
+   * nothing at all.
+   */
+  const signOut = () => {
+    logout();
+    setOpen(false);
+    if (PRIVATE.test(pathname)) navigate('/', { replace: true });
+    ok('Signed out');
+  };
 
   useEffect(() => {
     if (!open) return undefined;
@@ -139,12 +158,25 @@ const AccountMenu = () => {
             <div className="strong small">{user.name}</div>
             <div className="xs dim">{user.email}</div>
           </div>
-          <Link to="/dashboard" onClick={() => setOpen(false)}><BookOpen size={16} /> My account</Link>
-          <Link to="/passport" onClick={() => setOpen(false)}><IdCard size={16} /> Minister passport</Link>
-          <Link to="/account" onClick={() => setOpen(false)}><User size={16} /> Account</Link>
-          <Link to="/orders" onClick={() => setOpen(false)}><ShoppingBag size={16} /> Orders</Link>
-          <div className="menu-sep" />
-          <button type="button" onClick={() => { logout(); setOpen(false); navigate('/'); }}>
+          {user.accountKind !== 'church' ? (
+            <Link to="/me" onClick={() => setOpen(false)}><IdCard size={16} /> Your area</Link>
+          ) : null}
+
+          {/* Only a church account can enter the console. A personal account may
+              still hold a membership — accepting a team invite is a personal
+              action — but the console turns it away, so offering the link would
+              be offering a second route to the page it just came from. */}
+          {user.accountKind === 'church'
+            ? memberships.map((m) => (
+              <Link key={m.churchSlug} to={`/manage/${m.churchSlug}`} onClick={() => setOpen(false)}>
+                <LayoutDashboard size={16} /> {m.church?.name ?? 'Church dashboard'}
+              </Link>
+            ))
+            : null}
+          {isPlatformAdmin ? (
+            <Link to="/admin" onClick={() => setOpen(false)}><ShieldCheck size={16} /> Platform administration</Link>
+          ) : null}
+          <button type="button" onClick={signOut}>
             <LogOut size={16} /> Sign out
           </button>
         </div>
@@ -154,7 +186,10 @@ const AccountMenu = () => {
 };
 
 const MobileNav = ({ onClose }) => {
-  const { user, logout } = useAuth();
+  const { user, memberships, logout } = useAuth();
+  const navigate = useNavigate();
+  const { pathname } = useLocation();
+  const { ok } = useToast();
   return (
     <div style={{ position: 'fixed', inset: 0, zIndex: 100, background: 'var(--bg)' }}>
       <div className="wrap">
@@ -174,19 +209,27 @@ const MobileNav = ({ onClose }) => {
                 {item.label}
               </NavLink>
             ))}
-            {user && (
+            {user && user.accountKind !== 'church' && (
               <>
-                <NavLink to="/dashboard" onClick={onClose} style={{ padding: '14px 0', fontSize: 'var(--text-xl)', fontFamily: 'var(--font-display)', fontWeight: 600, letterSpacing: '-0.02em', borderBottom: '1px solid var(--line)' }}>My learning</NavLink>
-                <NavLink to="/passport" onClick={onClose} style={{ padding: '14px 0', fontSize: 'var(--text-xl)', fontFamily: 'var(--font-display)', fontWeight: 600, letterSpacing: '-0.02em', borderBottom: '1px solid var(--line)' }}>Minister passport</NavLink>
+                <NavLink to="/me" onClick={onClose} style={{ padding: '14px 0', fontSize: 'var(--text-xl)', fontFamily: 'var(--font-display)', fontWeight: 600, letterSpacing: '-0.02em', borderBottom: '1px solid var(--line)' }}>Your area</NavLink>
               </>
             )}
+            {user?.accountKind === 'church' && memberships[0] ? (
+              <NavLink to={`/manage/${memberships[0].churchSlug}`} onClick={onClose}
+                style={{ padding: '14px 0', fontSize: 'var(--text-xl)', fontFamily: 'var(--font-display)', fontWeight: 600, letterSpacing: '-0.02em', borderBottom: '1px solid var(--line)' }}>
+                Church dashboard
+              </NavLink>
+            ) : null}
           </nav>
           {user ? (
-            <button type="button" className="btn btn-outline btn-block" onClick={() => { logout(); onClose(); }}>Sign out</button>
+            <button type="button" className="btn btn-outline btn-block"
+              onClick={() => { logout(); onClose(); if (PRIVATE.test(pathname)) navigate('/', { replace: true }); ok('Signed out'); }}>
+              Sign out
+            </button>
           ) : (
             <div className="stack stack-3">
-              <Link to="/login" className="btn btn-outline btn-block" onClick={onClose}>Sign in</Link>
-              <Link to="/signup" className="btn btn-primary btn-block" onClick={onClose}>Create an account</Link>
+              <Link to="/login" className="btn btn-primary btn-block" onClick={onClose}>Sign in</Link>
+              <Link to="/church/register" className="church-register-link" onClick={onClose}>Register church</Link>
             </div>
           )}
         </div>
@@ -196,10 +239,11 @@ const MobileNav = ({ onClose }) => {
 };
 
 const Header = () => {
-  const { user, ready } = useAuth();
+  const { user, memberships, ready } = useAuth();
   const { count } = useCart();
   const [mobileOpen, setMobileOpen] = useState(false);
   const { pathname } = useLocation();
+  const churchDashboard = memberships[0]?.churchSlug ?? user?.churchSlug;
 
   useEffect(() => { setMobileOpen(false); }, [pathname]);
   useEffect(() => {
@@ -233,16 +277,30 @@ const Header = () => {
             </Link>
 
             {ready && (user ? (
-              <>
-                <Link to="/passport" className="btn btn-ghost btn-sm hide-on-narrow">My passport</Link>
-                <AccountMenu />
-              </>
+              user.accountKind === 'church' ? (
+                churchDashboard ? (
+                  <Link to={`/manage/${churchDashboard}`} className="btn btn-primary btn-sm hide-on-narrow">
+                    Dashboard
+                  </Link>
+                ) : null
+              ) : (
+                <>
+                  <Link to="/me/passport" className="btn btn-ghost btn-sm hide-on-narrow">My passport</Link>
+                  <AccountMenu />
+                </>
+              )
             ) : (
               <div className="row" style={{ gap: 8 }}>
-                <Link to="/login" className="btn btn-ghost btn-sm hide-on-narrow">Sign in</Link>
-                <Link to="/signup" className="btn btn-primary btn-sm hide-on-narrow">Create account</Link>
+                <Link to="/church/register" className="church-register-link hide-on-narrow">Register church</Link>
+                <Link to="/login" className="btn btn-primary btn-sm hide-on-narrow">Sign in</Link>
               </div>
             ))}
+
+            {ready && !user ? (
+              <Link to="/login" className="btn btn-primary btn-sm church-entry-mobile">
+                Sign in
+              </Link>
+            ) : null}
 
             <button type="button" className="icon-btn hide-lg" onClick={() => setMobileOpen(true)} aria-label="Open menu">
               <Menu size={20} />
@@ -265,7 +323,7 @@ const Footer = () => (
             <span className="brand-name" style={{ color: '#fff' }}>Kingdom Network</span>
           </Link>
           <p className="small" style={{ maxWidth: '34ch', color: 'var(--ink-inverse-2)' }}>
-            A marketplace for church-issued ordination, credentials and invitations. Churches set their own titles, requirements and prices.
+            Ordination, credentials and invitation letters issued by churches. Each church sets its own requirements and fees.
           </p>
         </div>
         <div>
@@ -291,14 +349,16 @@ const Footer = () => (
           <ul>
             <li><Link to="/signup">Create an account</Link></li>
             <li><Link to="/login">Sign in</Link></li>
-            <li><Link to="/dashboard">My account</Link></li>
-            <li><Link to="/passport">Minister passport</Link></li>
+            <li><Link to="/me">Your area</Link></li>
+            <li><Link to="/me/passport">Minister passport</Link></li>
+            <li><Link to="/me/journey">Your journey</Link></li>
           </ul>
         </div>
         <div>
           <h5>For churches</h5>
           <ul>
-            <li><Link to="/teach">List on Kingdom Network</Link></li>
+            <li><Link to="/church/register">Register your church</Link></li>
+            <li><Link to="/for-churches">How Kingdom Network works</Link></li>
             <li><Link to="/churches">Church directory</Link></li>
           </ul>
         </div>

@@ -1,0 +1,452 @@
+/* ===========================================================================
+   The application workspace — /applications/:reference
+
+   Where someone watches a church consider them. Not a record and not a
+   receipt: the next thing they can do leads the page, the path they are on
+   follows it, and history sits underneath both.
+
+   A single column throughout. An application carrying four steps, no
+   documents and one event is the ordinary case, not a degenerate one, and a
+   column cannot look half-empty the way a two-column grid with a stranded
+   aside does.
+   =========================================================================== */
+
+.ap {
+  --ap-col: 820px;
+  padding-bottom: var(--s-9);
+}
+
+.ap-col {
+  width: 100%;
+  max-width: var(--ap-col);
+  margin-inline: auto;
+  padding-inline: var(--gutter);
+}
+
+/* --- the hero ------------------------------------------------------------ */
+
+.ap-hero {
+  position: relative;
+  isolation: isolate;
+  background: var(--bg-ink);
+  color: var(--ink-inverse);
+  padding-block: var(--s-6) calc(var(--s-8) + 28px);
+  overflow: hidden;
+}
+
+.ap-hero-art {
+  position: absolute;
+  inset: 0;
+  z-index: -2;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Dark at the foot so the title always holds, whatever the artwork does. */
+.ap-hero::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background:
+    linear-gradient(180deg, rgba(36, 32, 74, 0.55) 0%, rgba(36, 32, 74, 0.86) 62%, rgba(36, 32, 74, 0.96) 100%);
+}
+
+.ap-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--ink-inverse-2);
+  font-size: var(--text-sm);
+  margin-bottom: var(--s-6);
+  transition: color var(--dur-1) var(--ease-soft);
+}
+.ap-back:hover { color: var(--ink-inverse); }
+
+.ap-church {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+  margin-bottom: var(--s-4);
+}
+
+.ap-church-name {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 2px 6px;
+  font-size: var(--text-sm);
+  font-weight: 500;
+}
+
+/* Its own line, under the name. */
+.ap-church-where {
+  flex: 0 0 100%;
+  font-size: var(--text-xs);
+  font-weight: 400;
+  color: var(--ink-inverse-2);
+}
+
+.ap-title {
+  font-size: clamp(1.75rem, 5.5vw, 2.5rem);
+  line-height: 1.12;
+  letter-spacing: -0.02em;
+  margin: 0;
+  color: var(--ink-inverse);
+  max-width: 18ch;
+}
+
+.ap-hero-foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--s-3);
+  margin-top: var(--s-4);
+}
+
+.ap-ref {
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  color: var(--ink-inverse-2);
+  letter-spacing: 0.02em;
+}
+
+/* Status reads on dark, so it cannot borrow the light-ground .tag palette. */
+.ap-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: var(--r-full);
+  font-size: var(--text-xs);
+  font-weight: 500;
+  background: rgba(255, 255, 255, 0.14);
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  color: #fff;
+}
+.ap-status::before {
+  content: '';
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+}
+.ap-status-wait { background: rgba(255, 225, 163, 0.16); border-color: rgba(255, 225, 163, 0.4); color: var(--gold-100); }
+.ap-status-good { background: rgba(224, 232, 255, 0.16); border-color: rgba(224, 232, 255, 0.42); color: var(--blue-100); }
+.ap-status-stop { background: rgba(255, 240, 243, 0.14); border-color: rgba(255, 240, 243, 0.36); color: #ffd7de; }
+
+/* --- the one thing to do next -------------------------------------------- */
+
+.ap-next {
+  position: relative;
+  margin-top: -28px;
+  background: var(--bg);
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  box-shadow: var(--shadow-md);
+  padding: var(--s-5);
+  display: grid;
+  gap: var(--s-4);
+}
+
+.ap-next-eyebrow {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: var(--text-xs);
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--gold-700);
+}
+
+.ap-next h2 {
+  margin: 0;
+  font-size: var(--text-xl);
+  letter-spacing: -0.015em;
+}
+
+.ap-next p { margin: 6px 0 0; color: var(--ink-2); font-size: var(--text-base); }
+
+.ap-next-fine {
+  margin: 0;
+  font-size: var(--text-xs);
+  color: var(--ink-3);
+}
+
+/* Waiting on the church is a state, not a task — it should feel like rest. */
+.ap-next-resting { box-shadow: var(--shadow-sm); }
+.ap-next-resting .ap-next-eyebrow { color: var(--ink-3); }
+
+/* --- progress ------------------------------------------------------------ */
+
+.ap-progress {
+  display: flex;
+  align-items: center;
+  gap: var(--s-4);
+  margin-top: var(--s-7);
+}
+
+.ap-progress-bar {
+  flex: 1;
+  height: 6px;
+  border-radius: var(--r-full);
+  background: var(--line);
+  overflow: hidden;
+}
+
+.ap-progress-bar > span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, var(--blue-600), var(--blue-500));
+  transition: width var(--dur-3) var(--ease-expo);
+}
+
+.ap-progress-count {
+  font-size: var(--text-sm);
+  color: var(--ink-2);
+  font-variant-numeric: tabular-nums;
+  flex: none;
+}
+
+/* --- the path ------------------------------------------------------------ */
+
+.ap-section { margin-top: var(--s-7); }
+
+.ap-section-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--s-4);
+  margin-bottom: var(--s-4);
+}
+
+.ap-section-head h3 {
+  margin: 0;
+  font-size: var(--text-lg);
+  letter-spacing: -0.01em;
+}
+
+.ap-section-head span { font-size: var(--text-sm); color: var(--ink-3); }
+
+.ap-path { display: grid; }
+
+.ap-step {
+  position: relative;
+  display: grid;
+  grid-template-columns: 28px 1fr;
+  column-gap: var(--s-4);
+  padding-bottom: var(--s-5);
+}
+
+/* The thread joining one step to the next; the last step ends it. */
+.ap-step:not(:last-child)::before {
+  content: '';
+  position: absolute;
+  left: 13px;
+  top: 26px;
+  bottom: 0;
+  width: 2px;
+  background: var(--line);
+}
+.ap-step:last-child { padding-bottom: 0; }
+.ap-step.is-done:not(:last-child)::before { background: var(--blue-100); }
+
+.ap-node {
+  grid-row: 1 / span 2;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: var(--bg);
+  border: 2px solid var(--line-strong);
+  color: var(--ink-3);
+  flex: none;
+}
+
+.ap-step.is-done .ap-node { background: var(--blue-600); border-color: var(--blue-600); color: #fff; }
+.ap-step.is-waived .ap-node { background: var(--bg); border-color: var(--blue-100); color: var(--blue-600); }
+.ap-step.is-failed .ap-node { background: var(--red-600); border-color: var(--red-600); color: #fff; }
+.ap-step.is-now .ap-node { border-color: var(--gold-600); color: var(--gold-700); background: var(--gold-50); }
+
+.ap-step-body { min-width: 0; padding-top: 3px; }
+
+.ap-step-label {
+  display: block;
+  font-weight: 500;
+  letter-spacing: -0.005em;
+}
+.ap-step.is-done .ap-step-label { color: var(--ink-2); }
+
+.ap-step-detail {
+  display: block;
+  margin-top: 3px;
+  font-size: var(--text-sm);
+  color: var(--ink-3);
+  max-width: 56ch;
+}
+
+.ap-step-waiver {
+  display: inline-block;
+  margin-top: 6px;
+  font-size: var(--text-xs);
+  color: var(--blue-700);
+  background: var(--blue-50);
+  border-radius: var(--r-sm);
+  padding: 3px 8px;
+}
+
+.ap-step-act { margin-top: var(--s-3); }
+
+/* --- notices -------------------------------------------------------------- */
+
+.ap-note {
+  display: grid;
+  gap: var(--s-2);
+  padding: var(--s-4);
+  border-radius: var(--r-lg);
+  border: 1px solid var(--line);
+  background: var(--bg-sunken);
+  margin-top: var(--s-5);
+}
+
+.ap-note strong { font-size: var(--text-base); letter-spacing: -0.005em; }
+.ap-note p { margin: 0; font-size: var(--text-sm); color: var(--ink-2); }
+
+.ap-note-good { background: var(--blue-50); border-color: var(--blue-100); }
+.ap-note-good strong { color: var(--blue-900); }
+.ap-note-ask { background: var(--gold-50); border-color: var(--gold-100); }
+.ap-note-ask strong { color: var(--gold-700); }
+.ap-note-stop { background: var(--red-50); border-color: #efd7d0; }
+.ap-note-stop strong { color: var(--red-600); }
+
+.ap-reply {
+  width: 100%;
+  font: inherit;
+  font-size: var(--text-sm);
+  color: var(--ink);
+  background: var(--bg);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--r-md);
+  padding: 10px 12px;
+  resize: vertical;
+  min-height: 84px;
+}
+.ap-reply:focus-visible { outline: none; box-shadow: var(--focus); border-color: var(--blue-500); }
+
+/* --- documents ------------------------------------------------------------ */
+
+.ap-docs { display: grid; gap: var(--s-3); }
+
+.ap-doc {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+  padding: var(--s-3) var(--s-4);
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+  background: var(--bg);
+}
+
+.ap-doc-body { min-width: 0; flex: 1; }
+.ap-doc-label { display: block; font-size: var(--text-base); font-weight: 500; }
+.ap-doc-note { display: block; font-size: var(--text-xs); color: var(--ink-3); margin-top: 2px; }
+
+.ap-doc-state {
+  flex: none;
+  font-size: var(--text-xs);
+  font-weight: 500;
+  padding: 3px 9px;
+  border-radius: var(--r-full);
+  background: var(--bg-sunken);
+  color: var(--ink-2);
+}
+.ap-doc-state.is-accepted { background: var(--blue-50); color: var(--blue-700); }
+.ap-doc-state.is-rejected { background: var(--red-50); color: var(--red-600); }
+
+/* A file control that looks intentional, rather than a browser default. */
+.ap-drop {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 8px 14px;
+  border: 1px dashed var(--line-strong);
+  border-radius: var(--r-md);
+  font-size: var(--text-sm);
+  font-weight: 500;
+  color: var(--ink-2);
+  background: var(--bg);
+  cursor: pointer;
+  transition: border-color var(--dur-1) var(--ease-soft), color var(--dur-1) var(--ease-soft), background var(--dur-1) var(--ease-soft);
+}
+.ap-drop:hover { border-color: var(--blue-500); color: var(--blue-700); background: var(--blue-50); }
+.ap-drop input { position: absolute; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
+.ap-drop:focus-within { box-shadow: var(--focus); border-color: var(--blue-500); }
+
+/* --- history -------------------------------------------------------------- */
+
+/* Deliberately quiet. It is the least useful thing here, and giving it the
+   same weight as the path is what made the old page read as paperwork. */
+.ap-history { display: grid; gap: var(--s-4); padding-left: var(--s-4); position: relative; }
+.ap-history::before {
+  content: '';
+  position: absolute;
+  left: 3px;
+  top: 6px;
+  bottom: 6px;
+  width: 1px;
+  background: var(--line);
+}
+
+.ap-event { position: relative; font-size: var(--text-sm); }
+.ap-event::before {
+  content: '';
+  position: absolute;
+  left: calc(var(--s-4) * -1);
+  top: 7px;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--line-strong);
+}
+.ap-event.is-church::before { background: var(--blue-600); }
+.ap-event-when { display: block; font-size: var(--text-xs); color: var(--ink-3); }
+.ap-event-note { display: block; color: var(--ink-2); margin-top: 2px; }
+
+.ap-meta {
+  margin-top: var(--s-7);
+  padding-top: var(--s-4);
+  border-top: 1px solid var(--line);
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-2) var(--s-5);
+  font-size: var(--text-xs);
+  color: var(--ink-3);
+}
+.ap-meta b { font-weight: 500; color: var(--ink-2); }
+
+.ap-fine {
+  margin-top: var(--s-5);
+  display: grid;
+  gap: var(--s-2);
+}
+.ap-fine p { margin: 0; font-size: var(--text-xs); color: var(--ink-3); line-height: 1.6; }
+
+/* --- wider viewports ------------------------------------------------------
+   The column holds. Only the hero and the leading card grow, so the page
+   gains presence without the measure ever getting hard to read. */
+
+@media (min-width: 720px) {
+  .ap-hero { padding-block: var(--s-7) calc(var(--s-9) + 28px); }
+  .ap-next { padding: var(--s-6); grid-template-columns: 1fr auto; align-items: center; }
+  .ap-next-eyebrow { grid-column: 1 / -1; }
+  .ap-next-fine { grid-column: 1 / -1; }
+  .ap-next-act { justify-self: end; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ap-progress-bar > span { transition: none; }
+}

@@ -1,185 +1,177 @@
+import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { Calendar, ExternalLink, GraduationCap, MapPin, Users } from 'lucide-react';
+import { ArrowUpRight, BookOpen, Calendar, ExternalLink, Globe2, GraduationCap, HeartHandshake, Images, Mail, MapPin, Phone, Users } from 'lucide-react';
 
 import { CourseCard } from '../components/cards.jsx';
 import { OfferingCard } from '../components/market.jsx';
-import { Breadcrumbs, ErrorState, Monogram, Spinner, Stars, Verified } from '../components/ui.jsx';
+import { CHURCH_PLACEHOLDER, ErrorState, PERSON_PLACEHOLDER, Spinner, Stars, Verified } from '../components/ui.jsx';
+import { FollowButton } from '../components/me/feed.jsx';
 import { useApi } from '../lib/useAsync.js';
-import { compact, plural } from '../lib/format.js';
+import { useAuth } from '../lib/auth.jsx';
+import { compact, money, plural } from '../lib/format.js';
+
+const FALLBACK_COVER = '/media/church-registration-cross.jpg';
+const absoluteUrl = (value) => value && (/^https?:\/\//i.test(value) ? value : `https://${value}`);
+const cleanText = (value) => value?.replace(/\s+/g, ' ').trim();
+const shorten = (value, limit = 120) => {
+  const text = cleanText(value);
+  if (!text || text.length <= limit) return text;
+  const clipped = text.slice(0, limit + 1);
+  const lastSpace = clipped.lastIndexOf(' ');
+  return `${clipped.slice(0, lastSpace > limit * 0.65 ? lastSpace : limit).replace(/[.,;:!?-]+$/, '')}…`;
+};
+
+const EmptyBlock = ({ icon: Icon, title, copy, action, to }) => (
+  <div className="church-profile-empty">
+    <span className="church-profile-empty-icon"><Icon size={21} strokeWidth={1.7} /></span>
+    <div><h3>{title}</h3><p>{copy}</p></div>
+    {action && to ? <Link to={to} className="link">{action} <ArrowUpRight size={14} /></Link> : null}
+  </div>
+);
 
 export const ChurchDetail = () => {
   const { slug } = useParams();
   const { data, error, loading, reload } = useApi(`/churches/${slug}`);
+  const { user } = useAuth();
 
+  // A church account cannot follow a church; there is nothing for it to do
+  // with a feed. Signed out, the button would only lead to a sign-in wall.
+  const canFollow = Boolean(user && user.accountKind !== 'church');
+  const [followers, setFollowers] = useState(0);
+  useEffect(() => { if (data) setFollowers(data.followers ?? 0); }, [data]);
   if (loading) return <div className="wrap band"><Spinner label="Loading church" /></div>;
   if (error) return <div className="wrap band"><ErrorState error={error} onRetry={reload} /></div>;
 
-  const { church, listings, courses, faculty } = data;
+  const church = data?.church ?? {};
+  const listings = data?.listings ?? [];
+  const courses = data?.courses ?? [];
+  const faculty = data?.faculty ?? [];
+  const resources = data?.resources ?? [];
+  const gallery = data?.gallery ?? [];
+  const donations = data?.donations ?? { enabled: false };
+  const sections = data?.sections ?? [];
+  const specialties = church.specialties ?? [];
+  const languages = church.languages ?? [];
+  const deliveryModes = church.deliveryModes ?? [];
+  const story = (church.story ?? []).filter(Boolean);
+  const stats = church.stats ?? {};
+  const contact = church.contact ?? {};
+  const location = [church.city, church.country].filter(Boolean).join(', ');
+  const shortName = church.shortName || church.name || 'This church';
+  const description = cleanText(church.about) || `${shortName}${location ? ` serves its community in ${location}` : ' is part of the Kingdom Network'}.`;
+  const profileCaption = shorten(church.tagline) || (location ? `Church community in ${location}.` : 'Church community.');
+  const website = absoluteUrl(church.website);
+  const visible = new Set(sections.filter((x) => x.visible !== false).map((x) => x.type));
+  const shows = (type) => !sections.length || visible.has(type);
+  const hasOfferings = listings.length > 0 || courses.length > 0 || resources.length > 0;
+  const profileFacts = [
+    location && { icon: MapPin, label: location },
+    church.foundedYear && { icon: Calendar, label: `Founded ${church.foundedYear}` },
+    church.denomination && { icon: BookOpen, label: church.denomination },
+    languages.length && { icon: Globe2, label: languages.join(', ') },
+    deliveryModes.length && { icon: GraduationCap, label: deliveryModes.join(', ') },
+  ].filter(Boolean);
+  const facultyBySlug = new Map(faculty.map((person) => [person.slug, person]));
+  const leaderNames = new Set((church.leaders ?? []).map((person) => cleanText(person.name)?.toLowerCase()));
+  const people = [
+    ...(church.leaders ?? []).map((leader) => ({
+      ...leader,
+      ...(leader.instructorSlug ? facultyBySlug.get(leader.instructorSlug) : null),
+    })),
+    ...faculty.filter((person) => !leaderNames.has(cleanText(person.name)?.toLowerCase())),
+  ];
 
   return (
-    <>
-      <div className="church-hero">
-        <div className="media">
-          <img src={church.coverImage} alt={church.coverAlt} width={1600} height={1067} fetchPriority="high" />
+    <main className="church-profile">
+      <div className="wrap church-profile-top">
+        <div className="church-profile-cover media">
+          <img src={church.coverImage || FALLBACK_COVER} alt={church.coverAlt || `${church.name || 'Church'} cover`} width={1600} height={600} fetchPriority="high"
+            onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = FALLBACK_COVER; }} />
+          <section className="church-profile-identity" aria-labelledby="church-name">
+            <div className="church-profile-mark">
+              <img src={church.logoImage || CHURCH_PLACEHOLDER} alt="" />
+            </div>
+            <div className="church-profile-name">
+              <div className="church-profile-title-row">
+                <div className="row-wrap" style={{ gap: 8 }}><h1 id="church-name">{church.name || 'Church profile'}</h1>{church.verified ? <Verified label="Verified church" /> : null}</div>
+                {contact.email ? <a className="church-profile-mail" href={`mailto:${contact.email}`} aria-label={`Email ${church.name || 'this church'}`} title="Email church"><Mail size={17} /></a> : null}
+              </div>
+              <p>{profileCaption}</p>
+              <div className="church-profile-meta">
+                {location ? <span><MapPin size={14} />{location}</span> : null}
+                {stats.credentialsIssued ? <span>{compact(stats.credentialsIssued)} credentials issued</span> : null}
+                {stats.learners ? <span>{compact(stats.learners)} learners</span> : null}
+                <span>{compact(followers)} {followers === 1 ? 'follower' : 'followers'}</span>
+              </div>
+            </div>
+            <div className="church-profile-actions">
+              {canFollow ? (
+                <FollowButton
+                  slug={church.slug}
+                  following={data.following}
+                  size=""
+                  className="btn-vibrant-blue"
+                  inverse
+                  onChange={(_, on) => setFollowers((n) => n + (on ? 1 : -1))}
+                />
+              ) : null}
+              {website ? <a className="btn btn-inverse-outline" href={website} target="_blank" rel="noreferrer noopener">Website <ExternalLink size={14} /></a> : null}
+              {donations.enabled && shows('donate') ? <Link className="btn btn-inverse-outline" to={`/give/${church.slug}`}><HeartHandshake size={16} /> Give</Link> : null}
+            </div>
+          </section>
         </div>
+
+        <nav className="church-profile-tabs" aria-label="Church page sections">
+          <a href="#about">About</a><a href="#offerings">Credentials and learning</a>
+          {people.length ? <a href="#people">People</a> : null}
+          {gallery.length ? <a href="#photos">Photos</a> : null}
+        </nav>
       </div>
 
-      <div className="wrap" style={{ paddingBlock: 'var(--s-6)' }}>
-        <div className="stack stack-5">
-          <Breadcrumbs trail={[{ label: 'Churches', to: '/churches' }, { label: church.name }]} />
-          <div className="church-headline">
-            <div className="stack stack-4">
-              <div className="row" style={{ gap: 'var(--s-4)', alignItems: 'flex-start' }}>
-                <Monogram text={church.monogram} size="monogram-lg" />
-                <div className="stack stack-2">
-                  <h1 style={{ fontSize: 'clamp(1.9rem, 3.4vw, 2.6rem)' }}>{church.name}</h1>
-                  <div className="row-wrap small muted" style={{ gap: 'var(--s-4)' }}>
-                    <span className="row" style={{ gap: 5 }}><MapPin size={14} />{church.city}, {church.country}</span>
-                    <span className="row" style={{ gap: 5 }}><Calendar size={14} />Founded {church.foundedYear}</span>
-                    {church.verified && <Verified label="Verified church" />}
-                  </div>
-                </div>
+      <div className="church-profile-body">
+        <div className="wrap church-profile-layout">
+          <aside className="church-profile-aside" id="about">
+            <section className="church-profile-panel">
+              <h2>About</h2><p>{description}</p>{story.map((paragraph, index) => <p key={index}>{paragraph}</p>)}
+              {specialties.length ? <div className="row-wrap church-profile-tags">{specialties.map((item) => <span className="tag" key={item}>{item}</span>)}</div> : null}
+            </section>
+            <section className="church-profile-panel">
+              <h2>Church information</h2>
+              {profileFacts.length ? <ul className="church-profile-facts">{profileFacts.map(({ icon: Icon, label }) => <li key={label}><Icon size={16} strokeWidth={1.7} /><span>{label}</span></li>)}</ul> : <p className="muted">More church information will be added here.</p>}
+              <div className="church-profile-contact">
+                {contact.email ? <a href={`mailto:${contact.email}`}><Mail size={15} />{contact.email}</a> : null}
+                {contact.phone ? <a href={`tel:${contact.phone}`}><Phone size={15} />{contact.phone}</a> : null}
+                {website ? <a href={website} target="_blank" rel="noreferrer noopener"><Globe2 size={15} />{church.website}</a> : null}
               </div>
-              <p className="lede" style={{ maxWidth: '64ch' }}>{church.tagline}</p>
-              <div className="row-wrap" style={{ gap: 8 }}>
-                {church.specialties.map((s) => <span key={s} className="tag">{s}</span>)}
-              </div>
-              <div className="row-wrap" style={{ gap: 'var(--s-4)' }}>
-                <Stars rating={church.rating} count={church.ratingCount} size={15} />
-                {church.website && (
-                  <a className="link small" href={`https://${church.website}`} target="_blank" rel="noreferrer noopener">
-                    {church.website} <ExternalLink size={13} />
-                  </a>
-                )}
-              </div>
-            </div>
+            </section>
+            {church.serviceTimes?.length ? <section className="church-profile-panel"><h2>Gather with us</h2><ul className="church-profile-services">
+              {church.serviceTimes.map((service, index) => <li key={`${service.day}-${service.time}-${index}`}><span>{service.label || 'Service'}</span><strong>{[service.day, service.time].filter(Boolean).join(' · ')}</strong></li>)}
+            </ul></section> : null}
+          </aside>
 
-            <div className="panel panel-warm stack stack-4">
-              <h5>Teaching at a glance</h5>
-              <div className="stack stack-3">
-                {[
-                  ['Languages', church.languages.join(', ')],
-                  ['Delivery', church.deliveryModes.join(', ')],
-                  ['Region', church.region],
-                ].map(([k, v]) => (
-                  <div key={k} className="stack" style={{ gap: 2 }}>
-                    <span className="xs dim">{k}</span>
-                    <span className="small">{v}</span>
-                  </div>
-                ))}
-              </div>
-              <Link to={`/courses?church=${church.slug}`} className="btn btn-primary btn-block btn-sm">
-                Browse {plural(listings.length, 'listing')}
-              </Link>
-            </div>
-          </div>
+          <div className="church-profile-feed" id="offerings">
+            <section className="church-profile-section">
+              <div className="church-profile-section-head"><div><h2>Credentials, courses and resources</h2><p>Published by {shortName}.</p></div>{hasOfferings ? <span>{plural(listings.length + courses.length + resources.length, 'item')}</span> : null}</div>
+              {listings.length && shows('whatWeIssue') ? <div className="church-profile-rail"><h3>Credentials</h3><div className="grid grid-3">{listings.map((offering) => <OfferingCard key={offering.slug} offering={offering} showOutcome />)}</div></div> : null}
+              {courses.length && shows('courses') ? <div className="church-profile-rail"><h3>Courses</h3><div className="grid grid-3">{courses.map((course) => <CourseCard key={course.slug} course={{ ...course, church }} />)}</div></div> : null}
+              {resources.length && shows('resources') ? <div className="church-profile-rail"><h3>Books and materials</h3><div className="grid grid-3">{resources.map((resource) => (
+                <article key={resource.slug} className="card church-resource-card"><span className="media media-3x2"><img src={resource.coverImage || FALLBACK_COVER} alt="" loading="lazy" /></span><div className="card-body"><span className="xs dim">{resource.kind?.replace('-', ' ') || 'Resource'}</span><h3 className="course-title">{resource.title}</h3>{resource.subtitle ? <p className="small muted clamp-2">{resource.subtitle}</p> : null}<div className="course-foot"><strong>{resource.price ? money(resource.price) : 'Free'}</strong>{resource.pages ? <span className="xs dim">{resource.pages} pages</span> : null}</div></div></article>
+              ))}</div></div> : null}
+              {!hasOfferings ? <EmptyBlock icon={BookOpen} title="Nothing published yet" copy={`${shortName} has not published credentials, courses or resources yet.`} action="Browse credentials and courses" to="/search" /> : null}
+            </section>
 
-          <div className="stat-row">
-            <div className="stat"><strong className="num">{compact(church.stats.learners)}</strong><span>learners enrolled</span></div>
-            <div className="stat"><strong className="num">{church.stats.courses}</strong><span>courses published</span></div>
-            <div className="stat"><strong className="num">{compact(church.stats.credentialsIssued)}</strong><span>credentials issued</span></div>
-            <div className="stat"><strong className="num">{church.stats.yearsTeaching}</strong><span>years teaching</span></div>
+            {people.length ? <section className="church-profile-section" id="people">
+              <div className="church-profile-section-head"><div><h2>People</h2><p>Leaders and teachers serving this community.</p></div></div>
+              <div className="church-profile-people">{people.map((person) => <article className="church-profile-person" key={person.slug || person.name}>
+                <img src={person.image || PERSON_PLACEHOLDER} alt="" loading="lazy"
+                  onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = PERSON_PLACEHOLDER; }} /><div><h3>{person.name}</h3><p>{person.title || 'Church team'}</p>{person.bio ? <span>{person.bio}</span> : null}</div>{person.rating ? <Stars rating={person.rating} size={13} /> : null}{person.learners ? <small><Users size={13} />{compact(person.learners)} learners</small> : null}
+              </article>)}</div>
+            </section> : null}
+
+            {gallery.length && shows('gallery') ? <section className="church-profile-section" id="photos"><div className="church-profile-section-head"><div><h2>Photos</h2><p>A view into the life of {shortName}.</p></div></div><div className="church-profile-gallery">{gallery.map((photo) => <figure key={photo.id}><img src={photo.url} alt={photo.alt || ''} loading="lazy" /></figure>)}</div></section> : <section className="church-profile-section church-profile-photos-empty"><EmptyBlock icon={Images} title="More from this community soon" copy="Photos and community updates will appear here as they are added." /></section>}
           </div>
         </div>
       </div>
-
-      <section className="band band-tight band-warm">
-        <div className="wrap">
-          <div className="detail-grid">
-            <div className="stack stack-5">
-              <h2 style={{ fontSize: 'var(--text-2xl)' }}>About {church.shortName ?? church.name}</h2>
-              <p className="lede" style={{ maxWidth: '66ch' }}>{church.about}</p>
-              <div className="prose" style={{ maxWidth: '66ch' }}>
-                {church.story.map((p, i) => <p key={i}>{p}</p>)}
-              </div>
-            </div>
-            <figure className="media media-4x3" style={{ margin: 0 }}>
-              <img src={church.portraitImage} alt="" width={1600} height={1067} loading="lazy" />
-            </figure>
-          </div>
-        </div>
-      </section>
-
-      {church.leaders?.length > 0 && (
-        <section className="band band-tight">
-          <div className="wrap stack stack-5">
-            <h2 style={{ fontSize: 'var(--text-2xl)' }}>Leadership</h2>
-            <div className="grid grid-2">
-              {church.leaders.map((l) => (
-                <div key={l.name} className="leader">
-                  <img className="avatar" src={l.image} alt="" width={84} height={84} style={{ width: 84, height: 84 }} loading="lazy" />
-                  <div className="stack stack-2">
-                    <div>
-                      <h4>{l.name}</h4>
-                      <p className="small dim" style={{ margin: 0 }}>{l.title}</p>
-                    </div>
-                    <p className="small muted" style={{ margin: 0 }}>{l.bio}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
-      )}
-
-      {listings.length > 0 && (
-        <section className="band band-tight band-sunken">
-          <div className="wrap stack stack-5">
-            <div className="rail-head">
-              <div>
-                <h2 style={{ fontSize: 'var(--text-2xl)' }}>What this church issues</h2>
-                <p className="small muted" style={{ margin: '4px 0 0' }}>
-                  {plural(listings.length, 'listing')}, each with its own requirements and price set by the ministry.
-                </p>
-              </div>
-            </div>
-            <div className="grid grid-4">
-              {listings.map((o) => <OfferingCard key={o.slug} offering={o} showOutcome />)}
-            </div>
-          </div>
-        </section>
-      )}
-
-      {courses.length > 0 && (
-        <section className="band band-tight">
-          <div className="wrap stack stack-5">
-            <div>
-              <h2 style={{ fontSize: 'var(--text-2xl)' }}>Coursework</h2>
-              <p className="small muted">Courses this church teaches, unlocked by the credentials that require them.</p>
-            </div>
-            <div className="grid grid-4">
-              {courses.map((c) => <CourseCard key={c.slug} course={{ ...c, church }} />)}
-            </div>
-          </div>
-        </section>
-      )}
-
-      {faculty.length > 0 && (
-        <section className="band band-tight band-warm">
-          <div className="wrap stack stack-5">
-            <h2 style={{ fontSize: 'var(--text-2xl)' }}>Faculty</h2>
-            <div className="grid grid-2">
-              {faculty.map((t) => (
-                <div key={t.slug} className="leader">
-                  <img className="avatar" src={t.image} alt="" width={84} height={84} style={{ width: 84, height: 84 }} loading="lazy" />
-                  <div className="stack stack-2">
-                    <div>
-                      <h4>{t.name}</h4>
-                      <p className="small dim" style={{ margin: 0 }}>{t.title}</p>
-                    </div>
-                    <div className="row-wrap small muted" style={{ gap: 'var(--s-4)' }}>
-                      <Stars rating={t.rating} size={13} />
-                      <span className="row" style={{ gap: 5 }}><Users size={13} />{compact(t.learners)}</span>
-                      <span className="row" style={{ gap: 5 }}><GraduationCap size={13} />{t.yearsExperience} years</span>
-                    </div>
-                    <p className="small muted" style={{ margin: 0 }}>{t.bio}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
-      )}
-    </>
+    </main>
   );
 };

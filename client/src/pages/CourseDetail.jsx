@@ -5,7 +5,7 @@ import {
   Headphones, Infinity as InfinityIcon, PlayCircle, ShoppingBag, Signal, Sparkles, Users,
 } from 'lucide-react';
 
-import { Avatar, Breadcrumbs, ErrorState, Monogram, Price, Spinner, Stars, Verified } from '../components/ui.jsx';
+import { Avatar, Breadcrumbs, ErrorState, ChurchMark, Price, Spinner, Stars, Verified } from '../components/ui.jsx';
 import { useApi } from '../lib/useAsync.js';
 import { useCart } from '../lib/cart.jsx';
 import { useAuth } from '../lib/auth.jsx';
@@ -103,7 +103,7 @@ export const CourseDetail = () => {
 
               {church && (
                 <Link to={`/churches/${church.slug}`} className="row" style={{ gap: 12 }}>
-                  <Monogram text={church.monogram} />
+                  <ChurchMark church={church} />
                   <span>
                     <span className="strong small" style={{ display: 'block' }}>{church.name}</span>
                     <span className="row xs dim" style={{ gap: 6 }}>
@@ -122,7 +122,7 @@ export const CourseDetail = () => {
         <div className="detail-grid detail-grid-raised">
           <div className="detail-main stack stack-7">
             <section className="panel panel-warm">
-              <h3 style={{ marginBottom: 'var(--s-4)' }}>What you will be able to do</h3>
+              <h3 style={{ marginBottom: 'var(--s-4)' }}>What you'll learn</h3>
               <ul className="outcomes">
                 {course.outcomes.map((o) => (
                   <li key={o}><Check size={15} strokeWidth={2.4} />{o}</li>
@@ -189,7 +189,7 @@ export const CourseDetail = () => {
                     <h4>{course.certificate.title}</h4>
                     <p className="small muted" style={{ margin: 0 }}>{course.certificate.description}</p>
                     <p className="small muted" style={{ margin: 0 }}>
-                      Issued into your Digital Minister Passport with a verification code anyone can check.
+                      Added to your Digital Minister Passport with a verification code.
                     </p>
                   </div>
                 </div>
@@ -199,10 +199,10 @@ export const CourseDetail = () => {
             {unlocks?.length > 0 && (
               <section className="stack stack-4">
                 <div>
-                  <h2 style={{ fontSize: 'var(--text-2xl)' }}>What this course unlocks</h2>
+                  <h2 style={{ fontSize: 'var(--text-2xl)' }}>Credentials this course counts toward</h2>
                   <p className="small muted">
-                    {plural(unlocks.length, 'credential')} name this course as a requirement. Buying the credential
-                    includes the course.
+                    {plural(unlocks.length, 'credential')} name this course as a requirement. Completing it satisfies
+                    that requirement; the issuing church still decides the application.
                   </p>
                 </div>
                 <div className="grid grid-2">
@@ -318,7 +318,7 @@ export const CourseDetail = () => {
                       Get {primary.award?.title ?? primary.title}
                     </Link>
                     <p className="xs dim" style={{ margin: 0 }}>
-                      This course is included with that credential. It is not sold separately.
+                      Included with that credential.
                     </p>
                   </div>
                 ) : inCart ? (
@@ -352,7 +352,7 @@ export const CourseDetail = () => {
 
                 <div className="notice">
                   <Signal size={15} />
-                  <span>Pages and lesson notes are built to load on slow connections. Every lesson has an audio version.</span>
+                  <span>Optimised for slow connections. Every lesson has an audio version.</span>
                 </div>
               </div>
             </div>

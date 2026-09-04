@@ -1,9 +1,10 @@
 import { Link } from 'react-router-dom';
 import { ArrowRight, Award, Clock, Layers, MapPin, ShoppingBag } from 'lucide-react';
 
-import { compact, duration, plural } from '../lib/format.js';
+import { duration, plural } from '../lib/format.js';
 import { useCart } from '../lib/cart.jsx';
 import { Price, Stars, Verified } from './ui.jsx';
+import { FollowButton } from './me/feed.jsx';
 
 export const CourseCard = ({ course }) => {
   const { add, has } = useCart();
@@ -71,7 +72,7 @@ export const CourseRow = ({ course, action }) => (
   </article>
 );
 
-export const ChurchCard = ({ church }) => (
+export const ChurchCard = ({ church, canFollow = false, following = false, onFollowChange }) => (
   <article className="card church-card">
     <Link to={`/churches/${church.slug}`} className="media media-3x2" tabIndex={-1} aria-hidden="true">
       <img src={church.coverImage} alt="" loading="lazy" width={800} height={534} />
@@ -88,8 +89,11 @@ export const ChurchCard = ({ church }) => (
       </div>
       <div className="course-foot">
         <span className="small muted num">
-          {plural(church.stats?.courses ?? 0, 'course')} · {compact(church.stats?.learners ?? 0)} learners
+          {plural(church.stats?.courses ?? 0, 'course')} · {plural(church.followers ?? 0, 'follower')}
         </span>
+        {canFollow ? (
+          <FollowButton variant="text" slug={church.slug} following={following} onChange={onFollowChange} />
+        ) : null}
       </div>
     </div>
   </article>
@@ -101,7 +105,7 @@ export const PathwayCard = ({ pathway }) => (
       <img src={pathway.coverImage} alt="" loading="lazy" width={800} height={534} />
     </Link>
     <div className="card-body">
-      <span className="tag tag-green" style={{ alignSelf: 'flex-start' }}><Layers size={12} />{pathway.category} pathway</span>
+      <span className="tag tag-blue" style={{ alignSelf: 'flex-start' }}><Layers size={12} />{pathway.category} pathway</span>
       <h3 className="course-title clamp-2"><Link to={`/pathways/${pathway.slug}`}>{pathway.title}</Link></h3>
       <p className="small muted clamp-2" style={{ margin: 0 }}>{pathway.subtitle}</p>
       <div className="course-meta">

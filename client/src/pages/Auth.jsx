@@ -5,8 +5,8 @@ import { useAuth } from '../lib/auth.jsx';
 import { ApiError } from '../lib/api.js';
 
 const ART = {
-  login: { src: '/media/scenes/study-group.webp', alt: 'A small group studying together around a table' },
-  signup: { src: '/media/scenes/students-writing.webp', alt: 'Two students working through written coursework' },
+  login: { src: '/media/scenes/church-sanctuary.webp', alt: 'Inside a church sanctuary ready for a gathering' },
+  signup: { src: '/media/scenes/hands-open-bible.webp', alt: 'Hands opening a Bible in preparation for ministry' },
 };
 
 const Shell = ({ mode, title, lede, children, footer }) => (
@@ -27,15 +27,24 @@ const Shell = ({ mode, title, lede, children, footer }) => (
   </div>
 );
 
+/**
+ * Where signing in leaves you.
+ *
+ * Wherever you were sent from — otherwise the main site, not /me. Dropping a
+ * personal account into their own area emptied the page they were on, which
+ * cost applications: someone signing in part-way through paying a fee lost the
+ * offering they were paying for. The user area stays a click away in the header.
+ */
 const useAfterAuth = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  return () => navigate(location.state?.from ?? '/dashboard', { replace: true });
+  return () => navigate(location.state?.from ?? '/', { replace: true });
 };
 
 export const Login = () => {
   const { login } = useAuth();
-  const after = useAfterAuth();
+  const navigate = useNavigate();
+  const location = useLocation();
   const [form, setForm] = useState({ email: '', password: '' });
   const [error, setError] = useState(null);
   const [busy, setBusy] = useState(false);
@@ -45,8 +54,12 @@ export const Login = () => {
     setError(null);
     setBusy(true);
     try {
-      await login(form);
-      after();
+      const session = await login(form);
+      if (session.user?.accountKind === 'church' && session.memberships?.[0]) {
+        navigate(`/manage/${session.memberships[0].churchSlug}`, { replace: true });
+      } else {
+        navigate(location.state?.from ?? '/', { replace: true });
+      }
     } catch (err) {
       setError(err instanceof ApiError ? err.message : 'Could not sign you in.');
       setBusy(false);
@@ -54,7 +67,7 @@ export const Login = () => {
   };
 
   return (
-    <Shell mode="login" title="Sign in" lede="Pick up your courses and open your passport."
+    <Shell mode="login" title="Sign in" lede="Access your personal or church account."
       footer={<>New here? <Link to="/signup" className="link">Create an account</Link>.</>}>
       <form className="stack stack-4" onSubmit={submit} noValidate>
         {error && <div className="notice notice-red"><span>{error}</span></div>}

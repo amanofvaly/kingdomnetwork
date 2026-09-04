@@ -35,11 +35,11 @@ const Quiz = ({ lecture }) => {
                 <button key={oi} type="button" disabled={checked}
                   className={`quiz-option ${picked && !checked ? 'is-picked' : ''} ${right ? 'is-right' : ''} ${wrong ? 'is-wrong' : ''}`}
                   onClick={() => setAnswers({ ...answers, [qi]: oi })}>
-                  <span className="radio-dot" style={{ borderColor: picked || right ? 'var(--green-600)' : undefined }}>
-                    {(picked || right) && <span style={{ width: 9, height: 9, borderRadius: '50%', background: right ? 'var(--green-600)' : wrong ? 'var(--red-600)' : 'var(--green-600)' }} />}
+                  <span className="radio-dot" style={{ borderColor: picked || right ? 'var(--blue-600)' : undefined }}>
+                    {(picked || right) && <span style={{ width: 9, height: 9, borderRadius: '50%', background: right ? 'var(--blue-600)' : wrong ? 'var(--red-600)' : 'var(--blue-600)' }} />}
                   </span>
                   <span className="grow small">{opt}</span>
-                  {right && <Check size={16} color="var(--green-600)" />}
+                  {right && <Check size={16} color="var(--blue-600)" />}
                   {wrong && <X size={16} color="var(--red-600)" />}
                 </button>
               );
@@ -54,7 +54,7 @@ const Quiz = ({ lecture }) => {
       ))}
 
       {checked ? (
-        <div className={`notice ${correct === total ? 'notice-green' : 'notice-gold'}`}>
+        <div className={`notice ${correct === total ? 'notice-blue' : 'notice-gold'}`}>
           <span>You answered {correct} of {total} correctly. {correct === total ? 'Move on to the next lesson.' : 'Read the explanations above before you continue.'}</span>
         </div>
       ) : (
@@ -118,7 +118,7 @@ const Lesson = ({ lecture, course }) => {
               <ul className="stack stack-2">
                 {points.map((p) => (
                   <li key={p} className="row small muted" style={{ gap: 10, alignItems: 'flex-start' }}>
-                    <Check size={15} strokeWidth={2.4} style={{ marginTop: 3, flex: 'none', color: 'var(--green-600)' }} />{p}
+                    <Check size={15} strokeWidth={2.4} style={{ marginTop: 3, flex: 'none', color: 'var(--blue-600)' }} />{p}
                   </li>
                 ))}
               </ul>
@@ -144,7 +144,7 @@ export const Learn = () => {
   const flat = useMemo(() => {
     if (!data) return [];
     return data.course.curriculum.flatMap((s) =>
-      s.lectures.map((l) => ({ id: `${s.id}/${l.id}`, lecture: l, section: s })),
+      s.lectures.map((l) => ({ id: l.key, lecture: l, section: s })),
     );
   }, [data]);
 
@@ -152,7 +152,7 @@ export const Learn = () => {
     if (!data) return;
     setDone(new Set(data.enrollment.completedLectures));
     setProgress(data.enrollment.progress);
-    const start = params.get('l') ?? data.enrollment.lastLectureId ?? null;
+    const start = params.get('l') ?? data.enrollment.lastLectureKey ?? null;
     // `start` is null on a fresh enrolment, and ''.split('/')[0] is '' rather
     // than undefined, so fall through on falsy rather than on nullish.
     const sectionId = (start ?? '').split('/')[0] || data.course.curriculum[0]?.id;
@@ -170,7 +170,7 @@ export const Learn = () => {
   }
 
   const { course, church } = data;
-  const currentId = params.get('l') ?? data.enrollment.lastLectureId ?? flat[0]?.id;
+  const currentId = params.get('l') ?? data.enrollment.lastLectureKey ?? flat[0]?.id;
   const index = Math.max(0, flat.findIndex((f) => f.id === currentId));
   const current = flat[index];
 
@@ -188,10 +188,10 @@ export const Learn = () => {
     if (completed) optimistic.add(id); else optimistic.delete(id);
     setDone(optimistic);
     try {
-      const res = await api.post(`/learn/${slug}/progress`, { lectureId: id, completed });
+      const res = await api.post(`/learn/${slug}/progress`, { lectureKey: id, completed });
       setProgress(res.enrollment.progress);
       setDone(new Set(res.enrollment.completedLectures));
-      if (res.justCompleted && res.credential?.status === 'issued') setJustEarned(res.credential);
+      if (res.justCompleted && res.advanced?.length) setJustEarned(res.advanced[0]);
     } catch {
       setDone(new Set(done));
     } finally {
@@ -208,7 +208,7 @@ export const Learn = () => {
     <div className="player">
       <div className="player-main">
         <div className="player-bar">
-          <Link to="/dashboard" className="icon-btn" aria-label="Back to my learning"><ChevronLeft size={20} /></Link>
+          <Link to="/me/learning" className="icon-btn" aria-label="Back to my learning"><ChevronLeft size={20} /></Link>
           <div className="grow" style={{ minWidth: 0 }}>
             <div className="small strong clamp-1">{course.title}</div>
             <div className="xs dim">{church?.shortName ?? church?.name}</div>
@@ -224,10 +224,14 @@ export const Learn = () => {
             <div className="notice notice-gold" style={{ alignItems: 'center' }}>
               <Award size={20} />
               <div className="grow">
-                <div className="strong small">{justEarned.title} has been issued</div>
-                <div className="xs">Credential {justEarned.credentialId} is now in your passport.</div>
+                <div className="strong small">Course finished — {justEarned.title}</div>
+                <div className="xs">
+                  {justEarned.outstanding === 0
+                    ? 'Nothing else is outstanding. Your application is with the church.'
+                    : `${justEarned.outstanding} requirement${justEarned.outstanding === 1 ? '' : 's'} still to go.`}
+                </div>
               </div>
-              <Link to="/passport" className="btn btn-sm btn-outline">Open passport</Link>
+              <Link to="/me/passport" className="btn btn-sm btn-outline">Open passport</Link>
             </div>
           )}
 
@@ -240,7 +244,7 @@ export const Learn = () => {
             <div className="row" style={{ gap: 10 }}>
               {done.has(current?.id) ? (
                 <>
-                  <span className="row small" style={{ gap: 6, color: 'var(--green-600)' }}><CheckCircle2 size={16} /> Completed</span>
+                  <span className="row small" style={{ gap: 6, color: 'var(--blue-600)' }}><CheckCircle2 size={16} /> Completed</span>
                   <button type="button" className="btn btn-ghost btn-sm" onClick={() => mark(current.id, false)} disabled={saving}>Undo</button>
                   {index < flat.length - 1 && (
                     <button type="button" className="btn btn-primary" onClick={() => go(flat[index + 1].id)}>
@@ -258,9 +262,9 @@ export const Learn = () => {
           </div>
 
           {progress === 100 && (
-            <div className="panel" style={{ background: 'var(--green-50)', borderColor: 'var(--green-100)' }}>
+            <div className="panel" style={{ background: 'var(--blue-50)', borderColor: 'var(--blue-100)' }}>
               <div className="row" style={{ gap: 'var(--s-4)', alignItems: 'flex-start' }}>
-                <CheckCircle2 size={22} color="var(--green-600)" style={{ flex: 'none', marginTop: 2 }} />
+                <CheckCircle2 size={22} color="var(--blue-600)" style={{ flex: 'none', marginTop: 2 }} />
                 <div className="stack stack-2">
                   <h4>You have finished this course.</h4>
                   <p className="small muted" style={{ margin: 0 }}>
@@ -269,7 +273,7 @@ export const Learn = () => {
                       : 'Every lesson is complete.'}
                   </p>
                   <div className="row-wrap" style={{ gap: 10 }}>
-                    <Link to="/passport" className="btn btn-primary btn-sm">View credential</Link>
+                    <Link to="/me/passport" className="btn btn-primary btn-sm">View credential</Link>
                     <Link to="/courses" className="btn btn-outline btn-sm">Find your next course</Link>
                   </div>
                 </div>
@@ -290,7 +294,7 @@ export const Learn = () => {
         <div className="player-side-scroll">
           {course.curriculum.map((section) => {
             const open = openSections.has(section.id);
-            const secDone = section.lectures.filter((l) => done.has(`${section.id}/${l.id}`)).length;
+            const secDone = section.lectures.filter((l) => done.has(l.key)).length;
             return (
               <div key={section.id}>
                 <button type="button" className="p-sec-head" aria-expanded={open}
@@ -304,7 +308,7 @@ export const Learn = () => {
                   <span className="xs dim num">{secDone}/{section.lectures.length}</span>
                 </button>
                 {open && section.lectures.map((l) => {
-                  const id = `${section.id}/${l.id}`;
+                  const id = l.key;
                   const Icon = KIND_ICON[l.kind] ?? PlayCircle;
                   const isDone = done.has(id);
                   return (

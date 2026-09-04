@@ -1,122 +1,95 @@
 import { asyncHandler } from '../middleware/asyncHandler.js';
+import { disclosuresFor } from '../lib/disclosures.js';
+import { advanceAllFor } from '../lib/workflow.js';
+import { renderDocument } from '../lib/documents.js';
+import { Application } from '../models/Application.js';
 import { Church } from '../models/Church.js';
 import { Course } from '../models/Course.js';
 import { Credential } from '../models/Credential.js';
-import { Enrollment } from '../models/Enrollment.js';
 import { Offering } from '../models/Offering.js';
-import { paperFor } from '../data/assessments.js';
-import { renderDocument } from '../lib/documents.js';
 
 /**
- * Re-check everything a credential is still waiting on, and issue it the moment
- * nothing is outstanding. Called after a course is finished, an assessment is
- * passed, or another credential is issued.
+ * The Digital Minister Passport: everything a person has been issued, and
+ * everything they have in flight.
+ *
+ * The old version of this file also contained the requirement engine — a
+ * `settle()` function that re-derived what a credential was waiting on every
+ * time the page loaded, duplicating logic that also lived in the checkout. That
+ * now lives in `lib/requirements.js` and `lib/workflow.js`, and this file does
+ * what its name says.
  */
-export const settle = async (userId, credential) => {
-  if (credential.status === 'issued' || credential.status === 'revoked') return credential;
 
-  const offering = await Offering.findOne({ slug: credential.offeringSlug });
-  if (!offering) return credential;
-
-  const outstanding = [];
-
-  if (offering.requires?.courses?.length) {
-    const done = await Enrollment.find(
-      { userId, courseSlug: { $in: offering.requires.courses }, status: 'completed' },
-      'courseSlug',
-    );
-    const set = new Set(done.map((d) => d.courseSlug));
-    for (const c of offering.requires.courses) if (!set.has(c)) outstanding.push(`course:${c}`);
-  }
-
-  if (offering.requires?.credentials?.length) {
-    const held = await Credential.find(
-      { userId, offeringSlug: { $in: offering.requires.credentials }, status: 'issued' },
-      'offeringSlug',
-    );
-    const set = new Set(held.map((h) => h.offeringSlug));
-    for (const c of offering.requires.credentials) if (!set.has(c)) outstanding.push(`credential:${c}`);
-  }
-
-  // An assessment already passed is recorded on the credential itself.
-  if (offering.requires?.assessment?.required && !credential.notes?.includes('assessment:passed')) {
-    outstanding.push('assessment');
-  }
-
-  credential.outstanding = outstanding;
-
-  if (!outstanding.length) {
-    if (offering.requires?.review?.required && credential.status === 'in-progress') {
-      credential.status = 'in-review';
-    } else if (credential.status !== 'in-review') {
-      credential.status = 'issued';
-      credential.issuedAt = new Date();
-      if (offering.award?.validityMonths) {
-        credential.expiresAt = new Date(Date.now() + offering.award.validityMonths * 30 * 24 * 60 * 60 * 1000);
-      }
-    }
-  }
-
-  await credential.save();
-  return credential;
-};
-
-/** Re-settle everything the user is waiting on. Cheap, and keeps the passport honest. */
-export const settleAll = async (userId) => {
-  const pending = await Credential.find({ userId, status: { $in: ['in-progress', 'in-review'] } });
-  for (const c of pending) await settle(userId, c);
-};
+const CREDENTIAL_CARD = 'credentialId title kind status offeringSlug churchSlug churchName holderName postNominal issuedAt expiresAt verifyCode renewal destinationCity destinationCountry purpose';
 
 export const passport = asyncHandler(async (req, res) => {
-  await settleAll(req.user._id);
+  // Cheap, and keeps the passport honest: another church issuing something can
+  // be the last thing an application here was waiting on.
+  await advanceAllFor(req.user._id);
 
-  const credentials = await Credential.find({ userId: req.user._id }).sort({ issuedAt: -1, createdAt: -1 });
-  const offeringSlugs = credentials.map((c) => c.offeringSlug).filter(Boolean);
-
-  const [churches, offerings] = await Promise.all([
+  const [credentials, applications, churches] = await Promise.all([
+    Credential.find({ userId: req.user._id }, CREDENTIAL_CARD).sort({ issuedAt: -1 }),
+    Application.find({ userId: req.user._id, status: { $nin: ['issued', 'withdrawn'] } }).sort({ updatedAt: -1 }),
     Church.find({}, 'slug name shortName monogram verified city country'),
-    Offering.find({ slug: { $in: offeringSlugs } }, 'slug title type outcome coverImage requires award letter price'),
   ]);
+
   const churchBy = Object.fromEntries(churches.map((c) => [c.slug, c]));
+  const slugs = [...new Set([...credentials, ...applications].map((d) => d.offeringSlug).filter(Boolean))];
+  const offerings = await Offering.find(
+    { slug: { $in: slugs } },
+    'slug title type outcome coverImage award letter price fee demo disclosure',
+  );
   const offeringBy = Object.fromEntries(offerings.map((o) => [o.slug, o]));
 
-  // Resolve outstanding item slugs into something the interface can render.
-  const allCourseSlugs = credentials.flatMap((c) => (c.outstanding ?? []).filter((o) => o.startsWith('course:')).map((o) => o.slice(7)));
-  const allCredSlugs = credentials.flatMap((c) => (c.outstanding ?? []).filter((o) => o.startsWith('credential:')).map((o) => o.slice(11)));
-  const [courseDocs, credOfferings, enrollments] = await Promise.all([
-    Course.find({ slug: { $in: allCourseSlugs } }, 'slug title coverImage totalMinutes lectureCount'),
-    Offering.find({ slug: { $in: allCredSlugs } }, 'slug title price churchSlug coverImage'),
-    Enrollment.find({ userId: req.user._id }, 'courseSlug progress status'),
-  ]);
-  const courseBy = Object.fromEntries(courseDocs.map((c) => [c.slug, c]));
-  const credBy = Object.fromEntries(credOfferings.map((o) => [o.slug, o]));
-  const progressBy = Object.fromEntries(enrollments.map((e) => [e.courseSlug, e]));
+  const now = new Date();
+  const shapedCredentials = credentials.map((c) => {
+    const offering = offeringBy[c.offeringSlug] ?? null;
+    const expiresAt = c.expiresAt ? new Date(c.expiresAt) : null;
+    return {
+      ...c.toObject(),
+      church: churchBy[c.churchSlug] ?? null,
+      offering,
+      disclosures: offering ? disclosuresFor(offering) : [],
+      expired: Boolean(expiresAt && expiresAt < now),
+      // Surfaced so a licence about to lapse is visible before it does.
+      renewalDueInDays: c.renewal?.dueAt
+        ? Math.ceil((new Date(c.renewal.dueAt) - now) / (24 * 60 * 60 * 1000))
+        : null,
+    };
+  });
 
-  const shaped = credentials.map((c) => ({
-    ...c.toObject(),
-    church: churchBy[c.churchSlug] ?? null,
-    offering: offeringBy[c.offeringSlug] ?? null,
-    blockers: (c.outstanding ?? []).map((token) => {
-      if (token === 'assessment') return { kind: 'assessment', label: 'Assessment not yet passed' };
-      if (token.startsWith('course:')) {
-        const slug = token.slice(7);
-        return { kind: 'course', slug, course: courseBy[slug] ?? null, progress: progressBy[slug]?.progress ?? 0 };
-      }
-      const slug = token.slice(11);
-      return { kind: 'credential', slug, offering: credBy[slug] ?? null };
-    }),
+  const courseSlugs = applications.flatMap((a) =>
+    (a.steps ?? []).filter((s) => s.type === 'course' && s.meta?.courseSlug).map((s) => s.meta.courseSlug),
+  );
+  const courses = await Course.find({ slug: { $in: courseSlugs } }, 'slug title coverImage totalMinutes lectureCount');
+  const courseBy = Object.fromEntries(courses.map((c) => [c.slug, c]));
+
+  const shapedApplications = applications.map((a) => ({
+    reference: a.reference,
+    status: a.status,
+    offeringSlug: a.offeringSlug,
+    offeringTitle: a.offeringTitle,
+    offering: offeringBy[a.offeringSlug] ?? null,
+    church: churchBy[a.churchSlug] ?? null,
+    submittedAt: a.submittedAt,
+    updatedAt: a.updatedAt,
+    steps: (a.steps ?? []).map((s) => ({
+      ...(s.toObject?.() ?? s),
+      course: s.meta?.courseSlug ? courseBy[s.meta.courseSlug] ?? null : null,
+      offering: s.meta?.offeringSlug ? offeringBy[s.meta.offeringSlug] ?? null : null,
+    })),
   }));
 
   res.json({
     success: true,
     data: {
       holder: req.user.toPublic(),
-      credentials: shaped,
+      credentials: shapedCredentials,
+      applications: shapedApplications,
       counts: {
-        issued: shaped.filter((c) => c.status === 'issued').length,
-        inReview: shaped.filter((c) => c.status === 'in-review').length,
-        inProgress: shaped.filter((c) => c.status === 'in-progress').length,
-        letters: shaped.filter((c) => c.kind === 'invitation-letter' && c.status === 'issued').length,
+        issued: shapedCredentials.filter((c) => c.status === 'issued' && !c.expired).length,
+        expired: shapedCredentials.filter((c) => c.expired || c.status === 'expired').length,
+        inProgress: shapedApplications.length,
+        letters: shapedCredentials.filter((c) => c.kind === 'invitation-letter' && c.status === 'issued').length,
       },
     },
   });
@@ -126,8 +99,8 @@ export const passport = asyncHandler(async (req, res) => {
 export const downloadDocument = asyncHandler(async (req, res) => {
   const credential = await Credential.findOne({ credentialId: req.params.id, userId: req.user._id });
   if (!credential) return res.status(404).json({ success: false, message: 'That document was not found.' });
-  if (credential.status !== 'issued') {
-    return res.status(409).json({ success: false, message: 'This has not been issued yet.' });
+  if (credential.status === 'revoked') {
+    return res.status(409).json({ success: false, message: 'This credential has been revoked by the issuing church.' });
   }
 
   const [church, offering] = await Promise.all([
@@ -145,8 +118,10 @@ export const downloadDocument = asyncHandler(async (req, res) => {
 });
 
 /**
- * The same document, watermarked, with any name written into it. This is what a
- * buyer sees before paying — the point is that they see themselves on it.
+ * The same document, watermarked, with any name written into it. Shown before
+ * applying so a person can see what the church actually issues — not as a
+ * preview of something they are about to buy, but so the artifact is not a
+ * mystery until after a decision.
  */
 export const previewDocument = asyncHandler(async (req, res) => {
   const offering = await Offering.findOne({ slug: req.params.slug });
@@ -166,97 +141,58 @@ export const previewDocument = asyncHandler(async (req, res) => {
 
   const pdf = await renderDocument({ credential, church, offering, preview: true });
   res.setHeader('Content-Type', 'application/pdf');
-  res.setHeader('Content-Disposition', `inline; filename="preview.pdf"`);
+  res.setHeader('Content-Disposition', 'inline; filename="preview.pdf"');
   res.setHeader('Cache-Control', 'no-store');
   res.end(pdf);
 });
 
-/** The assessment paper for a credential the buyer already owns. Answers withheld. */
-export const getAssessment = asyncHandler(async (req, res) => {
-  const credential = await Credential.findOne({ credentialId: req.params.id, userId: req.user._id });
-  if (!credential) return res.status(404).json({ success: false, message: 'Not found.' });
-
-  const offering = await Offering.findOne({ slug: credential.offeringSlug });
-  if (!offering?.requires?.assessment?.required) {
-    return res.status(400).json({ success: false, message: 'This credential does not carry an assessment.' });
-  }
-
-  const paper = paperFor(offering);
-  res.json({
-    success: true,
-    data: {
-      credentialId: credential.credentialId,
-      title: offering.title,
-      passMark: offering.requires.assessment.passMark,
-      minutes: offering.requires.assessment.minutes,
-      passed: Boolean(credential.notes?.includes('assessment:passed')),
-      questions: paper.map((q) => ({ prompt: q.prompt, options: q.options })),
-    },
-  });
-});
-
-export const submitAssessment = asyncHandler(async (req, res) => {
-  const credential = await Credential.findOne({ credentialId: req.params.id, userId: req.user._id });
-  if (!credential) return res.status(404).json({ success: false, message: 'Not found.' });
-
-  const offering = await Offering.findOne({ slug: credential.offeringSlug });
-  if (!offering?.requires?.assessment?.required) {
-    return res.status(400).json({ success: false, message: 'This credential does not carry an assessment.' });
-  }
-
-  const paper = paperFor(offering);
-  const answers = Array.isArray(req.body?.answers) ? req.body.answers : [];
-  const correct = paper.reduce((n, q, i) => n + (answers[i] === q.answer ? 1 : 0), 0);
-  const score = Math.round((correct / paper.length) * 100);
-  const passMark = offering.requires.assessment.passMark ?? 70;
-  const passed = score >= passMark;
-
-  if (passed) {
-    credential.notes = `assessment:passed score:${score}`;
-    await credential.save();
-    await settle(req.user._id, credential);
-  }
-
-  const refreshed = await Credential.findById(credential._id);
-
-  res.json({
-    success: true,
-    data: {
-      score,
-      correct,
-      total: paper.length,
-      passMark,
-      passed,
-      status: refreshed.status,
-      review: paper.map((q, i) => ({
-        prompt: q.prompt,
-        options: q.options,
-        answer: q.answer,
-        given: answers[i] ?? null,
-        explanation: q.explanation,
-      })),
-    },
-  });
-});
-
-/** Public verification. */
+/** Public verification of an issued credential. */
 export const verify = asyncHandler(async (req, res) => {
-  const credential = await Credential.findOne({ verifyCode: String(req.params.code).toUpperCase() });
-  if (!credential || credential.status !== 'issued') {
-    return res.status(404).json({ success: false, message: 'No issued credential matches that code.' });
+  const credential = await Credential.findOne({ verifyCode: String(req.params.code).toUpperCase().trim() });
+
+  if (!credential) {
+    return res.status(404).json({ success: false, message: 'No credential matches that code.' });
   }
-  const church = await Church.findOne({ slug: credential.churchSlug }, 'slug name shortName monogram city country verified website');
+
+  // A revoked credential is reported as revoked rather than as missing. Someone
+  // checking a document needs to be told it was withdrawn, not that it never
+  // existed — that is the whole reason verification exists.
+  if (credential.status === 'revoked') {
+    return res.json({
+      success: true,
+      data: {
+        state: 'revoked',
+        credentialId: credential.credentialId,
+        title: credential.title,
+        holderName: credential.holderName,
+        revokedAt: credential.revocation?.at,
+        reason: credential.revocation?.publicReason,
+      },
+    });
+  }
+
+  const expired = credential.expiresAt && new Date(credential.expiresAt) < new Date();
+
+  const church = await Church.findOne(
+    { slug: credential.churchSlug },
+    'slug name shortName monogram city country verified website',
+  );
+
   res.json({
     success: true,
     data: {
+      state: expired ? 'expired' : 'issued',
       credentialId: credential.credentialId,
       title: credential.title,
       holderName: credential.holderName,
+      postNominal: credential.postNominal,
       kind: credential.kind,
       issuedAt: credential.issuedAt,
       expiresAt: credential.expiresAt,
       destinationCity: credential.destinationCity,
+      destinationCountry: credential.destinationCountry,
       purpose: credential.purpose,
+      signatory: credential.signatory?.name ? { name: credential.signatory.name, title: credential.signatory.title } : null,
       church,
     },
   });

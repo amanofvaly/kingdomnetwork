@@ -3,7 +3,7 @@ import { Link, useSearchParams } from 'react-router-dom';
 import { BadgeCheck, Check, SlidersHorizontal, X } from 'lucide-react';
 
 import { ACQUISITION, OfferingCard } from '../components/market.jsx';
-import { Empty, ErrorState, SkeletonGrid } from '../components/ui.jsx';
+import { ChurchMark, Empty, ErrorState, SkeletonGrid } from '../components/ui.jsx';
 import { useApi } from '../lib/useAsync.js';
 import { plural } from '../lib/format.js';
 
@@ -47,7 +47,7 @@ export const Search = () => {
     <>
       <div className="band-warm" style={{ borderBottom: '1px solid var(--line)', paddingBlock: 'var(--s-6)' }}>
         <div className="wrap stack stack-2">
-          <h1 style={{ fontSize: 'var(--text-3xl)' }}>{q ? `“${q}”` : 'Everything on the marketplace'}</h1>
+          <h1 style={{ fontSize: 'var(--text-3xl)' }}>{q ? `“${q}”` : 'Browse everything'}</h1>
           <p className="muted" style={{ margin: 0 }}>
             {loading ? 'Searching…' : `${plural(data.total, 'listing')} from churches worldwide`}
           </p>
@@ -58,7 +58,7 @@ export const Search = () => {
         <div className="catalogue">
           <aside className={`filters ${filtersOpen ? 'is-open' : ''}`} aria-label="Filters">
             <div className="filter-group" style={{ borderTop: 'none', paddingTop: 0 }}>
-              <h5>What you get</h5>
+              <h5>Service or outcome</h5>
               <div className="filter-list">
                 {(data?.facets.outcomes ?? []).map((f) => (
                   <Facet key={f.value} label={f.label} count={f.count}
@@ -93,12 +93,12 @@ export const Search = () => {
                 <div className="church-strip">
                   {data.churches.map((c) => (
                     <Link key={c.slug} to={`/churches/${c.slug}`} className="church-chip">
-                      <span className="monogram">{c.monogram}</span>
+                      <ChurchMark church={c} />
                       <span>
                         <span className="small strong clamp-1" style={{ display: 'block' }}>{c.shortName ?? c.name}</span>
                         <span className="xs dim row" style={{ gap: 4 }}>
                           {c.city}, {c.country}
-                          {c.verified && <BadgeCheck size={11} style={{ color: 'var(--green-600)' }} />}
+                          {c.verified && <BadgeCheck size={11} style={{ color: 'var(--blue-600)' }} />}
                         </span>
                       </span>
                     </Link>

@@ -1,23 +1,76 @@
-// Seed supply. On a live marketplace every one of these is written by the
+import { acquisitionFor } from '../lib/derive.js';
+
+// Seed supply. In production every one of these is written by the
 // church itself; this file stands in for that until the seller tooling is used.
 
 const nothing = { eligibility: [] };
 
-/** Derive the acquisition mode from what the offering actually requires. */
-const modeOf = (r = {}) => {
-  if (r.credentials?.length) return 'credentials';
-  if (r.courses?.length) return 'coursework';
-  if (r.review?.required) return 'review';
-  if (r.assessment?.required) return 'assessment';
-  return 'instant';
+/**
+ * No church service is granted on payment alone. Every listing names a church
+ * decision, and every ordination also requires a live face-to-face meeting.
+ * See `validateOfferingForPublish` in `server/lib/derive.js`.
+ */
+const DEFAULT_REVIEW = {
+  required: true,
+  turnaroundDays: 7,
+  documents: ['Ministry record', 'Reference from a serving leader', 'Identity document'],
 };
 
-const make = (o) => ({
-  ...o,
-  requires: { ...nothing, ...(o.requires ?? {}) },
-  acquisition: o.acquisition ?? modeOf(o.requires),
-  currency: 'USD',
-});
+const DEFAULT_ORDINATION_INTERVIEW = {
+  required: true,
+  faceToFace: true,
+  durationMinutes: 45,
+  panelSize: 2,
+  whatIsAssessed: ['Calling and character', 'Doctrine', 'Pastoral judgement', 'Relationship with a local church'],
+  instructions: 'A live conversation with the ordination panel, held by video or in person.',
+};
+
+const DISCLOSURE = {
+  ordination: 'Ordination is granted by this church, on its own authority and under its own name. It is recognised wherever that church is recognised. What civil authority it carries — to solemnise a marriage, for instance — varies by jurisdiction and is a separate question you should check locally.',
+  certificate: 'This certificate records study completed with this church. It is not an accredited academic award and does not by itself confer ministerial standing.',
+  license: 'A ministry licence carries the permissions this church grants, for as long as this church grants them. It is held under a relationship with the issuing church and lapses if that relationship ends or the licence is not renewed.',
+  diploma: 'This diploma records a programme of study completed with this church. It is not an accredited academic award.',
+  'letter-of-standing': 'A letter of standing states this church\'s view of the holder at the date of issue. It is a statement, not a credential, and confers nothing on its own.',
+  affiliation: 'Affiliation is a relationship with this church, not a credential. It confers no title and no ministerial standing.',
+  'invitation-letter': 'An invitation letter is a supporting document issued by a host church. It is not a visa, it is not issued by any government, and it does not guarantee that a visa will be granted. The decision rests entirely with the immigration authority you apply to.',
+};
+
+const CONFERS_STANDING = ['ordination', 'certificate', 'license', 'diploma', 'letter-of-standing'];
+
+const make = (o) => {
+  const requires = { ...nothing, ...(o.requires ?? {}) };
+
+  if (!requires.review?.required && !requires.interview?.required) {
+    requires.review = { ...DEFAULT_REVIEW };
+  }
+
+  if (o.type === 'ordination') {
+    requires.interview = { ...DEFAULT_ORDINATION_INTERVIEW, ...(requires.interview ?? {}), required: true, faceToFace: true };
+  }
+
+  return {
+    ...o,
+    requires,
+    acquisition: acquisitionFor(requires, o.type),
+    disclosure: o.disclosure ?? DISCLOSURE[o.type],
+    fee: {
+      amount: o.price,
+      currency: 'USD',
+      label: o.type === 'affiliation' ? 'Enrolment fee' : 'Application fee',
+      refundable: false,
+      refundPolicy: 'The fee covers the cost of assessing your application and is not refunded once the church has begun its review. Withdraw before then and it is refunded in full.',
+      ...(o.fee ?? {}),
+    },
+    currency: 'USD',
+    status: 'published',
+    published: true,
+    publishedAt: new Date(),
+    demo: true,
+    // A discount anchor on a title reads as a sale on ministerial standing.
+    compareAtPrice: CONFERS_STANDING.includes(o.type) ? undefined : o.compareAtPrice,
+    badge: CONFERS_STANDING.includes(o.type) ? undefined : o.badge,
+  };
+};
 
 const assess = (questionCount, minutes, passMark = 70) => ({
   assessment: { required: true, questionCount, passMark, minutes },
@@ -27,29 +80,33 @@ const review = (turnaroundDays, documents) => ({
   review: { required: true, turnaroundDays, documents },
 });
 
+const interview = (durationMinutes, whatIsAssessed, instructions) => ({
+  interview: { required: true, faceToFace: true, durationMinutes, panelSize: 2, whatIsAssessed, instructions },
+});
+
 export const offerings = [
   // ══════════════════════════════ ORDINATION ══════════════════════════════
   make({
     slug: 'ordained-minister-new-horizon', churchSlug: 'new-horizon-bible-college',
     type: 'ordination', outcome: 'ordination',
-    title: 'Ordained Minister', subtitle: 'Issued on completion of your details. No coursework, no waiting.',
+    title: 'Ordained Minister', subtitle: 'No coursework. Your ministry record and a face-to-face interview go to the college for decision.',
     description: [
-      'New Horizon ordains ministers already serving in a congregation who have never held formal credentials. The college takes the view that the work came first and the paper should follow it.',
-      'Your certificate is generated as soon as your details are confirmed and lands in your passport the same minute.',
+      'New Horizon ordains ministers already serving in a congregation who have never held formal credentials. The college takes the view that the work came first and the paper should follow it, so it asks for the record of that work rather than for coursework.',
+      'Submit your ministry record and a reference from a serving leader, then meet the college face to face. The college decides after that conversation; a certificate appears in your passport only if it approves.',
     ],
     price: 29, compareAtPrice: 49,
     requires: { eligibility: ['You should be serving in a congregation in some capacity'] },
     award: { title: 'Ordained Minister', postNominal: 'Rev.', documentTitle: 'Certificate of Ordination', validityMonths: 0, renewable: false },
     coverImage: '/media/scenes/congregation-praying.jpg', coverAlt: 'A congregation praying together during a church service',
-    rating: 4.4, ratingCount: 1840, issuedCount: 5240, featured: true, badge: 'Issued instantly',
+    rating: 4.4, ratingCount: 1840, issuedCount: 5240, featured: true,
   }),
   make({
     slug: 'ordained-minister-ndw', churchSlug: 'ndw-ministries',
     type: 'ordination', outcome: 'ordination',
-    title: 'Ordained Minister', subtitle: 'A short written assessment, then ordination signed in Accra.',
+    title: 'Ordained Minister', subtitle: 'A written assessment and face-to-face panel interview before the church decides in Accra.',
     description: [
       'NDW Ministries has ordained ministers across West Africa since 1979. Ordination here carries a twenty-question assessment on doctrine, church order and pastoral conduct.',
-      'Pass it and the archbishop signs. The certificate is issued to your passport within the hour.',
+      'Passing the paper leads to a face-to-face panel interview and church review. The certificate appears in your passport only after approval and issuance.',
     ],
     price: 38, compareAtPrice: 65,
     requires: { ...assess(20, 30), eligibility: ['Two years serving in a congregation', 'One reference from a serving leader'] },
@@ -60,8 +117,8 @@ export const offerings = [
   make({
     slug: 'ordained-minister-forerunner', churchSlug: 'forerunner-christian-church',
     type: 'ordination', outcome: 'ordination',
-    title: 'Ordained Minister', subtitle: 'Scripture assessment and ordination under an apprenticeship model.',
-    description: ['Forerunner ordains on the strength of scripture knowledge and a stated apprenticeship to a working ministry.'],
+    title: 'Ordained Minister', subtitle: 'Scripture assessment, apprenticeship evidence, and a face-to-face ordination interview.',
+    description: ['Forerunner considers scripture knowledge and a stated apprenticeship to a working ministry, then meets every candidate face to face before deciding whether to ordain.'],
     price: 34, compareAtPrice: 58,
     requires: { ...assess(25, 40), eligibility: ['Attached to a working ministry'] },
     award: { title: 'Ordained Minister', postNominal: 'Rev.', documentTitle: 'Certificate of Ordination' },
@@ -71,9 +128,9 @@ export const offerings = [
   make({
     slug: 'ordained-minister-faith-life', churchSlug: 'faith-life-church',
     type: 'ordination', outcome: 'ordination',
-    title: 'Ordained Minister', subtitle: 'Full pastoral formation, a credential review, and ordination in Kampala.',
+    title: 'Ordained Minister', subtitle: 'Pastoral formation, a face-to-face panel interview, and church review in Kampala.',
     description: [
-      'Faith Life Church has trained and ordained pastors in Uganda since 1998. Ordination requires the pastoral theology core and a review of your ministry record by the ordination board.',
+      'Faith Life Church has trained and ordained pastors in Uganda since 1998. Applying requires the pastoral theology core, a review of your ministry record, and a face-to-face meeting with the ordination panel.',
       'This is the longer route. Ministers who hold it are on the Faith Life register and are subject to its annual review.',
     ],
     price: 45, compareAtPrice: 89,
@@ -83,7 +140,7 @@ export const offerings = [
       eligibility: ['At least two years serving in a congregation', 'No unresolved disciplinary matter'],
     },
     award: { title: 'Ordained Minister', postNominal: 'Rev.', documentTitle: 'Certificate of Ordination', validityMonths: 36, renewable: true },
-    coverImage: '/media/churches/faith-life-pastor-lectern.jpg', coverAlt: 'The Faith Life Church pastor teaching from a lectern',
+    coverImage: '/media/scenes/preacher-and-congregation.jpg', coverAlt: 'A preacher addressing a gathered congregation',
     rating: 4.8, ratingCount: 913, issuedCount: 1160, featured: true, editorsPick: true, badge: "Editors' pick",
   }),
   make({
@@ -193,22 +250,22 @@ export const offerings = [
   make({
     slug: 'youth-ministry-certificate-forerunner', churchSlug: 'forerunner-christian-church',
     type: 'certificate', outcome: 'certification',
-    title: 'Youth Ministry Certificate', subtitle: 'Issued immediately.',
+    title: 'Youth Ministry Certificate', subtitle: 'Reviewed by the youth pastor, then issued.',
     description: ['For leaders already running youth and young adult work who want it recognised.'],
     price: 19, compareAtPrice: 32,
     award: { title: 'Certificate in Youth Ministry', documentTitle: 'Certificate in Youth Ministry' },
     coverImage: '/media/scenes/students-laptop.webp', coverAlt: 'A group working together around a laptop',
-    rating: 4.4, ratingCount: 402, issuedCount: 980, badge: 'Issued instantly',
+    rating: 4.4, ratingCount: 402, issuedCount: 980,
   }),
   make({
     slug: 'evangelist-certificate-ndw', churchSlug: 'ndw-ministries',
     type: 'certificate', outcome: 'certification',
-    title: 'Evangelist Certificate', subtitle: 'Issued immediately.',
+    title: 'Evangelist Certificate', subtitle: 'Reviewed against your record of evangelistic work.',
     description: ['Recognition for itinerant and open-air evangelists working under NDW covering.'],
     price: 22, compareAtPrice: 39,
     award: { title: 'Certificate of Evangelism', documentTitle: 'Certificate of Evangelism' },
     coverImage: '/media/people/sam-moore.jpg', coverAlt: 'Sam Moore preaching from a church pulpit',
-    rating: 4.6, ratingCount: 618, issuedCount: 1420, featured: true, badge: 'Issued instantly',
+    rating: 4.6, ratingCount: 618, issuedCount: 1420, featured: true,
   }),
   make({
     slug: 'biblical-studies-certificate-new-horizon', churchSlug: 'new-horizon-bible-college',
@@ -306,12 +363,12 @@ export const offerings = [
   make({
     slug: 'ministry-license-new-horizon', churchSlug: 'new-horizon-bible-college',
     type: 'license', outcome: 'ministry-license',
-    title: 'Ministry Licence', subtitle: 'Issued immediately.',
+    title: 'Ministry Licence', subtitle: 'Reviewed against your ministry record, then licensed for a year.',
     description: ['A licence to preach and to lead worship services under New Horizon.'],
     price: 18, compareAtPrice: 30,
     award: { title: 'Licensed Minister', documentTitle: 'Ministry Licence', validityMonths: 24, renewable: true },
     coverImage: '/media/scenes/church-sanctuary.webp', coverAlt: 'Wooden pews under a beamed ceiling',
-    rating: 4.5, ratingCount: 940, issuedCount: 2610, badge: 'Issued instantly',
+    rating: 4.5, ratingCount: 940, issuedCount: 2610,
   }),
   make({
     slug: 'ministry-license-faith-life', churchSlug: 'faith-life-church',
@@ -321,7 +378,7 @@ export const offerings = [
     price: 30, compareAtPrice: 52,
     requires: assess(15, 25),
     award: { title: 'Licensed Minister', documentTitle: 'Ministry Licence', validityMonths: 24, renewable: true },
-    coverImage: '/media/churches/faith-life-pastor-lectern.jpg', coverAlt: 'The Faith Life Church pastor teaching from a lectern',
+    coverImage: '/media/scenes/minister-supporting-congregant.jpg', coverAlt: 'A minister offering support to a member of the congregation',
     rating: 4.7, ratingCount: 520, issuedCount: 1180, featured: true,
   }),
   make({
@@ -356,7 +413,7 @@ export const offerings = [
     price: 60, compareAtPrice: 98,
     requires: review(14, ['Congregation details', 'Two references']),
     award: { title: 'Affiliated Minister', documentTitle: 'Certificate of Affiliation', validityMonths: 12, renewable: true },
-    coverImage: '/media/churches/faith-life-pastor-lectern.jpg', coverAlt: 'The Faith Life Church pastor teaching from a lectern',
+    coverImage: '/media/scenes/congregation-praying.jpg', coverAlt: 'A congregation gathered together in prayer',
     rating: 4.8, ratingCount: 320, issuedCount: 640, badge: 'Renews annually',
   }),
   make({

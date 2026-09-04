@@ -1,307 +1,193 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { ArrowLeft, CreditCard, Lock, Smartphone, Wallet } from 'lucide-react';
+import { Lock } from 'lucide-react';
 
-import { ErrorState, Spinner } from '../components/ui.jsx';
-import { api, ApiError, setToken } from '../lib/api.js';
-import { useApi } from '../lib/useAsync.js';
+import { Spinner } from '../components/ui.jsx';
+import { api } from '../lib/api.js';
 import { useAuth } from '../lib/auth.jsx';
 import { useCart } from '../lib/cart.jsx';
 import { money } from '../lib/format.js';
 
-const ICONS = { smartphone: Smartphone, 'credit-card': CreditCard };
-
+/**
+ * Paying for materials — coursework and books.
+ *
+ * Credentials do not come through here; applying to a church for standing has
+ * its own flow. The payment itself happens at Pesapal, so this page collects
+ * only what the gateway needs and then hands the browser over.
+ */
 export const Checkout = () => {
   const { items, clear } = useCart();
-  const { user, setUser } = useAuth();
+  const { user, adopt } = useAuth();
   const navigate = useNavigate();
 
-  const { data: methods, error: methodsError } = useApi('/payment-methods');
   const [priced, setPriced] = useState(null);
-  const [method, setMethod] = useState(null);
-  const [account, setAccount] = useState('');
-  const [extras, setExtras] = useState({});
-  const [details, setDetails] = useState({ name: '', email: '', password: '', country: '' });
+  const [details, setDetails] = useState({ name: '', email: '', password: '', country: '', phone: '' });
   const [errors, setErrors] = useState({});
   const [busy, setBusy] = useState(false);
   const [failure, setFailure] = useState(null);
-  const [mobileStep, setMobileStep] = useState(1);
-  const paymentSection = useRef(null);
 
   useEffect(() => {
-    if (user) setDetails((d) => ({ ...d, name: d.name || user.name, email: d.email || user.email, country: d.country || user.country || '' }));
+    if (user) {
+      setDetails((d) => ({
+        ...d,
+        name: d.name || user.name,
+        email: d.email || user.email,
+        country: d.country || user.country || '',
+        phone: d.phone || user.phone || '',
+      }));
+    }
   }, [user]);
 
   useEffect(() => {
     if (items.length) api.post('/cart/price', { items }).then(setPriced).catch(() => setPriced(null));
   }, [items]);
 
-  useEffect(() => { if (methods && !method) setMethod(methods[0]); }, [methods, method]);
-
-  const selected = useMemo(() => methods?.find((m) => m.id === method?.id) ?? null, [methods, method]);
   const needsPassword = !user || user.hasPassword === false;
 
   if (!items.length) {
     return (
       <div className="wrap band stack stack-4" style={{ alignItems: 'center', textAlign: 'center' }}>
         <h1 style={{ fontSize: 'var(--text-2xl)' }}>There is nothing to pay for</h1>
-        <Link to="/ordination" className="btn btn-primary">Browse the marketplace</Link>
+        <Link to="/courses" className="btn btn-primary">Browse the coursework</Link>
       </div>
     );
   }
-  if (methodsError) return <div className="wrap band"><ErrorState error={methodsError} /></div>;
-  if (!methods || !priced) return <div className="wrap band"><Spinner label="Preparing checkout" /></div>;
+  if (!priced) return <div className="wrap band"><Spinner label="Preparing checkout" /></div>;
 
   const validate = () => {
     const next = {};
-    if (!user && !details.name.trim()) next.name = 'Enter the name that goes on your documents.';
-    if (!user && !/^\S+@\S+\.\S+$/.test(details.email)) next.email = 'Enter a valid email address.';
+    if (!details.name.trim()) next.name = 'Enter your name.';
+    if (!/^\S+@\S+\.\S+$/.test(details.email)) next.email = 'Enter a valid email address.';
     if (needsPassword && details.password.length < 8) next.password = 'Use at least 8 characters.';
-    if (!account.trim()) next.account = `Enter your ${selected.fieldLabel.toLowerCase()}.`;
-    else if (selected.pattern && !new RegExp(selected.pattern).test(
-      selected.id === 'card' ? account.replace(/\s+/g, ' ') : account.replace(/[\s()-]/g, ''),
-    )) {
-      next.account = selected.patternHint;
-    }
-    for (const f of selected.extraFields ?? []) {
-      const v = extras[f.name] ?? '';
-      if (!v.trim()) next[f.name] = `Enter the ${f.label.toLowerCase()}.`;
-      else if (f.pattern && !new RegExp(f.pattern).test(v)) next[f.name] = f.hint;
-    }
+    if (!details.email && !details.phone) next.phone = 'Leave an email address or a phone number.';
     setErrors(next);
     return Object.keys(next).length === 0;
-  };
-
-  const continueToPayment = () => {
-    const next = {};
-    if (!user && !details.name.trim()) next.name = 'Enter the name that goes on your documents.';
-    if (needsPassword && details.password.length < 8) next.password = 'Use at least 8 characters.';
-    if (!user && !/^\S+@\S+\.\S+$/.test(details.email)) next.email = 'Enter a valid email address.';
-    setErrors(next);
-    if (Object.keys(next).length) {
-      requestAnimationFrame(() => document.querySelector('[aria-invalid="true"]')?.focus());
-      return;
-    }
-    setMobileStep(2);
-    requestAnimationFrame(() => paymentSection.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }));
   };
 
   const submit = async (e) => {
     e.preventDefault();
     setFailure(null);
     if (!validate()) return;
+
     setBusy(true);
     try {
-      // No account yet? One is created behind the purchase.
+      // An account has to exist before an order can belong to anyone.
       if (!user) {
-        const acct = await api.post('/auth/guest', details);
-        setToken(acct.token);
-        setUser(acct.user);
-      } else if (needsPassword) {
-        const updated = await api.patch('/auth/me', { password: details.password });
-        setUser(updated);
+        adopt(await api.post('/auth/guest', {
+          name: details.name.trim(),
+          email: details.email.trim(),
+          password: details.password,
+          country: details.country.trim(),
+        }));
+      } else if (user.hasPassword === false) {
+        await api.patch('/auth/me', { password: details.password });
       }
-      await new Promise((r) => setTimeout(r, 1100));
-      const { order } = await api.post('/orders', {
+
+      const result = await api.post('/orders', {
         items,
-        payment: { method: selected.id, account },
-        billing: {
-          name: user?.name ?? details.name,
-          email: user?.email ?? details.email,
-          country: user?.country ?? details.country,
-        },
+        billing: { name: details.name.trim(), email: details.email.trim(), country: details.country.trim(), phone: details.phone.trim() },
       });
+
       clear();
-      navigate(`/orders/${order.reference}`, { replace: true });
+
+      if (result.redirectUrl) {
+        window.location.href = result.redirectUrl;
+        return;
+      }
+      navigate(`/orders/${result.order.reference}`);
     } catch (err) {
-      setFailure(err instanceof ApiError ? err.message : 'The payment could not be completed.');
+      setFailure(err.message);
       setBusy(false);
     }
   };
 
   return (
-    <div className="wrap band-tight stack stack-6 checkout-page">
-      <div className="checkout-heading">
-        <Link to="/cart" className="checkout-back"><ArrowLeft size={16} /> Back to basket</Link>
-        <h1>Complete your purchase</h1>
-        <p>Review your order, add your details, then choose how to pay.</p>
-      </div>
+    <form className="wrap band-tight stack stack-6" onSubmit={submit}>
+      <h1 style={{ fontSize: 'var(--text-3xl)' }}>Checkout</h1>
 
-      <section className="checkout-mobile-order" aria-label="Your order">
-        {priced.items.map((i) => (
-          <div key={`${i.kind}-${i.slug}`} className="checkout-mobile-item">
-            <span className="media"><img src={i.image} alt="" /></span>
-            <span className="grow">
-              <span className="xs dim">You are buying</span>
-              <b>{i.title}</b>
-              <small>{i.churchName}</small>
-            </span>
-            <strong>{money(i.price)}</strong>
-          </div>
-        ))}
-        <div className="checkout-mobile-total"><span>Total due</span><strong>{money(priced.total)}</strong></div>
-      </section>
-
-      <form className="two-col checkout-form" onSubmit={submit} noValidate>
+      <div className="two-col">
         <div className="stack stack-6">
-          <section className={`stack stack-4 checkout-section checkout-step-details ${mobileStep === 2 ? 'mobile-step-hidden' : ''}`}>
-            <div className="checkout-section-head">
-              <span>1</span>
-              <div>
-                <h3>Your details</h3>
-              <p className="small muted" style={{ margin: '4px 0 0' }}>
-                  Used for your account and any documents the church issues.
-              </p>
-              </div>
-            </div>
+          {failure ? <div className="notice notice-red">{failure}</div> : null}
+
+          <section className="stack stack-4">
+            <h2 style={{ fontSize: 'var(--text-xl)' }}>Your details</h2>
+
             {user ? (
-              <div className="stack stack-4">
-                <div className="checkout-account-summary">
-                  <span><small>Purchasing as</small><strong>{user.name}</strong></span>
-                  <span><small>Email</small><strong>{user.email}</strong></span>
-                  <span><small>Country</small><strong>{user.country || 'Not provided'}</strong></span>
-                  <Link to="/account" className="link small">Edit account</Link>
-                </div>
-                {needsPassword && (
-                  <div className="field">
-                    <label htmlFor="cpassword">Create password</label>
-                    <input id="cpassword" className="input" type="password" value={details.password} aria-invalid={!!errors.password}
-                      onChange={(e) => setDetails({ ...details, password: e.target.value })} autoComplete="new-password" minLength={8} />
-                    {errors.password ? <span className="err">{errors.password}</span> : <span className="hint">At least 8 characters. Use this to access your purchases later.</span>}
-                  </div>
-                )}
+              <div className="panel row row-between" style={{ padding: 'var(--s-4)' }}>
+                <span className="small">Signed in as <b>{user.email}</b></span>
               </div>
-            ) : (
-              <div className="grid grid-2">
-                <div className="field">
-                  <label htmlFor="cname">Full name</label>
-                  <input id="cname" className="input" value={details.name} aria-invalid={!!errors.name}
-                    onChange={(e) => setDetails({ ...details, name: e.target.value })} autoComplete="name" />
-                  {errors.name && <span className="err">{errors.name}</span>}
-                </div>
-                <div className="field">
-                  <label htmlFor="cpassword">Create password</label>
-                  <input id="cpassword" className="input" type="password" value={details.password} aria-invalid={!!errors.password}
-                    onChange={(e) => setDetails({ ...details, password: e.target.value })} autoComplete="new-password" minLength={8} />
-                  {errors.password ? <span className="err">{errors.password}</span> : <span className="hint">At least 8 characters. Use this to access your purchases later.</span>}
-                </div>
-                <div className="field">
-                  <label htmlFor="cemail">Email</label>
-                  <input id="cemail" className="input" type="email" value={details.email} aria-invalid={!!errors.email}
-                    onChange={(e) => setDetails({ ...details, email: e.target.value })} autoComplete="email" />
-                  {errors.email && <span className="err">{errors.email}</span>}
-                </div>
-                <div className="field">
-                  <label htmlFor="ccountry">Country</label>
-                  <input id="ccountry" className="input" value={details.country}
-                    onChange={(e) => setDetails({ ...details, country: e.target.value })} autoComplete="country-name" />
-                </div>
+            ) : null}
+
+            <div className="grid grid-2">
+              <div className="field">
+                <label htmlFor="name">Full name</label>
+                <input id="name" className="input" value={details.name} aria-invalid={!!errors.name}
+                  onChange={(e) => setDetails({ ...details, name: e.target.value })} autoComplete="name" />
+                {errors.name && <span className="err">{errors.name}</span>}
               </div>
-            )}
-            {!user && (
-              <p className="xs dim" style={{ margin: 0 }}>
-                Already have an account? <Link to="/login" state={{ from: '/checkout' }} className="link xs">Sign in</Link>.
+              <div className="field">
+                <label htmlFor="email">Email</label>
+                <input id="email" className="input" type="email" value={details.email} aria-invalid={!!errors.email}
+                  onChange={(e) => setDetails({ ...details, email: e.target.value })} autoComplete="email" readOnly={Boolean(user)} />
+                {errors.email && <span className="err">{errors.email}</span>}
+              </div>
+              <div className="field">
+                <label htmlFor="country">Country</label>
+                <input id="country" className="input" value={details.country}
+                  onChange={(e) => setDetails({ ...details, country: e.target.value })} autoComplete="country-name" />
+              </div>
+              <div className="field">
+                <label htmlFor="phone">Phone</label>
+                <input id="phone" className="input" value={details.phone} aria-invalid={!!errors.phone}
+                  onChange={(e) => setDetails({ ...details, phone: e.target.value })} autoComplete="tel" />
+                {errors.phone ? <span className="err">{errors.phone}</span> : <span className="hint">Used by the payment provider to reach you.</span>}
+              </div>
+              {needsPassword ? (
+                <div className="field">
+                  <label htmlFor="password">{user ? 'Set a password' : 'Choose a password'}</label>
+                  <input id="password" className="input" type="password" value={details.password} aria-invalid={!!errors.password}
+                    onChange={(e) => setDetails({ ...details, password: e.target.value })} autoComplete="new-password" />
+                  {errors.password ? <span className="err">{errors.password}</span> : <span className="hint">At least 8 characters.</span>}
+                </div>
+              ) : null}
+            </div>
+          </section>
+
+          <section className="stack stack-4">
+            <h2 style={{ fontSize: 'var(--text-xl)' }}>How you pay</h2>
+            <div className="panel panel-warm stack stack-3">
+              <p className="small" style={{ margin: 0 }}>
+                Payment is handled by <b>Pesapal</b>. When you continue you are taken there to choose how to
+                pay — M-Pesa, Airtel Money, MTN MoMo, a card, or a bank transfer — and returned here afterwards.
               </p>
-            )}
-            <button type="button" className="btn btn-primary btn-lg checkout-mobile-continue" onClick={continueToPayment}>
-              Continue to payment
-            </button>
-          </section>
-
-          <section ref={paymentSection} className={`stack stack-4 checkout-section checkout-step-payment ${mobileStep === 1 ? 'mobile-step-hidden' : ''}`}>
-            <div className="checkout-section-head">
-              <span>2</span>
-              <h3>Choose how to pay</h3>
-              <button type="button" className="checkout-edit-details" onClick={() => setMobileStep(1)}>Edit details</button>
+              <p className="xs dim row" style={{ margin: 0, gap: 6 }}>
+                <Lock size={13} strokeWidth={1.8} /> Kingdom Network never sees your card or wallet details.
+              </p>
             </div>
-            <div className="pay-grid" role="radiogroup" aria-label="Payment method">
-              {methods.map((m) => {
-                const Icon = ICONS[m.icon] ?? Wallet;
-                const on = selected?.id === m.id;
-                return (
-                  <button key={m.id} type="button" role="radio" aria-checked={on}
-                    className={`radio-card ${on ? 'is-on' : ''}`}
-                    onClick={() => { setMethod(m); setAccount(''); setExtras({}); setErrors({}); }}>
-                    <span className="radio-dot" aria-hidden="true" />
-                    <span className="grow stack stack-1">
-                      <span className="row" style={{ gap: 8 }}>
-                        <Icon size={17} strokeWidth={1.7} />
-                        <span className="strong small">{m.label}</span>
-                      </span>
-                      <span className="xs dim">{m.regions.join(' · ')}</span>
-                    </span>
-                  </button>
-                );
-              })}
-            </div>
-
-            {selected && (
-              <div className="panel panel-warm stack stack-4">
-                {selected.id !== 'mpesa' && <p className="small muted" style={{ margin: 0 }}>{selected.blurb}</p>}
-                <div className="field">
-                  <label htmlFor="account">{selected.fieldLabel}</label>
-                  <input id="account" className="input" value={account} placeholder={selected.placeholder}
-                    aria-invalid={!!errors.account} onChange={(e) => setAccount(e.target.value)} autoComplete="off" />
-                  {errors.account
-                    ? <span className="err">{errors.account}</span>
-                    : selected.id !== 'mpesa' && <span className="hint">{selected.patternHint}</span>}
-                </div>
-                {selected.extraFields?.length > 0 && (
-                  <div className="grid grid-2">
-                    {selected.extraFields.map((f) => (
-                      <div key={f.name} className="field">
-                        <label htmlFor={f.name}>{f.label}</label>
-                        <input id={f.name} className="input" placeholder={f.placeholder} value={extras[f.name] ?? ''}
-                          aria-invalid={!!errors[f.name]} onChange={(e) => setExtras({ ...extras, [f.name]: e.target.value })} autoComplete="off" />
-                        {errors[f.name] && <span className="err">{errors[f.name]}</span>}
-                      </div>
-                    ))}
-                  </div>
-                )}
-                {selected.id !== 'mpesa' && (
-                  <div className="notice">
-                    <Lock size={15} />
-                    <span>Payment details are securely handled and only the last four characters are stored.</span>
-                  </div>
-                )}
-              </div>
-            )}
           </section>
-
-          {failure && <div className="notice notice-red"><span>{failure}</span></div>}
         </div>
 
-        <aside className="summary panel stack stack-4">
-          <h4>Order summary</h4>
-          <div className="stack stack-3">
-            {priced.items.map((i) => (
-              <div key={`${i.kind}-${i.slug}`} className="row" style={{ gap: 10, alignItems: 'flex-start' }}>
-                <span className="media" style={{ width: 52, aspectRatio: '3/2', flex: 'none' }}>
-                  <img src={i.image} alt="" loading="lazy" />
-                </span>
-                <span className="grow">
-                  <span className="small clamp-2" style={{ display: 'block', lineHeight: 1.35 }}>{i.title}</span>
-                  <span className="xs dim">{i.churchName}</span>
-                </span>
-                <span className="small num strong">{money(i.price)}</span>
-              </div>
-            ))}
+        <aside>
+          <div className="summary">
+            <h3>Your order</h3>
+            <ul className="stack stack-3" style={{ listStyle: 'none', padding: 0, margin: 0 }}>
+              {priced.items.map((i) => (
+                <li key={`${i.kind}-${i.slug}`} className="row row-between small">
+                  <span className="clamp-1" style={{ minWidth: 0 }}>{i.title}</span>
+                  <b className="num">{money(i.price)}</b>
+                </li>
+              ))}
+            </ul>
+            <div className="row row-between" style={{ paddingTop: 'var(--s-3)', borderTop: '1px solid var(--line)' }}>
+              <span className="strong">Total</span>
+              <span className="price-big">{money(priced.total)}</span>
+            </div>
+            <button className="btn btn-primary btn-lg btn-block" disabled={busy}>
+              {busy ? 'One moment…' : `Continue to pay ${money(priced.total)}`}
+            </button>
           </div>
-          <div className="stack stack-3" style={{ paddingTop: 'var(--s-3)', borderTop: '1px solid var(--line)' }}>
-            <div className="total-row"><span>Subtotal</span><span className="num">{money(priced.subtotal + priced.saving)}</span></div>
-            {priced.saving > 0 && (
-              <div className="total-row" style={{ color: 'var(--red-600)' }}>
-                <span>Launch discount</span><span className="num">−{money(priced.saving)}</span>
-              </div>
-            )}
-            <div className="total-row grand"><span>Total</span><span className="num">{money(priced.total)}</span></div>
-          </div>
-          <button type="submit" className={`btn btn-primary btn-lg btn-block checkout-pay ${mobileStep === 1 ? 'mobile-step-hidden' : ''}`} disabled={busy}>
-            {busy ? <><span className="spinner" /> Processing…</> : <>Pay {money(priced.total)}</>}
-          </button>
-          <p className="checkout-secure"><Lock size={13} /> Secure checkout · You can review before payment is confirmed</p>
         </aside>
-      </form>
-    </div>
+      </div>
+    </form>
   );
 };

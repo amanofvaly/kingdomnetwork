@@ -1,8 +1,16 @@
 import mongoose from 'mongoose';
 
+/**
+ * A purchase of materials: coursework and resources.
+ *
+ * Credentials do not come through here. Applying for standing is not a
+ * transaction with a basket, and the fee attached to it is an application fee
+ * recorded on a Payment against the Application — see `server/models/Payment.js`.
+ */
+
 const itemSchema = new mongoose.Schema(
   {
-    kind: { type: String, enum: ['course', 'offering'], required: true },
+    kind: { type: String, enum: ['course', 'resource'], required: true },
     slug: { type: String, required: true },
     title: String,
     image: String,
@@ -11,7 +19,6 @@ const itemSchema = new mongoose.Schema(
     price: Number,
     compareAtPrice: Number,
     type: String,
-    outcome: String,
   },
   { _id: false },
 );
@@ -27,18 +34,9 @@ const orderSchema = new mongoose.Schema(
     total: { type: Number, required: true },
     currency: { type: String, default: 'USD' },
 
-    payment: {
-      method: {
-        type: String,
-        enum: ['mpesa', 'airtel-money', 'mtn-momo', 'card', 'paypal', 'bank-transfer'],
-        required: true,
-      },
-      label: String,
-      // Simulated gateway fields — no real credentials are used yet.
-      account: String,
-      reference: String,
-      simulated: { type: Boolean, default: true },
-    },
+    // The gateway record. One order can span several churches, so a payment is
+    // created per church and this holds them all.
+    paymentRefs: [{ type: String, index: true }],
 
     billing: {
       name: String,
@@ -47,7 +45,7 @@ const orderSchema = new mongoose.Schema(
       phone: String,
     },
 
-    status: { type: String, enum: ['pending', 'paid', 'failed', 'refunded'], default: 'pending' },
+    status: { type: String, enum: ['pending', 'paid', 'failed', 'refunded'], default: 'pending', index: true },
     paidAt: Date,
   },
   { timestamps: true },
