@@ -2,13 +2,13 @@ import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { ArrowUpRight, BookOpen, Calendar, ExternalLink, Globe2, GraduationCap, HeartHandshake, Images, Mail, MapPin, Phone, Users } from 'lucide-react';
 
-import { CourseCard } from '../components/cards.jsx';
+import { CourseCard, MaterialCard } from '../components/cards.jsx';
 import { OfferingCard } from '../components/market.jsx';
 import { CHURCH_PLACEHOLDER, ErrorState, PERSON_PLACEHOLDER, Spinner, Stars, Verified } from '../components/ui.jsx';
 import { FollowButton } from '../components/me/feed.jsx';
 import { useApi } from '../lib/useAsync.js';
 import { useAuth } from '../lib/auth.jsx';
-import { compact, money, plural } from '../lib/format.js';
+import { compact, plural } from '../lib/format.js';
 
 const FALLBACK_COVER = '/media/church-registration-cross.jpg';
 const absoluteUrl = (value) => value && (/^https?:\/\//i.test(value) ? value : `https://${value}`);
@@ -155,7 +155,7 @@ export const ChurchDetail = () => {
               {listings.length && shows('whatWeIssue') ? <div className="church-profile-rail"><h3>Credentials</h3><div className="grid grid-3">{listings.map((offering) => <OfferingCard key={offering.slug} offering={offering} showOutcome />)}</div></div> : null}
               {courses.length && shows('courses') ? <div className="church-profile-rail"><h3>Courses</h3><div className="grid grid-3">{courses.map((course) => <CourseCard key={course.slug} course={{ ...course, church }} />)}</div></div> : null}
               {resources.length && shows('resources') ? <div className="church-profile-rail"><h3>Books and materials</h3><div className="grid grid-3">{resources.map((resource) => (
-                <article key={resource.slug} className="card church-resource-card"><span className="media media-3x2"><img src={resource.coverImage || FALLBACK_COVER} alt="" loading="lazy" /></span><div className="card-body"><span className="xs dim">{resource.kind?.replace('-', ' ') || 'Resource'}</span><h3 className="course-title">{resource.title}</h3>{resource.subtitle ? <p className="small muted clamp-2">{resource.subtitle}</p> : null}<div className="course-foot"><strong>{resource.price ? money(resource.price) : 'Free'}</strong>{resource.pages ? <span className="xs dim">{resource.pages} pages</span> : null}</div></div></article>
+                <MaterialCard key={resource.slug} item={{ ...resource, church }} />
               ))}</div></div> : null}
               {!hasOfferings ? <EmptyBlock icon={BookOpen} title="Nothing published yet" copy={`${shortName} has not published credentials, courses or resources yet.`} action="Browse credentials and courses" to="/search" /> : null}
             </section>

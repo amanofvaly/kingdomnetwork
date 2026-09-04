@@ -3,6 +3,7 @@ import { Link, useSearchParams } from 'react-router-dom';
 import { BadgeCheck, Check, SlidersHorizontal, X } from 'lucide-react';
 
 import { ACQUISITION, OfferingCard } from '../components/market.jsx';
+import { MaterialCard } from '../components/cards.jsx';
 import { ChurchMark, Empty, ErrorState, SkeletonGrid } from '../components/ui.jsx';
 import { useApi } from '../lib/useAsync.js';
 import { plural } from '../lib/format.js';
@@ -132,7 +133,7 @@ export const Search = () => {
             </div>
 
             {loading ? <SkeletonGrid count={9} cols="grid-3" />
-              : data.offerings.length === 0 ? (
+              : data.offerings.length === 0 && !data.materials?.length ? (
                 <Empty title="Nothing matched"
                   action={<button type="button" className="btn btn-outline btn-sm" onClick={() => setParams({}, { replace: true })}>Clear everything</button>}>
                   Try a different term, or clear the filters.
@@ -151,6 +152,23 @@ export const Search = () => {
                       <button type="button" disabled={page >= data.pages} onClick={() => update({ page: String(page + 1) })}>Next</button>
                     </nav>
                   )}
+
+                  {/* Their own group, not rows among the credentials: standing
+                      is what this platform is for, and a book should not
+                      compete with an ordination for the same line. */}
+                  {data.materials?.length ? (
+                    <section className="stack stack-4" style={{ marginTop: 'var(--s-7)' }}>
+                      <div className="row row-between">
+                        <h2>Books and materials</h2>
+                        <Link className="link small" to={`/learning?q=${encodeURIComponent(q)}`}>
+                          All learning for “{q}” →
+                        </Link>
+                      </div>
+                      <div className="grid grid-3">
+                        {data.materials.map((m) => <MaterialCard key={m.slug} item={m} />)}
+                      </div>
+                    </section>
+                  ) : null}
                 </>
               )}
           </div>
