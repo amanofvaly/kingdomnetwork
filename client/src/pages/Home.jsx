@@ -5,7 +5,6 @@ import { ArrowRight, BadgeCheck, BookOpen, ChevronRight, Church, Headphones, Pla
 import { OfferingCard } from '../components/market.jsx';
 import { ErrorState, SkeletonGrid } from '../components/ui.jsx';
 import { useApi } from '../lib/useAsync.js';
-import { useCart } from '../lib/cart.jsx';
 import { money } from '../lib/format.js';
 import heroFeatured from '../assets/hero-featured-henry.jpg';
 
@@ -19,15 +18,13 @@ import heroFeatured from '../assets/hero-featured-henry.jpg';
 const Hero = ({ data }) => {
   const navigate = useNavigate();
   const [term, setTerm] = useState('');
-  const { add } = useCart();
 
   const slot = data?.hero;
   const featuredSlug = 'pastoral-care-certificate-seminole';
 
-  const buyFeatured = () => {
-    add({ kind: 'offering', slug: featuredSlug });
-    navigate('/checkout');
-  };
+  // A credential is never a basket item — a fee starts an application, it never
+  // confers standing — so the banner's action opens the application instead.
+  const applyForFeatured = () => navigate(`/apply/${featuredSlug}`);
 
   return (
     <section className="market-hero">
@@ -64,8 +61,8 @@ const Hero = ({ data }) => {
           <button
             type="button"
             className="hero-hotspot hero-hotspot-buy"
-            onClick={buyFeatured}
-            aria-label="Buy Pastoral Care Certificate now"
+            onClick={applyForFeatured}
+            aria-label="Apply for the Pastoral Care Certificate"
           />
           <Link
             to={`/listing/${featuredSlug}`}

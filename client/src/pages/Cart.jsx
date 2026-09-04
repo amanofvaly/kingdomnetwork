@@ -26,7 +26,9 @@ export const Cart = () => {
       .finally(() => setLoading(false));
   }, [items]);
 
-  if (!items.length) {
+  // Nothing priced back means every stored line has gone — unpublished, removed,
+  // or never purchasable. Show the empty basket rather than an itemless one.
+  if (!items.length || (!loading && !priced?.items.length)) {
     return (
       <div className="wrap band">
         <Empty icon={ShoppingBag} title="Your basket is empty"

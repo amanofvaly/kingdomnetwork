@@ -47,7 +47,9 @@ export const Login = () => {
     setBusy(true);
     try {
       const session = await login(form);
-      if (session.user?.accountKind === 'church' && session.memberships?.[0]) {
+      if (session.user?.role === 'platform_admin') {
+        navigate('/admin', { replace: true });
+      } else if (session.user?.accountKind === 'church' && session.memberships?.[0]) {
         navigate(`/manage/${session.memberships[0].churchSlug}`, { replace: true });
       } else {
         navigate(location.state?.from ?? '/me', { replace: true });
