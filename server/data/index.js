@@ -5,6 +5,7 @@ import { instructors } from './instructors.js';
 import { offerings } from './offerings.js';
 import { outcomes } from './outcomes.js';
 import { reviews } from './reviews.js';
+import { resources } from './resources.js';
 import { africaCourses } from './courses/africa.js';
 import { usMinistryCourses } from './courses/ministries-us.js';
 import { seminaryCourses } from './courses/seminaries.js';
@@ -25,4 +26,4 @@ export const categories = [
   { slug: 'chaplaincy', name: 'Chaplaincy' },
 ];
 
-export { churches, instructors, offerings, outcomes, reviews };
+export { churches, instructors, offerings, outcomes, resources, reviews };

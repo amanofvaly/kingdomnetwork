@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 600" width="900" height="600" role="img" aria-label="Sitting With the Dying">
+  <rect width="900" height="600" fill="#1b2430"/>
+  <g transform="translate(685,300)">
+    <circle r="210" fill="none" stroke="#9fc3d8" stroke-width="2" opacity="0.5"/><circle r="168" fill="none" stroke="#9fc3d8" stroke-width="1" opacity="0.42"/><circle r="126" fill="none" stroke="#9fc3d8" stroke-width="1" opacity="0.33999999999999997"/><circle r="84" fill="none" stroke="#9fc3d8" stroke-width="1" opacity="0.26"/>
+    <circle r="34" fill="#9fc3d8" opacity="0.9"/><circle r="9" fill="#1b2430"/>
+  </g>
+  <text x="72" y="118" font-family="'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="19" letter-spacing="4.5" fill="#9fc3d8">RIVERSIDE · AUDIOBOOK</text>
+  <text x="72" y="268" font-family="Georgia, 'Times New Roman', serif" font-size="58" fill="#ffffff">Sitting With</text><text x="72" y="336" font-family="Georgia, 'Times New Roman', serif" font-size="58" fill="#ffffff">the Dying</text>
+  <text x="72" y="516" font-family="'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="21" fill="#ffffff" opacity="0.66">Read by the author · 6h 12m</text></svg>

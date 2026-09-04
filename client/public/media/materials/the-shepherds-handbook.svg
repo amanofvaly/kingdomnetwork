@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 600" width="900" height="600" role="img" aria-label="The Shepherd’s Handbook">
+  <rect width="900" height="600" fill="#fbf9f5"/>
+  <rect x="64" y="64" width="772" height="472" fill="none" stroke="#8a6a1f" stroke-width="1.5" opacity="0.55"/>
+  <rect x="76" y="76" width="748" height="448" fill="none" stroke="#8a6a1f" stroke-width="0.75" opacity="0.35"/>
+  <text x="450" y="150" text-anchor="middle" font-family="'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="19" letter-spacing="4.5" fill="#8a6a1f">FAITH LIFE CHURCH</text>
+  <text x="450" y="272" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif" font-size="62" fill="#14171a">The Shepherd’s</text><text x="450" y="348" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif" font-size="62" fill="#14171a">Handbook</text>
+  <line x1="380" y1="424" x2="520" y2="424" stroke="#8a6a1f" stroke-width="2"/>
+  <text x="450" y="472" text-anchor="middle" font-family="'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="23" letter-spacing="1.4" fill="#14171a" opacity="0.75">Grace Nakalema</text></svg>

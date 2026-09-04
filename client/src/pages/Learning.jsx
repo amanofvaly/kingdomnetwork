@@ -75,6 +75,7 @@ export const Learning = () => {
 
   const q = params.get('q') ?? '';
   const format = params.get('format') ?? '';
+  const price = params.get('price') ?? '';
   const category = params.get('category') ?? '';
   const level = params.get('level') ?? '';
   const church = params.get('church') ?? '';
@@ -85,13 +86,14 @@ export const Learning = () => {
     const sp = new URLSearchParams();
     if (q) sp.set('q', q);
     if (format) sp.set('format', format);
+    if (price) sp.set('price', price);
     if (category) sp.set('category', category);
     if (level) sp.set('level', level);
     if (church) sp.set('church', church);
     sp.set('sort', sort);
     sp.set('page', String(page));
     return `/learning?${sp}`;
-  }, [q, format, category, level, church, sort, page]);
+  }, [q, format, price, category, level, church, sort, page]);
 
   const { data, error, loading, reload } = useApi(query);
 
@@ -112,6 +114,7 @@ export const Learning = () => {
   const active = [
     q && { key: 'q', label: `“${q}”` },
     format && { key: 'format', label: label(format) },
+    price === 'free' && { key: 'price', label: 'Free' },
     category && { key: 'category', label: category },
     level && { key: 'level', label: level },
     church && { key: 'church', label: data?.facets.churches.find((c) => c.value === church)?.label ?? church },
@@ -135,6 +138,13 @@ export const Learning = () => {
           <aside className={`filters ${filtersOpen ? 'is-open' : ''}`} aria-label="Filters">
             <FilterGroup
               first
+              title="Cost"
+              options={data?.facets.costs}
+              selected={price}
+              label={(f) => f.label}
+              onToggle={(v) => update({ price: v })}
+            />
+            <FilterGroup
               title="Format"
               options={data?.facets.formats}
               selected={format}

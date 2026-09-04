@@ -10,7 +10,7 @@
 import mongoose from 'mongoose';
 
 import { env } from '../config/env.js';
-import { churches, instructors, courses, offerings, outcomes, reviews, categories } from '../data/index.js';
+import { categories, churches, courses, instructors, offerings, outcomes, resources, reviews } from '../data/index.js';
 import { posts as churchPosts } from '../data/posts.js';
 import { hashPassword } from '../lib/auth.js';
 import { runMigrations } from '../migrations/runner.js';
@@ -19,6 +19,7 @@ import { ChurchMembership } from '../models/ChurchMembership.js';
 import { Instructor } from '../models/Instructor.js';
 import { Course } from '../models/Course.js';
 import { Offering } from '../models/Offering.js';
+import { Resource } from '../models/Resource.js';
 import { Review } from '../models/Review.js';
 import { User } from '../models/User.js';
 import { Order } from '../models/Order.js';
@@ -175,6 +176,7 @@ const run = async () => {
     Instructor.deleteMany({}),
     Course.deleteMany({ demo: true }),
     Offering.deleteMany({ demo: true }),
+    Resource.deleteMany({ demo: true }),
     Review.deleteMany({ demo: true }),
     Post.deleteMany({ demo: true }),
   ]);
@@ -214,6 +216,7 @@ const run = async () => {
   await Instructor.insertMany(instructors);
   await Course.insertMany(courses);
   await Offering.insertMany(offerings);
+  await Resource.insertMany(resources);
   await Review.insertMany(dated);
 
   await PlatformSettings.load();
@@ -231,6 +234,7 @@ const run = async () => {
       `instructors   ${instructors.length}`,
       `courses       ${courses.length}  (${lectures} lectures)`,
       `offerings     ${offerings.length}  (${outcomes.length} outcomes)`,
+      `materials     ${resources.length}`,
       `reviews       ${dated.length}`,
       `categories    ${categories.length}`,
       `posts         ${feedPosts}`,

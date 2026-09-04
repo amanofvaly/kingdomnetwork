@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 600" width="900" height="600" role="img" aria-label="Songs from the Accra Night">
+  <rect width="900" height="600" fill="#2b1730"/>
+  <g transform="translate(685,300)">
+    <circle r="210" fill="none" stroke="#f0a58c" stroke-width="2" opacity="0.5"/><circle r="168" fill="none" stroke="#f0a58c" stroke-width="1" opacity="0.42"/><circle r="126" fill="none" stroke="#f0a58c" stroke-width="1" opacity="0.33999999999999997"/><circle r="84" fill="none" stroke="#f0a58c" stroke-width="1" opacity="0.26"/>
+    <circle r="34" fill="#f0a58c" opacity="0.9"/><circle r="9" fill="#2b1730"/>
+  </g>
+  <text x="72" y="118" font-family="'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="19" letter-spacing="4.5" fill="#f0a58c">NDW WORSHIP · ALBUM</text>
+  <text x="72" y="268" font-family="Georgia, 'Times New Roman', serif" font-size="56" fill="#ffffff">Songs from the</text><text x="72" y="334" font-family="Georgia, 'Times New Roman', serif" font-size="56" fill="#ffffff">Accra Night</text>
+  <text x="72" y="516" font-family="'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="21" fill="#ffffff" opacity="0.66">Recorded live · 74m · Twi</text></svg>

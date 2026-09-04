@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 600" width="900" height="600" role="img" aria-label="Hymns in Luganda and English">
+  <rect width="900" height="600" fill="#153a2c"/>
+  <g transform="translate(685,300)">
+    <circle r="210" fill="none" stroke="#e6c98a" stroke-width="2" opacity="0.5"/><circle r="168" fill="none" stroke="#e6c98a" stroke-width="1" opacity="0.42"/><circle r="126" fill="none" stroke="#e6c98a" stroke-width="1" opacity="0.33999999999999997"/><circle r="84" fill="none" stroke="#e6c98a" stroke-width="1" opacity="0.26"/>
+    <circle r="34" fill="#e6c98a" opacity="0.9"/><circle r="9" fill="#153a2c"/>
+  </g>
+  <text x="72" y="118" font-family="'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="19" letter-spacing="4.5" fill="#e6c98a">FAITH LIFE · ALBUM</text>
+  <text x="72" y="268" font-family="Georgia, 'Times New Roman', serif" font-size="52" fill="#ffffff">Hymns in</text><text x="72" y="330" font-family="Georgia, 'Times New Roman', serif" font-size="52" fill="#ffffff">Luganda and</text><text x="72" y="392" font-family="Georgia, 'Times New Roman', serif" font-size="52" fill="#ffffff">English</text>
+  <text x="72" y="516" font-family="'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="21" fill="#ffffff" opacity="0.66">Fourteen hymns · 58m · Luganda and English</text></svg>

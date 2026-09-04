@@ -99,19 +99,25 @@ const unionStages = async ({ q, category, level, church }) => {
 };
 
 export const list = asyncHandler(async (req, res) => {
-  const { q, format, category, level, church, sort = 'newest', page = '1', limit = '12' } = req.query;
+  const { q, format, price, category, level, church, sort = 'newest', page = '1', limit = '12' } = req.query;
 
   const perPage = Math.min(Number(limit) || 12, 48);
   const current = Math.max(Number(page) || 1, 1);
   const skip = (current - 1) * perPage;
 
   const stages = await unionStages({ q, category, level, church });
-  const formatMatch = format ? [{ $match: { kind: format } }] : [];
 
-  const [paged, formats] = await Promise.all([
+  // Format and cost are both applied after the union, and both are counted
+  // before either is applied, so choosing one never hides the other's options.
+  const narrow = [
+    ...(format ? [{ $match: { kind: format } }] : []),
+    ...(price === 'free' ? [{ $match: { price: 0 } }] : []),
+  ];
+
+  const [paged, formats, costs] = await Promise.all([
     Course.aggregate([
       ...stages,
-      ...formatMatch,
+      ...narrow,
       {
         $facet: {
           items: [{ $sort: SORTS[sort] ?? SORTS.newest }, { $skip: skip }, { $limit: perPage }],
@@ -124,6 +130,10 @@ export const list = asyncHandler(async (req, res) => {
     ]),
     // Counted before the format filter, so every format stays clickable.
     Course.aggregate([...stages, { $group: { _id: '$kind', count: { $sum: 1 } } }, { $sort: { count: -1 } }]),
+    Course.aggregate([
+      ...stages,
+      { $group: { _id: null, all: { $sum: 1 }, free: { $sum: { $cond: [{ $eq: ['$price', 0] }, 1, 0] } } } },
+    ]),
   ]);
 
   const result = paged[0] ?? { items: [], total: [], categories: [], levels: [], churches: [] };
@@ -141,6 +151,12 @@ export const list = asyncHandler(async (req, res) => {
       pages: Math.ceil(total / perPage),
       facets: {
         formats: formats.map((f) => ({ value: f._id, count: f.count })),
+        // "All" is an option rather than the absence of one, so the choice
+        // reads as a choice and can be undone by making it again.
+        costs: [
+          { value: '', label: 'All', count: costs[0]?.all ?? 0 },
+          { value: 'free', label: 'Free', count: costs[0]?.free ?? 0 },
+        ],
         categories: result.categories.map((c) => ({ value: c._id, count: c.count })),
         levels: result.levels.map((l) => ({ value: l._id, count: l.count })),
         churches: result.churches.map((c) => ({ value: c._id, label: by[c._id]?.shortName ?? c._id, count: c.count })),

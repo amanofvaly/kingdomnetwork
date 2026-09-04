@@ -287,3 +287,26 @@ describe('what the shelf shows before anyone filters it', () => {
     expect(data.items[0].slug).toBe('homiletics');
   });
 });
+
+describe('filtering by what it costs', () => {
+  it('narrows to the free things across both collections', async () => {
+    if (!available) return;
+    await Course.create({
+      slug: 'free-course', title: 'A Free Course', churchSlug: 'grace',
+      price: 0, status: 'published', category: 'Bible', level: 'Beginner',
+    });
+
+    const data = await ask({ price: 'free' });
+
+    expect(data.items.map((i) => i.slug).sort()).toEqual(['free-course', 'romans-series']);
+  });
+
+  it('counts both options, so All is a way back', async () => {
+    if (!available) return;
+    const data = await ask({ price: 'free' });
+    const by = Object.fromEntries(data.facets.costs.map((c) => [c.value || 'all', c.count]));
+
+    expect(by.all).toBe(4);
+    expect(by.free).toBe(1);
+  });
+});

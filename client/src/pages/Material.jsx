@@ -93,17 +93,21 @@ export const Material = () => {
               </div>
             ) : (
               <div className="stack stack-3">
-                <Price amount={resource.price} was={resource.compareAtPrice} currency={resource.currency} size="var(--text-2xl)" />
+                {resource.price
+                  ? <Price amount={resource.price} was={resource.compareAtPrice} currency={resource.currency} size="var(--text-2xl)" />
+                  : <span className="badge-free">Free</span>}
                 {inCart ? (
                   <Link to="/cart" className="btn btn-primary btn-block">In your basket</Link>
                 ) : (
                   <button type="button" className="btn btn-primary btn-block"
                     onClick={() => add({ kind: 'resource', slug: resource.slug })}>
-                    {resource.price ? 'Add to basket' : 'Get it free'}
+                    Add to basket
                   </button>
                 )}
                 <p className="xs dim" style={{ margin: 0 }}>
-                  Bought once and kept. It appears in your library the moment the payment clears.
+                  {resource.price
+                    ? 'Bought once and kept. It appears in your library the moment the payment clears.'
+                    : 'Yours to keep. It appears in your library as soon as you take it.'}
                 </p>
               </div>
             )}

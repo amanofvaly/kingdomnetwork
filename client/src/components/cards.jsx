@@ -14,6 +14,9 @@ export const CourseCard = ({ course }) => {
   return (
     <article className="card course-card">
       {course.bestseller && <span className="flag badge-bestseller">Bestseller</span>}
+      {course.certificate?.kind && (
+        <span className="flag-right tag tag-gold"><Award size={12} />{course.certificate.kind}</span>
+      )}
       <Link to={`/courses/${course.slug}`} className="media media-3x2" tabIndex={-1} aria-hidden="true">
         <img src={course.coverImage} alt="" loading="lazy" width={800} height={534} />
       </Link>
@@ -38,18 +41,17 @@ export const CourseCard = ({ course }) => {
           <span className="dot" />
           <span>{course.level}</span>
         </div>
-        <div className="course-foot">
+        <div className="course-foot course-foot-buy">
           <Price amount={course.price} was={course.compareAtPrice} currency={course.currency} />
-          {course.certificate?.kind && <span className="tag tag-gold"><Award size={12} />{course.certificate.kind}</span>}
+          {inCart ? (
+            <Link to="/cart" className="btn btn-outline btn-sm">In your basket <ArrowRight size={14} /></Link>
+          ) : (
+            <button type="button" className="btn btn-outline btn-sm"
+              onClick={() => add({ kind: 'course', slug: course.slug })}>
+              <ShoppingBag size={14} /> Add to basket
+            </button>
+          )}
         </div>
-        {inCart ? (
-          <Link to="/cart" className="btn btn-outline btn-sm btn-block card-buy">In your basket <ArrowRight size={14} /></Link>
-        ) : (
-          <button type="button" className="btn btn-outline btn-sm btn-block card-buy"
-            onClick={() => add({ kind: 'course', slug: course.slug })}>
-            <ShoppingBag size={14} /> Add to basket
-          </button>
-        )}
       </div>
     </article>
   );
@@ -186,17 +188,19 @@ export const MaterialCard = ({ item }) => {
             ))}
           </div>
         ) : null}
-        <div className="course-foot">
-          <Price amount={item.price} was={item.compareAtPrice} currency={item.currency} />
+        <div className="course-foot course-foot-buy">
+          {item.price
+            ? <Price amount={item.price} was={item.compareAtPrice} currency={item.currency} />
+            : <span className="badge-free">Free</span>}
+          {inCart ? (
+            <Link to="/cart" className="btn btn-outline btn-sm">In your basket <ArrowRight size={14} /></Link>
+          ) : (
+            <button type="button" className="btn btn-outline btn-sm"
+              onClick={() => add({ kind: cartKind, slug: item.slug })}>
+              <ShoppingBag size={14} /> Add to basket
+            </button>
+          )}
         </div>
-        {inCart ? (
-          <Link to="/cart" className="btn btn-outline btn-sm btn-block card-buy">In your basket <ArrowRight size={14} /></Link>
-        ) : (
-          <button type="button" className="btn btn-outline btn-sm btn-block card-buy"
-            onClick={() => add({ kind: cartKind, slug: item.slug })}>
-            <ShoppingBag size={14} /> {item.price ? 'Add to basket' : 'Get it free'}
-          </button>
-        )}
       </div>
     </article>
   );

@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 600" width="900" height="600" role="img" aria-label="Letters to a Young Minister">
+  <rect width="900" height="600" fill="#f5f2ec"/>
+  <rect x="64" y="64" width="772" height="472" fill="none" stroke="#7a3b2e" stroke-width="1.5" opacity="0.55"/>
+  <rect x="76" y="76" width="748" height="448" fill="none" stroke="#7a3b2e" stroke-width="0.75" opacity="0.35"/>
+  <text x="450" y="150" text-anchor="middle" font-family="'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="19" letter-spacing="4.5" fill="#7a3b2e">THE R.O.C.K. WOI</text>
+  <text x="450" y="272" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif" font-size="54" fill="#14171a">Letters to a</text><text x="450" y="340" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif" font-size="54" fill="#14171a">Young Minister</text>
+  <line x1="380" y1="424" x2="520" y2="424" stroke="#7a3b2e" stroke-width="2"/>
+  <text x="450" y="472" text-anchor="middle" font-family="'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="23" letter-spacing="1.4" fill="#14171a" opacity="0.75">Bishop Wendell Carr</text></svg>
