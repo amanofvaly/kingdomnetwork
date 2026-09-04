@@ -4,6 +4,7 @@ import { optionalAuth } from '../middleware/auth.js';
 import * as feed from '../controllers/feed.controller.js';
 import { rateLimit } from '../middleware/rateLimit.js';
 import * as market from '../controllers/market.controller.js';
+import * as catalogue from '../controllers/catalogue.controller.js';
 import * as learning from '../controllers/learning.controller.js';
 import * as passport from '../controllers/passport.controller.js';
 import * as donation from '../controllers/donation.controller.js';
@@ -22,6 +23,9 @@ router.get('/offerings/:slug/preview.pdf', passport.previewDocument);
 router.get('/churches', market.listChurches);
 router.get('/churches/:slug', market.churchDetail);
 router.get('/churches/:slug/posts', optionalAuth, feed.churchPosts);
+// One shelf for coursework and materials; the two collections behind it are an
+// authoring detail, not something a visitor should have to know.
+router.get('/learning', catalogue.list);
 router.get('/courses', learning.listCourses);
 router.get('/courses/:slug', learning.courseDetail);
 router.get('/resources', market.listResources);

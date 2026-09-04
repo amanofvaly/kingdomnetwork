@@ -1,0 +1,160 @@
+import mongoose from 'mongoose';
+import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
+
+/**
+ * One catalogue over two collections. The things worth pinning down are the
+ * ones a union gets wrong quietly: that paging walks both sides in one order,
+ * and that a filter's counts describe the set you are actually looking at.
+ */
+
+const URI = process.env.TEST_MONGO_URI ?? 'mongodb://127.0.0.1:27017/kingdom-network-test-catalogue';
+
+let available = true;
+let catalogue;
+let Church; let Course; let Resource;
+
+beforeAll(async () => {
+  try {
+    await mongoose.connect(URI, { serverSelectionTimeoutMS: 1500 });
+  } catch {
+    available = false;
+    return;
+  }
+  catalogue = await import('../controllers/catalogue.controller.js');
+  ({ Church } = await import('../models/Church.js'));
+  ({ Course } = await import('../models/Course.js'));
+  ({ Resource } = await import('../models/Resource.js'));
+}, 20000);
+
+afterAll(async () => {
+  if (!available) return;
+  await mongoose.connection.dropDatabase();
+  await mongoose.disconnect();
+});
+
+const capture = () => {
+  const res = {
+    statusCode: 200,
+    body: null,
+    status(code) { res.statusCode = code; return res; },
+    json(payload) { res.body = payload; return res; },
+    setHeader() {},
+  };
+  return res;
+};
+
+const run = async (handler, req) => {
+  const res = capture();
+  await handler(req, res, (err) => { if (err) throw err; });
+  return res.body.data;
+};
+
+beforeEach(async () => {
+  if (!available) return;
+  await Promise.all([Church.deleteMany({}), Course.deleteMany({}), Resource.deleteMany({})]);
+
+  await Church.create({ slug: 'grace', name: 'Grace Bible Church', shortName: 'Grace', status: 'published' });
+  await Church.create({ slug: 'hope', name: 'Hope Ministries', shortName: 'Hope', status: 'published' });
+
+  await Course.create([
+    { slug: 'homiletics', title: 'Homiletics', churchSlug: 'grace', price: 40, status: 'published', category: 'Preaching', level: 'Beginner', learners: 90, totalMinutes: 120 },
+    { slug: 'hermeneutics', title: 'Hermeneutics', churchSlug: 'grace', price: 60, status: 'published', category: 'Bible', level: 'Advanced', learners: 50, totalMinutes: 300 },
+    { slug: 'draft-course', title: 'Not ready', churchSlug: 'grace', price: 10, status: 'draft', category: 'Bible', level: 'Beginner' },
+  ]);
+
+  await Resource.create([
+    { slug: 'psalms-book', kind: 'book', title: 'Psalms', churchSlug: 'grace', price: 12, status: 'published', pages: 210 },
+    { slug: 'romans-series', kind: 'sermon-series', title: 'Romans', churchSlug: 'hope', price: 0, status: 'published', durationMinutes: 400 },
+    { slug: 'draft-book', kind: 'book', title: 'Unfinished', churchSlug: 'hope', price: 5, status: 'draft' },
+  ]);
+});
+
+const ask = (query = {}) => run(catalogue.list, { query });
+
+describe('the combined catalogue', () => {
+  it('returns courses and materials together, and nothing unpublished', async () => {
+    if (!available) return;
+    const data = await ask();
+
+    expect(data.total).toBe(4);
+    expect(data.items.map((i) => i.slug).sort()).toEqual(
+      ['hermeneutics', 'homiletics', 'psalms-book', 'romans-series'],
+    );
+  });
+
+  it('tags each item with what it is', async () => {
+    if (!available) return;
+    const data = await ask();
+    const by = Object.fromEntries(data.items.map((i) => [i.slug, i.kind]));
+
+    expect(by.homiletics).toBe('course');
+    expect(by['psalms-book']).toBe('book');
+    expect(by['romans-series']).toBe('sermon-series');
+  });
+
+  it('narrows to one format', async () => {
+    if (!available) return;
+    const data = await ask({ format: 'book' });
+
+    expect(data.total).toBe(1);
+    expect(data.items[0].slug).toBe('psalms-book');
+  });
+
+  it('counts every format even while one is selected, so the filter can be changed', async () => {
+    if (!available) return;
+    const data = await ask({ format: 'book' });
+    const counts = Object.fromEntries(data.facets.formats.map((f) => [f.value, f.count]));
+
+    expect(counts.course).toBe(2);
+    expect(counts.book).toBe(1);
+    expect(counts['sermon-series']).toBe(1);
+  });
+
+  it('pages across both collections in one order', async () => {
+    if (!available) return;
+    const first = await ask({ sort: 'price-asc', limit: '2', page: '1' });
+    const second = await ask({ sort: 'price-asc', limit: '2', page: '2' });
+
+    expect(first.pages).toBe(2);
+    expect(first.items.map((i) => i.slug)).toEqual(['romans-series', 'psalms-book']);
+    expect(second.items.map((i) => i.slug)).toEqual(['homiletics', 'hermeneutics']);
+  });
+
+  it('filters by church across both', async () => {
+    if (!available) return;
+    const data = await ask({ church: 'hope' });
+
+    expect(data.items.map((i) => i.slug)).toEqual(['romans-series']);
+  });
+
+  it('names the church on every card, because nobody buys from nobody', async () => {
+    if (!available) return;
+    const data = await ask({ format: 'book' });
+
+    expect(data.items[0].church.shortName).toBe('Grace');
+  });
+
+  it('searching matches a material by title', async () => {
+    if (!available) return;
+    const data = await ask({ q: 'psalms' });
+
+    expect(data.items.map((i) => i.slug)).toEqual(['psalms-book']);
+  });
+
+  it('a course-only filter narrows to courses', async () => {
+    if (!available) return;
+    const data = await ask({ level: 'Advanced' });
+
+    expect(data.items.map((i) => i.slug)).toEqual(['hermeneutics']);
+  });
+
+  it('carries the facts each kind is described by', async () => {
+    if (!available) return;
+    const data = await ask();
+    const by = Object.fromEntries(data.items.map((i) => [i.slug, i]));
+
+    expect(by.homiletics.minutes).toBe(120);
+    expect(by['psalms-book'].pages).toBe(210);
+    expect(by['romans-series'].minutes).toBe(400);
+  });
+});
