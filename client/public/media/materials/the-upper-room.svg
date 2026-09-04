@@ -1,11 +1,31 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 600" width="900" height="600" role="img" aria-label="The Upper Room">
-  <defs><linearGradient id="g" x1="0" y1="0" x2="0" y2="1">
-    <stop offset="0" stop-color="#d7b8ff" stop-opacity="0.30"/><stop offset="1" stop-color="#d7b8ff" stop-opacity="0"/>
-  </linearGradient></defs>
-  <rect width="900" height="600" fill="#3d2b52"/>
-  <circle cx="750" cy="-40" r="330" fill="url(#g)"/>
-  <circle cx="750" cy="-40" r="330" fill="none" stroke="#d7b8ff" stroke-width="1" opacity="0.45"/>
-  <circle cx="750" cy="-40" r="240" fill="none" stroke="#d7b8ff" stroke-width="1" opacity="0.30"/>
-  <text x="72" y="118" font-family="'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="19" letter-spacing="4.5" fill="#d7b8ff">NDW MINISTRIES · SERMON SERIES</text>
-  <text x="72" y="390" font-family="Georgia, 'Times New Roman', serif" font-size="82" fill="#ffffff">The</text><text x="72" y="480" font-family="Georgia, 'Times New Roman', serif" font-size="82" fill="#ffffff">Upper Room</text>
-  <text x="72" y="528" font-family="'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="22" fill="#ffffff" opacity="0.66">Seven nights · 5h 15m</text></svg>
+<defs>
+  <linearGradient id="ramp5" x1="0" y1="0" x2="0.7" y2="1">
+    <stop offset="0" stop-color="#3a2050"/><stop offset="1" stop-color="#150a20"/>
+  </linearGradient>
+  <radialGradient id="glow5" cx="0.5" cy="0.5" r="0.5">
+    <stop offset="0" stop-color="#fff" stop-opacity="0.55"/><stop offset="1" stop-color="#fff" stop-opacity="0"/>
+  </radialGradient>
+  <radialGradient id="vig5" cx="0.5" cy="0.42" r="0.78">
+    <stop offset="0.55" stop-color="#000" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity="0.34"/>
+  </radialGradient>
+  <filter id="grain5" x="0" y="0" width="100%" height="100%">
+    <feTurbulence type="fractalNoise" baseFrequency="0.85" numOctaves="3" seed="5"/>
+    <feColorMatrix type="saturate" values="0"/>
+  </filter>
+  <filter id="soft5" x="-30%" y="-30%" width="160%" height="160%">
+    <feGaussianBlur stdDeviation="26"/>
+  </filter>
+</defs>
+    <rect width="900" height="600" fill="url(#ramp5)"/>
+    <g opacity="0.92">
+      <rect x="600" y="80" width="196" height="250" rx="98" fill="#e4c27a" opacity="0.30"/>
+      <rect x="600" y="80" width="196" height="250" rx="98" fill="none" stroke="#e4c27a" stroke-width="3" opacity="0.7"/>
+      <line x1="698" y1="86" x2="698" y2="324" stroke="#e4c27a" stroke-width="3" opacity="0.7"/>
+      <line x1="606" y1="205" x2="790" y2="205" stroke="#e4c27a" stroke-width="3" opacity="0.7"/>
+    </g>
+    <path d="M600 330 L796 330 L900 600 L470 600 Z" fill="#e4c27a" opacity="0.16"/>
+    <rect width="900" height="600" fill="url(#vig5)"/><rect width="900" height="600" filter="url(#grain5)" opacity="0.13" style="mix-blend-mode:overlay"/>
+    <text x="72" y="104" font-family="'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="18" letter-spacing="4.6" fill="#f7f0ff" opacity="0.9">NDW MINISTRIES · SERMON SERIES</text>
+    <text x="72" y="320" text-anchor="start" font-family="Georgia, 'Times New Roman', serif" font-size="78" fill="#f7f0ff">The</text><text x="72" y="408" text-anchor="start" font-family="Georgia, 'Times New Roman', serif" font-size="78" fill="#f7f0ff">Upper Room</text>
+    <text x="72" y="532" font-family="'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="21" fill="#f7f0ff" opacity="0.72">Seven nights · 5h 15m</text></svg>

@@ -1,11 +1,27 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 600" width="900" height="600" role="img" aria-label="Romans: The Gospel Unashamed">
-  <defs><linearGradient id="g" x1="0" y1="0" x2="0" y2="1">
-    <stop offset="0" stop-color="#8fb0ff" stop-opacity="0.30"/><stop offset="1" stop-color="#8fb0ff" stop-opacity="0"/>
-  </linearGradient></defs>
-  <rect width="900" height="600" fill="#052c85"/>
-  <circle cx="750" cy="-40" r="330" fill="url(#g)"/>
-  <circle cx="750" cy="-40" r="330" fill="none" stroke="#8fb0ff" stroke-width="1" opacity="0.45"/>
-  <circle cx="750" cy="-40" r="240" fill="none" stroke="#8fb0ff" stroke-width="1" opacity="0.30"/>
-  <text x="72" y="118" font-family="'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="19" letter-spacing="4.5" fill="#8fb0ff">BEACON HILL · SERMON SERIES</text>
-  <text x="72" y="390" font-family="Georgia, 'Times New Roman', serif" font-size="68" fill="#ffffff">Romans</text><text x="72" y="466" font-family="Georgia, 'Times New Roman', serif" font-size="68" fill="#ffffff">The Gospel Unashamed</text>
-  <text x="72" y="528" font-family="'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="22" fill="#ffffff" opacity="0.66">Eleven messages · 7h 20m</text></svg>
+<defs>
+  <linearGradient id="ramp4" x1="0" y1="0" x2="0.7" y2="1">
+    <stop offset="0" stop-color="#0a1f5c"/><stop offset="1" stop-color="#03102e"/>
+  </linearGradient>
+  <radialGradient id="glow4" cx="0.5" cy="0.5" r="0.5">
+    <stop offset="0" stop-color="#fff" stop-opacity="0.55"/><stop offset="1" stop-color="#fff" stop-opacity="0"/>
+  </radialGradient>
+  <radialGradient id="vig4" cx="0.5" cy="0.42" r="0.78">
+    <stop offset="0.55" stop-color="#000" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity="0.34"/>
+  </radialGradient>
+  <filter id="grain4" x="0" y="0" width="100%" height="100%">
+    <feTurbulence type="fractalNoise" baseFrequency="0.85" numOctaves="3" seed="4"/>
+    <feColorMatrix type="saturate" values="0"/>
+  </filter>
+  <filter id="soft4" x="-30%" y="-30%" width="160%" height="160%">
+    <feGaussianBlur stdDeviation="26"/>
+  </filter>
+</defs>
+    <rect width="900" height="600" fill="url(#ramp4)"/>
+    <circle cx="450" cy="600" r="430" fill="url(#glow4)"/>
+    <path d="M450 600 L-120 -60 L-40 -60 Z" fill="#fff" opacity="0.09"/><path d="M450 600 L10 -60 L90 -60 Z" fill="#fff" opacity="0.05"/><path d="M450 600 L140 -60 L220 -60 Z" fill="#fff" opacity="0.09"/><path d="M450 600 L270 -60 L350 -60 Z" fill="#fff" opacity="0.05"/><path d="M450 600 L400 -60 L480 -60 Z" fill="#fff" opacity="0.09"/><path d="M450 600 L530 -60 L610 -60 Z" fill="#fff" opacity="0.05"/><path d="M450 600 L660 -60 L740 -60 Z" fill="#fff" opacity="0.09"/><path d="M450 600 L790 -60 L870 -60 Z" fill="#fff" opacity="0.05"/><path d="M450 600 L920 -60 L1000 -60 Z" fill="#fff" opacity="0.09"/><path d="M450 600 L1050 -60 L1130 -60 Z" fill="#fff" opacity="0.05"/><path d="M450 600 L1180 -60 L1260 -60 Z" fill="#fff" opacity="0.09"/><path d="M450 600 L1310 -60 L1390 -60 Z" fill="#fff" opacity="0.05"/><path d="M450 600 L1440 -60 L1520 -60 Z" fill="#fff" opacity="0.09"/>
+    <rect y="492" width="900" height="108" fill="#000" opacity="0.34"/>
+    <rect width="900" height="600" fill="url(#vig4)"/><rect width="900" height="600" filter="url(#grain4)" opacity="0.13" style="mix-blend-mode:overlay"/>
+    <text x="72" y="104" font-family="'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="18" letter-spacing="4.6" fill="#ffffff" opacity="0.9">BEACON HILL · SERMON SERIES</text>
+    <text x="72" y="300" text-anchor="start" font-family="Georgia, 'Times New Roman', serif" font-size="70" fill="#ffffff">Romans</text><text x="72" y="380" text-anchor="start" font-family="Georgia, 'Times New Roman', serif" font-size="70" fill="#ffffff">Unashamed</text>
+    <text x="72" y="532" font-family="'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="21" fill="#ffffff" opacity="0.72">Eleven messages · 7h 20m</text></svg>

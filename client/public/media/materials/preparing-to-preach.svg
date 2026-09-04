@@ -1,9 +1,47 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 600" width="900" height="600" role="img" aria-label="Preparing to Preach">
-  <rect width="900" height="600" fill="#f5f2ec"/>
-  <line x1="72" y1="150" x2="640" y2="150" stroke="#14171a" stroke-width="1" opacity="0.10"/><line x1="72" y1="190" x2="640" y2="190" stroke="#14171a" stroke-width="1" opacity="0.10"/><line x1="72" y1="230" x2="640" y2="230" stroke="#14171a" stroke-width="1" opacity="0.10"/><line x1="72" y1="270" x2="640" y2="270" stroke="#14171a" stroke-width="1" opacity="0.10"/><line x1="72" y1="310" x2="640" y2="310" stroke="#14171a" stroke-width="1" opacity="0.10"/><line x1="72" y1="350" x2="640" y2="350" stroke="#14171a" stroke-width="1" opacity="0.10"/><line x1="72" y1="390" x2="640" y2="390" stroke="#14171a" stroke-width="1" opacity="0.10"/><line x1="72" y1="430" x2="640" y2="430" stroke="#14171a" stroke-width="1" opacity="0.10"/><line x1="72" y1="470" x2="640" y2="470" stroke="#14171a" stroke-width="1" opacity="0.10"/><line x1="72" y1="510" x2="640" y2="510" stroke="#14171a" stroke-width="1" opacity="0.10"/><line x1="72" y1="550" x2="640" y2="550" stroke="#14171a" stroke-width="1" opacity="0.10"/>
-  <text x="72" y="106" font-family="'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="19" letter-spacing="4.5" fill="#073fbd">BEACON HILL · WORKBOOK</text>
-  <text x="72" y="232" font-family="Georgia, 'Times New Roman', serif" font-size="54" fill="#14171a">Preparing</text><text x="72" y="296" font-family="Georgia, 'Times New Roman', serif" font-size="54" fill="#14171a">to Preach</text>
-  <rect x="668" y="368" width="160" height="160" rx="10" fill="#073fbd"/>
-  <text x="748" y="454" text-anchor="middle" font-family="'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="52" font-weight="700" fill="#fff">12</text>
-  <text x="748" y="486" text-anchor="middle" font-family="'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="16" letter-spacing="2" fill="#fff" opacity="0.9">SHEETS</text>
-  <text x="72" y="516" font-family="'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="21" fill="#14171a" opacity="0.66">Sold as a pad of twelve</text></svg>
+<defs>
+  <linearGradient id="ramp10" x1="0" y1="0" x2="0.7" y2="1">
+    <stop offset="0" stop-color="#12305e"/><stop offset="1" stop-color="#071a35"/>
+  </linearGradient>
+  <radialGradient id="glow10" cx="0.5" cy="0.5" r="0.5">
+    <stop offset="0" stop-color="#fff" stop-opacity="0.55"/><stop offset="1" stop-color="#fff" stop-opacity="0"/>
+  </radialGradient>
+  <radialGradient id="vig10" cx="0.5" cy="0.42" r="0.78">
+    <stop offset="0.55" stop-color="#000" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity="0.34"/>
+  </radialGradient>
+  <filter id="grain10" x="0" y="0" width="100%" height="100%">
+    <feTurbulence type="fractalNoise" baseFrequency="0.85" numOctaves="3" seed="10"/>
+    <feColorMatrix type="saturate" values="0"/>
+  </filter>
+  <filter id="soft10" x="-30%" y="-30%" width="160%" height="160%">
+    <feGaussianBlur stdDeviation="26"/>
+  </filter>
+</defs>
+    <rect width="900" height="600" fill="url(#ramp10)"/>
+    <g transform="translate(600,96)">
+      
+        <g transform="translate(0,0) rotate(-6 130 200)">
+          <rect width="250" height="360" rx="5" fill="#000" opacity="0.16"/>
+          <rect width="250" height="360" rx="5" fill="#f7f3ea" opacity="1"/>
+          
+        </g>
+        <g transform="translate(18,16) rotate(-3 130 200)">
+          <rect width="250" height="360" rx="5" fill="#000" opacity="0.16"/>
+          <rect width="250" height="360" rx="5" fill="#f7f3ea" opacity="0.94"/>
+          
+        </g>
+        <g transform="translate(36,32) rotate(0 130 200)">
+          <rect width="250" height="360" rx="5" fill="#000" opacity="0.16"/>
+          <rect width="250" height="360" rx="5" fill="#f7f3ea" opacity="0.88"/>
+          
+        </g>
+        <g transform="translate(54,48) rotate(3 130 200)">
+          <rect width="250" height="360" rx="5" fill="#000" opacity="0.16"/>
+          <rect width="250" height="360" rx="5" fill="#f7f3ea" opacity="0.8200000000000001"/>
+          <line x1="28" y1="70" x2="222" y2="70" stroke="#7fa6ff" stroke-width="4" opacity="0.28"/><line x1="28" y1="104" x2="222" y2="104" stroke="#7fa6ff" stroke-width="4" opacity="0.28"/><line x1="28" y1="138" x2="222" y2="138" stroke="#7fa6ff" stroke-width="4" opacity="0.28"/><line x1="28" y1="172" x2="222" y2="172" stroke="#7fa6ff" stroke-width="4" opacity="0.28"/><line x1="28" y1="206" x2="222" y2="206" stroke="#7fa6ff" stroke-width="4" opacity="0.28"/><line x1="28" y1="240" x2="222" y2="240" stroke="#7fa6ff" stroke-width="4" opacity="0.28"/><line x1="28" y1="274" x2="222" y2="274" stroke="#7fa6ff" stroke-width="4" opacity="0.28"/>
+        </g>
+    </g>
+    <rect width="900" height="600" filter="url(#grain10)" opacity="0.1" style="mix-blend-mode:overlay"/>
+    <text x="72" y="104" font-family="'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="18" letter-spacing="4.6" fill="#7fa6ff" opacity="0.9">BEACON HILL · WORKBOOK</text>
+    <text x="72" y="268" text-anchor="start" font-family="Georgia, 'Times New Roman', serif" font-size="56" fill="#eef3ff">Preparing</text><text x="72" y="334" text-anchor="start" font-family="Georgia, 'Times New Roman', serif" font-size="56" fill="#eef3ff">to Preach</text>
+    <text x="72" y="532" font-family="'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="21" fill="#eef3ff" opacity="0.72">A pad of twelve · 72 pages</text></svg>

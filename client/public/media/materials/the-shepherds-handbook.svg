@@ -1,8 +1,28 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 600" width="900" height="600" role="img" aria-label="The Shepherd’s Handbook">
-  <rect width="900" height="600" fill="#fbf9f5"/>
-  <rect x="64" y="64" width="772" height="472" fill="none" stroke="#8a6a1f" stroke-width="1.5" opacity="0.55"/>
-  <rect x="76" y="76" width="748" height="448" fill="none" stroke="#8a6a1f" stroke-width="0.75" opacity="0.35"/>
-  <text x="450" y="150" text-anchor="middle" font-family="'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="19" letter-spacing="4.5" fill="#8a6a1f">FAITH LIFE CHURCH</text>
-  <text x="450" y="272" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif" font-size="62" fill="#14171a">The Shepherd’s</text><text x="450" y="348" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif" font-size="62" fill="#14171a">Handbook</text>
-  <line x1="380" y1="424" x2="520" y2="424" stroke="#8a6a1f" stroke-width="2"/>
-  <text x="450" y="472" text-anchor="middle" font-family="'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="23" letter-spacing="1.4" fill="#14171a" opacity="0.75">Grace Nakalema</text></svg>
+<defs>
+  <linearGradient id="ramp1" x1="0" y1="0" x2="0.7" y2="1">
+    <stop offset="0" stop-color="#f0d9a7"/><stop offset="1" stop-color="#7a4a20"/>
+  </linearGradient>
+  <radialGradient id="glow1" cx="0.5" cy="0.5" r="0.5">
+    <stop offset="0" stop-color="#fff" stop-opacity="0.55"/><stop offset="1" stop-color="#fff" stop-opacity="0"/>
+  </radialGradient>
+  <radialGradient id="vig1" cx="0.5" cy="0.42" r="0.78">
+    <stop offset="0.55" stop-color="#000" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity="0.34"/>
+  </radialGradient>
+  <filter id="grain1" x="0" y="0" width="100%" height="100%">
+    <feTurbulence type="fractalNoise" baseFrequency="0.85" numOctaves="3" seed="1"/>
+    <feColorMatrix type="saturate" values="0"/>
+  </filter>
+  <filter id="soft1" x="-30%" y="-30%" width="160%" height="160%">
+    <feGaussianBlur stdDeviation="26"/>
+  </filter>
+</defs>
+    <rect width="900" height="600" fill="url(#ramp1)"/>
+    <circle cx="640" cy="300" r="150" fill="url(#glow1)"/>
+    <circle cx="640" cy="300" r="96" fill="#ffd27a" opacity="0.92"/>
+    <path d="M0 470 C 210 392 330 470 470 452 C 640 430 760 372 900 402 L900 600 L0 600Z" fill="#000" opacity="0.30"/>
+    <path d="M0 512 C 240 452 400 520 560 500 C 720 480 810 440 900 462 L900 600 L0 600Z" fill="#000" opacity="0.46"/>
+    <rect width="900" height="600" fill="url(#vig1)"/><rect width="900" height="600" filter="url(#grain1)" opacity="0.13" style="mix-blend-mode:overlay"/>
+    <text x="72" y="104" font-family="'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="18" letter-spacing="4.6" fill="#1b1206" opacity="0.9">FAITH LIFE CHURCH · BOOK</text>
+    <text x="72" y="250" text-anchor="start" font-family="Georgia, 'Times New Roman', serif" font-size="60" fill="#1b1206">The Shepherd’s</text><text x="72" y="320" text-anchor="start" font-family="Georgia, 'Times New Roman', serif" font-size="60" fill="#1b1206">Handbook</text>
+    <text x="72" y="532" font-family="'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="21" fill="#f6e6c6" opacity="0.72">Grace Nakalema · 214 pages</text></svg>

@@ -1,9 +1,29 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 600" width="900" height="600" role="img" aria-label="Safeguarding in the Local Church">
-  <rect width="900" height="600" fill="#f5f2ec"/>
-  <line x1="72" y1="150" x2="640" y2="150" stroke="#14171a" stroke-width="1" opacity="0.10"/><line x1="72" y1="190" x2="640" y2="190" stroke="#14171a" stroke-width="1" opacity="0.10"/><line x1="72" y1="230" x2="640" y2="230" stroke="#14171a" stroke-width="1" opacity="0.10"/><line x1="72" y1="270" x2="640" y2="270" stroke="#14171a" stroke-width="1" opacity="0.10"/><line x1="72" y1="310" x2="640" y2="310" stroke="#14171a" stroke-width="1" opacity="0.10"/><line x1="72" y1="350" x2="640" y2="350" stroke="#14171a" stroke-width="1" opacity="0.10"/><line x1="72" y1="390" x2="640" y2="390" stroke="#14171a" stroke-width="1" opacity="0.10"/><line x1="72" y1="430" x2="640" y2="430" stroke="#14171a" stroke-width="1" opacity="0.10"/><line x1="72" y1="470" x2="640" y2="470" stroke="#14171a" stroke-width="1" opacity="0.10"/><line x1="72" y1="510" x2="640" y2="510" stroke="#14171a" stroke-width="1" opacity="0.10"/><line x1="72" y1="550" x2="640" y2="550" stroke="#14171a" stroke-width="1" opacity="0.10"/>
-  <text x="72" y="106" font-family="'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="19" letter-spacing="4.5" fill="#7a3b2e">GRACE COVENANT · STUDY GUIDE</text>
-  <text x="72" y="232" font-family="Georgia, 'Times New Roman', serif" font-size="46" fill="#14171a">Safeguarding</text><text x="72" y="288" font-family="Georgia, 'Times New Roman', serif" font-size="46" fill="#14171a">in the</text><text x="72" y="344" font-family="Georgia, 'Times New Roman', serif" font-size="46" fill="#14171a">Local Church</text>
-  <rect x="668" y="368" width="160" height="160" rx="10" fill="#7a3b2e"/>
-  <text x="748" y="454" text-anchor="middle" font-family="'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="52" font-weight="700" fill="#fff">5</text>
-  <text x="748" y="486" text-anchor="middle" font-family="'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="16" letter-spacing="2" fill="#fff" opacity="0.9">SESSIONS</text>
-  <text x="72" y="516" font-family="'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="21" fill="#14171a" opacity="0.66">For a leadership team</text></svg>
+<defs>
+  <linearGradient id="ramp8" x1="0" y1="0" x2="0.7" y2="1">
+    <stop offset="0" stop-color="#f6efe6"/><stop offset="1" stop-color="#d8c3ac"/>
+  </linearGradient>
+  <radialGradient id="glow8" cx="0.5" cy="0.5" r="0.5">
+    <stop offset="0" stop-color="#fff" stop-opacity="0.55"/><stop offset="1" stop-color="#fff" stop-opacity="0"/>
+  </radialGradient>
+  <radialGradient id="vig8" cx="0.5" cy="0.42" r="0.78">
+    <stop offset="0.55" stop-color="#000" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity="0.34"/>
+  </radialGradient>
+  <filter id="grain8" x="0" y="0" width="100%" height="100%">
+    <feTurbulence type="fractalNoise" baseFrequency="0.85" numOctaves="3" seed="8"/>
+    <feColorMatrix type="saturate" values="0"/>
+  </filter>
+  <filter id="soft8" x="-30%" y="-30%" width="160%" height="160%">
+    <feGaussianBlur stdDeviation="26"/>
+  </filter>
+</defs>
+    <rect width="900" height="600" fill="url(#ramp8)"/>
+    <g transform="translate(660,300)">
+      <path d="M0 -190 L150 -128 V20 C150 118 78 176 0 208 C-78 176 -150 118 -150 20 V-128 Z" fill="#000" opacity="0.24" transform="translate(10,16)" filter="url(#soft8)"/>
+      <path d="M0 -190 L150 -128 V20 C150 118 78 176 0 208 C-78 176 -150 118 -150 20 V-128 Z" fill="#7a3b2e" opacity="0.95"/>
+      <path d="M0 -190 L0 208 C-78 176 -150 118 -150 20 V-128 Z" fill="#000" opacity="0.13"/>
+    </g>
+    <rect width="900" height="600" filter="url(#grain8)" opacity="0.11" style="mix-blend-mode:overlay"/>
+    <text x="72" y="104" font-family="'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="18" letter-spacing="4.6" fill="#7a3b2e" opacity="0.9">GRACE COVENANT · STUDY GUIDE</text>
+    <text x="72" y="250" text-anchor="start" font-family="Georgia, 'Times New Roman', serif" font-size="48" fill="#241610">Safeguarding</text><text x="72" y="308" text-anchor="start" font-family="Georgia, 'Times New Roman', serif" font-size="48" fill="#241610">in the</text><text x="72" y="366" text-anchor="start" font-family="Georgia, 'Times New Roman', serif" font-size="48" fill="#241610">Local Church</text>
+    <text x="72" y="532" font-family="'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="21" fill="#241610" opacity="0.72">Five sessions · 96 pages</text></svg>

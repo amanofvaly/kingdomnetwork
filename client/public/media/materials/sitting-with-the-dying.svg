@@ -1,9 +1,28 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 600" width="900" height="600" role="img" aria-label="Sitting With the Dying">
-  <rect width="900" height="600" fill="#1b2430"/>
-  <g transform="translate(685,300)">
-    <circle r="210" fill="none" stroke="#9fc3d8" stroke-width="2" opacity="0.5"/><circle r="168" fill="none" stroke="#9fc3d8" stroke-width="1" opacity="0.42"/><circle r="126" fill="none" stroke="#9fc3d8" stroke-width="1" opacity="0.33999999999999997"/><circle r="84" fill="none" stroke="#9fc3d8" stroke-width="1" opacity="0.26"/>
-    <circle r="34" fill="#9fc3d8" opacity="0.9"/><circle r="9" fill="#1b2430"/>
-  </g>
-  <text x="72" y="118" font-family="'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="19" letter-spacing="4.5" fill="#9fc3d8">RIVERSIDE · AUDIOBOOK</text>
-  <text x="72" y="268" font-family="Georgia, 'Times New Roman', serif" font-size="58" fill="#ffffff">Sitting With</text><text x="72" y="336" font-family="Georgia, 'Times New Roman', serif" font-size="58" fill="#ffffff">the Dying</text>
-  <text x="72" y="516" font-family="'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="21" fill="#ffffff" opacity="0.66">Read by the author · 6h 12m</text></svg>
+<defs>
+  <linearGradient id="ramp6" x1="0" y1="0" x2="0.7" y2="1">
+    <stop offset="0" stop-color="#dfeaf0"/><stop offset="1" stop-color="#7f9aa8"/>
+  </linearGradient>
+  <radialGradient id="glow6" cx="0.5" cy="0.5" r="0.5">
+    <stop offset="0" stop-color="#fff" stop-opacity="0.55"/><stop offset="1" stop-color="#fff" stop-opacity="0"/>
+  </radialGradient>
+  <radialGradient id="vig6" cx="0.5" cy="0.42" r="0.78">
+    <stop offset="0.55" stop-color="#000" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity="0.34"/>
+  </radialGradient>
+  <filter id="grain6" x="0" y="0" width="100%" height="100%">
+    <feTurbulence type="fractalNoise" baseFrequency="0.85" numOctaves="3" seed="6"/>
+    <feColorMatrix type="saturate" values="0"/>
+  </filter>
+  <filter id="soft6" x="-30%" y="-30%" width="160%" height="160%">
+    <feGaussianBlur stdDeviation="26"/>
+  </filter>
+</defs>
+    <rect width="900" height="600" fill="url(#ramp6)"/>
+    <g stroke="#1b3a4a" fill="none" stroke-linecap="round">
+      <path d="M60 372 C 240 332 380 412 560 372 S 800 332 880 372" stroke-width="3" opacity="0.55"/><path d="M60 416 C 240 384 380 448 560 416 S 800 384 880 416" stroke-width="2.6" opacity="0.4600000000000001"/><path d="M60 460 C 240 436 380 484 560 460 S 800 436 880 460" stroke-width="2.2" opacity="0.37000000000000005"/><path d="M60 504 C 240 488 380 520 560 504 S 800 488 880 504" stroke-width="1.7999999999999998" opacity="0.28"/>
+    </g>
+    <circle cx="740" cy="250" r="150" fill="url(#glow6)" opacity="0.5"/>
+    <rect width="900" height="600" fill="url(#vig6)"/><rect width="900" height="600" filter="url(#grain6)" opacity="0.13" style="mix-blend-mode:overlay"/>
+    <text x="72" y="104" font-family="'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="18" letter-spacing="4.6" fill="#12222b" opacity="0.9">RIVERSIDE · AUDIOBOOK</text>
+    <text x="72" y="200" text-anchor="start" font-family="Georgia, 'Times New Roman', serif" font-size="58" fill="#12222b">Sitting With</text><text x="72" y="268" text-anchor="start" font-family="Georgia, 'Times New Roman', serif" font-size="58" fill="#12222b">the Dying</text>
+    <text x="72" y="532" font-family="'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="21" fill="#12222b" opacity="0.72">Read by the author · 6h 12m</text></svg>

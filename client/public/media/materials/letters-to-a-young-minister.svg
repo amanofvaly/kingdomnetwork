@@ -1,8 +1,30 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 600" width="900" height="600" role="img" aria-label="Letters to a Young Minister">
-  <rect width="900" height="600" fill="#f5f2ec"/>
-  <rect x="64" y="64" width="772" height="472" fill="none" stroke="#7a3b2e" stroke-width="1.5" opacity="0.55"/>
-  <rect x="76" y="76" width="748" height="448" fill="none" stroke="#7a3b2e" stroke-width="0.75" opacity="0.35"/>
-  <text x="450" y="150" text-anchor="middle" font-family="'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="19" letter-spacing="4.5" fill="#7a3b2e">THE R.O.C.K. WOI</text>
-  <text x="450" y="272" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif" font-size="54" fill="#14171a">Letters to a</text><text x="450" y="340" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif" font-size="54" fill="#14171a">Young Minister</text>
-  <line x1="380" y1="424" x2="520" y2="424" stroke="#7a3b2e" stroke-width="2"/>
-  <text x="450" y="472" text-anchor="middle" font-family="'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="23" letter-spacing="1.4" fill="#14171a" opacity="0.75">Bishop Wendell Carr</text></svg>
+<defs>
+  <linearGradient id="ramp2" x1="0" y1="0" x2="0.7" y2="1">
+    <stop offset="0" stop-color="#2a3550"/><stop offset="1" stop-color="#0e1526"/>
+  </linearGradient>
+  <radialGradient id="glow2" cx="0.5" cy="0.5" r="0.5">
+    <stop offset="0" stop-color="#fff" stop-opacity="0.55"/><stop offset="1" stop-color="#fff" stop-opacity="0"/>
+  </radialGradient>
+  <radialGradient id="vig2" cx="0.5" cy="0.42" r="0.78">
+    <stop offset="0.55" stop-color="#000" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity="0.34"/>
+  </radialGradient>
+  <filter id="grain2" x="0" y="0" width="100%" height="100%">
+    <feTurbulence type="fractalNoise" baseFrequency="0.85" numOctaves="3" seed="2"/>
+    <feColorMatrix type="saturate" values="0"/>
+  </filter>
+  <filter id="soft2" x="-30%" y="-30%" width="160%" height="160%">
+    <feGaussianBlur stdDeviation="26"/>
+  </filter>
+</defs>
+    <rect width="900" height="600" fill="url(#ramp2)"/>
+    <g transform="translate(560,72) rotate(-7)">
+      <rect width="300" height="430" rx="4" fill="#000" opacity="0.28" filter="url(#soft2)"/>
+      <rect width="300" height="430" rx="4" fill="#f7f3ea"/>
+      <path d="M0 0 L300 0 L150 132 Z" fill="#000" opacity="0.10"/>
+      <line x1="34" y1="196" x2="266" y2="196" stroke="#c9a26a" stroke-width="3" opacity="0.30"/><line x1="34" y1="220" x2="266" y2="220" stroke="#c9a26a" stroke-width="3" opacity="0.30"/><line x1="34" y1="244" x2="266" y2="244" stroke="#c9a26a" stroke-width="3" opacity="0.30"/><line x1="34" y1="268" x2="266" y2="268" stroke="#c9a26a" stroke-width="3" opacity="0.30"/><line x1="34" y1="292" x2="266" y2="292" stroke="#c9a26a" stroke-width="3" opacity="0.30"/><line x1="34" y1="316" x2="266" y2="316" stroke="#c9a26a" stroke-width="3" opacity="0.30"/><line x1="34" y1="340" x2="266" y2="340" stroke="#c9a26a" stroke-width="3" opacity="0.30"/><line x1="34" y1="364" x2="266" y2="364" stroke="#c9a26a" stroke-width="3" opacity="0.30"/><line x1="34" y1="388" x2="266" y2="388" stroke="#c9a26a" stroke-width="3" opacity="0.30"/>
+    </g>
+    <rect width="900" height="600" fill="url(#vig2)"/><rect width="900" height="600" filter="url(#grain2)" opacity="0.13" style="mix-blend-mode:overlay"/>
+    <text x="72" y="104" font-family="'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="18" letter-spacing="4.6" fill="#f4efe6" opacity="0.9">THE R.O.C.K. WOI · BOOK</text>
+    <text x="72" y="288" text-anchor="start" font-family="Georgia, 'Times New Roman', serif" font-size="54" fill="#f4efe6">Letters to a</text><text x="72" y="352" text-anchor="start" font-family="Georgia, 'Times New Roman', serif" font-size="54" fill="#f4efe6">Young Minister</text>
+    <text x="72" y="532" font-family="'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="21" fill="#f4efe6" opacity="0.72">Bishop Wendell Carr · 176 pages</text></svg>

@@ -1,8 +1,28 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 600" width="900" height="600" role="img" aria-label="The Doctrine of the Church">
-  <rect width="900" height="600" fill="#fbf9f5"/>
-  <rect x="64" y="64" width="772" height="472" fill="none" stroke="#073fbd" stroke-width="1.5" opacity="0.55"/>
-  <rect x="76" y="76" width="748" height="448" fill="none" stroke="#073fbd" stroke-width="0.75" opacity="0.35"/>
-  <text x="450" y="150" text-anchor="middle" font-family="'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="19" letter-spacing="4.5" fill="#073fbd">CORNERSTONE THEOLOGICAL</text>
-  <text x="450" y="272" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif" font-size="56" fill="#052c85">The Doctrine</text><text x="450" y="342" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif" font-size="56" fill="#052c85">of the Church</text>
-  <line x1="380" y1="424" x2="520" y2="424" stroke="#073fbd" stroke-width="2"/>
-  <text x="450" y="472" text-anchor="middle" font-family="'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="23" letter-spacing="1.4" fill="#052c85" opacity="0.75">Dr Miriam Vance</text></svg>
+<defs>
+  <linearGradient id="ramp3" x1="0" y1="0" x2="0.7" y2="1">
+    <stop offset="0" stop-color="#dfe7ff"/><stop offset="1" stop-color="#4d6bc4"/>
+  </linearGradient>
+  <radialGradient id="glow3" cx="0.5" cy="0.5" r="0.5">
+    <stop offset="0" stop-color="#fff" stop-opacity="0.55"/><stop offset="1" stop-color="#fff" stop-opacity="0"/>
+  </radialGradient>
+  <radialGradient id="vig3" cx="0.5" cy="0.42" r="0.78">
+    <stop offset="0.55" stop-color="#000" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity="0.34"/>
+  </radialGradient>
+  <filter id="grain3" x="0" y="0" width="100%" height="100%">
+    <feTurbulence type="fractalNoise" baseFrequency="0.85" numOctaves="3" seed="3"/>
+    <feColorMatrix type="saturate" values="0"/>
+  </filter>
+  <filter id="soft3" x="-30%" y="-30%" width="160%" height="160%">
+    <feGaussianBlur stdDeviation="26"/>
+  </filter>
+</defs>
+    <rect width="900" height="600" fill="url(#ramp3)"/>
+    <g>
+      <path d="M470 540 L470 198 A 48 48 0 0 1 566 198 L566 540 Z" fill="#000" opacity="0.34"/><path d="M588 540 L588 224 A 48 48 0 0 1 684 224 L684 540 Z" fill="#000" opacity="0.27"/><path d="M706 540 L706 250 A 48 48 0 0 1 802 250 L802 540 Z" fill="#000" opacity="0.2"/><path d="M824 540 L824 276 A 48 48 0 0 1 920 276 L920 540 Z" fill="#000" opacity="0.13"/>
+    </g>
+    <circle cx="560" cy="150" r="190" fill="url(#glow3)" opacity="0.6"/>
+    <rect width="900" height="600" fill="url(#vig3)"/><rect width="900" height="600" filter="url(#grain3)" opacity="0.13" style="mix-blend-mode:overlay"/>
+    <text x="72" y="104" font-family="'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="18" letter-spacing="4.6" fill="#0a1330" opacity="0.9">CORNERSTONE · BOOK</text>
+    <text x="72" y="300" text-anchor="start" font-family="Georgia, 'Times New Roman', serif" font-size="54" fill="#0a1330">The Doctrine</text><text x="72" y="364" text-anchor="start" font-family="Georgia, 'Times New Roman', serif" font-size="54" fill="#0a1330">of the Church</text>
+    <text x="72" y="532" font-family="'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="21" fill="#0a1330" opacity="0.72">Dr Miriam Vance · 288 pages</text></svg>

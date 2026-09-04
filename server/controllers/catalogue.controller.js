@@ -21,12 +21,17 @@ import { Resource } from '../models/Resource.js';
  * Enrolment is still offered as a choice; it is just not the neutral view.
  */
 const SORTS = {
-  newest: { createdAt: -1 },
-  popular: { learners: -1, createdAt: -1 },
-  rating: { rating: -1, createdAt: -1 },
-  'price-asc': { price: 1, createdAt: -1 },
-  'price-desc': { price: -1, createdAt: -1 },
+  newest: { newestAt: -1 },
+  popular: { learners: -1, newestAt: -1 },
+  rating: { rating: -1, newestAt: -1 },
+  'price-asc': { price: 1, newestAt: -1 },
+  'price-desc': { price: -1, newestAt: -1 },
 };
+
+// When a thing was published, not when its row was written. A catalogue that
+// sorts on row age puts whatever was inserted last at the top, which for a
+// seeded database means one whole collection ahead of the other.
+const NEWEST_AT = { $ifNull: ['$publishedAt', '$createdAt'] };
 
 // `$literal` throughout: a bare string in $project is read as a field path, and
 // a bare null as an exclusion, so both need saying explicitly.
@@ -42,7 +47,7 @@ const COURSE_CARD = {
     lectureCount: 1,
     rating: 1, ratingCount: 1, learners: 1,
     bestseller: 1,
-    createdAt: 1,
+    newestAt: NEWEST_AT,
   },
 };
 
@@ -56,7 +61,7 @@ const RESOURCE_CARD = {
     minutes: '$durationMinutes',
     pages: 1,
     authorName: 1,
-    createdAt: 1,
+    newestAt: NEWEST_AT,
   },
 };
 

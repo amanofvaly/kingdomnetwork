@@ -1,9 +1,30 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 600" width="900" height="600" role="img" aria-label="Before You Marry Them">
-  <rect width="900" height="600" fill="#fbf9f5"/>
-  <line x1="72" y1="150" x2="640" y2="150" stroke="#14171a" stroke-width="1" opacity="0.10"/><line x1="72" y1="190" x2="640" y2="190" stroke="#14171a" stroke-width="1" opacity="0.10"/><line x1="72" y1="230" x2="640" y2="230" stroke="#14171a" stroke-width="1" opacity="0.10"/><line x1="72" y1="270" x2="640" y2="270" stroke="#14171a" stroke-width="1" opacity="0.10"/><line x1="72" y1="310" x2="640" y2="310" stroke="#14171a" stroke-width="1" opacity="0.10"/><line x1="72" y1="350" x2="640" y2="350" stroke="#14171a" stroke-width="1" opacity="0.10"/><line x1="72" y1="390" x2="640" y2="390" stroke="#14171a" stroke-width="1" opacity="0.10"/><line x1="72" y1="430" x2="640" y2="430" stroke="#14171a" stroke-width="1" opacity="0.10"/><line x1="72" y1="470" x2="640" y2="470" stroke="#14171a" stroke-width="1" opacity="0.10"/><line x1="72" y1="510" x2="640" y2="510" stroke="#14171a" stroke-width="1" opacity="0.10"/><line x1="72" y1="550" x2="640" y2="550" stroke="#14171a" stroke-width="1" opacity="0.10"/>
-  <text x="72" y="106" font-family="'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="19" letter-spacing="4.5" fill="#2f4f3a">SEMINOLE ASSEMBLY · WORKBOOK</text>
-  <text x="72" y="232" font-family="Georgia, 'Times New Roman', serif" font-size="52" fill="#14171a">Before You</text><text x="72" y="294" font-family="Georgia, 'Times New Roman', serif" font-size="52" fill="#14171a">Marry Them</text>
-  <rect x="668" y="368" width="160" height="160" rx="10" fill="#2f4f3a"/>
-  <text x="748" y="454" text-anchor="middle" font-family="'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="52" font-weight="700" fill="#fff">6</text>
-  <text x="748" y="486" text-anchor="middle" font-family="'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="16" letter-spacing="2" fill="#fff" opacity="0.9">SESSIONS</text>
-  <text x="72" y="516" font-family="'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="21" fill="#14171a" opacity="0.66">Counsellor’s notes included</text></svg>
+<defs>
+  <linearGradient id="ramp9" x1="0" y1="0" x2="0.7" y2="1">
+    <stop offset="0" stop-color="#eef3ec"/><stop offset="1" stop-color="#b9cbb4"/>
+  </linearGradient>
+  <radialGradient id="glow9" cx="0.5" cy="0.5" r="0.5">
+    <stop offset="0" stop-color="#fff" stop-opacity="0.55"/><stop offset="1" stop-color="#fff" stop-opacity="0"/>
+  </radialGradient>
+  <radialGradient id="vig9" cx="0.5" cy="0.42" r="0.78">
+    <stop offset="0.55" stop-color="#000" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity="0.34"/>
+  </radialGradient>
+  <filter id="grain9" x="0" y="0" width="100%" height="100%">
+    <feTurbulence type="fractalNoise" baseFrequency="0.85" numOctaves="3" seed="9"/>
+    <feColorMatrix type="saturate" values="0"/>
+  </filter>
+  <filter id="soft9" x="-30%" y="-30%" width="160%" height="160%">
+    <feGaussianBlur stdDeviation="26"/>
+  </filter>
+</defs>
+    <rect width="900" height="600" fill="url(#ramp9)"/>
+    <g transform="translate(660,310)">
+      <circle cx="-58" cy="18" r="118" fill="#000" opacity="0.22" filter="url(#soft9)"/>
+      <circle cx="58" cy="18" r="118" fill="#000" opacity="0.22" filter="url(#soft9)"/>
+      <circle cx="-52" cy="0" r="112" fill="none" stroke="#2f4f3a" stroke-width="15" opacity="0.95"/>
+      <circle cx="52" cy="0" r="112" fill="none" stroke="#2f4f3a" stroke-width="15" opacity="0.62"/>
+    </g>
+    <rect width="900" height="600" filter="url(#grain9)" opacity="0.1" style="mix-blend-mode:overlay"/>
+    <text x="72" y="104" font-family="'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="18" letter-spacing="4.6" fill="#2f4f3a" opacity="0.9">SEMINOLE ASSEMBLY · WORKBOOK</text>
+    <text x="72" y="262" text-anchor="start" font-family="Georgia, 'Times New Roman', serif" font-size="52" fill="#16261c">Before You</text><text x="72" y="324" text-anchor="start" font-family="Georgia, 'Times New Roman', serif" font-size="52" fill="#16261c">Marry Them</text>
+    <text x="72" y="532" font-family="'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="21" fill="#16261c" opacity="0.72">Six sessions · 120 pages</text></svg>

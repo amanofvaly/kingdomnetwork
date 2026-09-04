@@ -202,6 +202,23 @@ const run = async () => {
     createdAt: new Date(now - (r.monthsAgo ?? 1) * 30 * 24 * 60 * 60 * 1000),
   }));
 
+  /**
+   * A publication date spread over the last two years, derived from the slug so
+   * that reseeding produces the same order rather than reshuffling the shelf.
+   *
+   * Without this every seeded row is stamped within the same second and the
+   * catalogue's newest-first view degenerates into insertion order — which
+   * means one whole collection ahead of the other, courses and materials in
+   * two blocks instead of a shelf.
+   */
+  const publishedOn = (slug) => {
+    let h = 0;
+    for (let i = 0; i < slug.length; i += 1) h = (h * 31 + slug.charCodeAt(i)) >>> 0;
+    return new Date(now - (h % 730) * 24 * 60 * 60 * 1000);
+  };
+
+  const spread = (rows) => rows.map((r) => ({ ...r, publishedAt: publishedOn(r.slug) }));
+
   await Church.insertMany(
     churches.map((c) => ({
       ...c,
@@ -214,9 +231,9 @@ const run = async () => {
     })),
   );
   await Instructor.insertMany(instructors);
-  await Course.insertMany(courses);
+  await Course.insertMany(spread(courses));
   await Offering.insertMany(offerings);
-  await Resource.insertMany(resources);
+  await Resource.insertMany(spread(resources));
   await Review.insertMany(dated);
 
   await PlatformSettings.load();
