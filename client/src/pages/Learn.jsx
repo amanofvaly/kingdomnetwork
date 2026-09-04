@@ -274,7 +274,7 @@ export const Learn = () => {
                   </p>
                   <div className="row-wrap" style={{ gap: 10 }}>
                     <Link to="/me/passport" className="btn btn-primary btn-sm">View credential</Link>
-                    <Link to="/courses" className="btn btn-outline btn-sm">Find your next course</Link>
+                    <Link to="/learning" className="btn btn-outline btn-sm">Find your next course</Link>
                   </div>
                 </div>
               </div>

@@ -81,7 +81,7 @@ export const CourseDetail = () => {
         <div className="wrap stack stack-4">
           <Breadcrumbs trail={[
             { label: 'Courses', to: '/courses' },
-            { label: course.category, to: `/courses?category=${encodeURIComponent(course.category)}` },
+            { label: course.category, to: `/learning?category=${encodeURIComponent(course.category)}` },
             { label: course.title },
           ]} />
           <div>

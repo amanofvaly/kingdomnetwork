@@ -339,7 +339,7 @@ const Footer = () => (
           <h5>More</h5>
           <ul>
             <li><Link to="/invitation-letter">Invitation letters</Link></li>
-            <li><Link to="/courses">Coursework</Link></li>
+            <li><Link to="/learning">Learning</Link></li>
             <li><Link to="/churches">Church directory</Link></li>
             <li><Link to="/verify">Verify a credential</Link></li>
           </ul>

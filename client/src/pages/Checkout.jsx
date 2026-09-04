@@ -48,7 +48,7 @@ export const Checkout = () => {
     return (
       <div className="wrap band stack stack-4" style={{ alignItems: 'center', textAlign: 'center' }}>
         <h1 style={{ fontSize: 'var(--text-2xl)' }}>There is nothing to pay for</h1>
-        <Link to="/courses" className="btn btn-primary">Browse the coursework</Link>
+        <Link to="/learning" className="btn btn-primary">Browse courses and materials</Link>
       </div>
     );
   }

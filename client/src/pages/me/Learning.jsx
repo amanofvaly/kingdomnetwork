@@ -75,7 +75,7 @@ export const MeLearning = () => {
           <SectionHead
             title="In progress"
             lede={active.length ? 'Each one opens where you left off.' : null}
-            action={<Link to="/courses" className="link">Browse courses <ArrowRight size={14} /></Link>}
+            action={<Link to="/learning" className="link">Browse courses <ArrowRight size={14} /></Link>}
           />
           {active.length ? (
             <div className="me-grid me-grid-3 me-stagger">
@@ -88,7 +88,7 @@ export const MeLearning = () => {
                 ? 'You have finished everything available to you. New coursework appears here when it unlocks.'
                 : 'Courses you buy appear here, along with any study a credential requires.'}
               art="/media/scenes/open-book-library.webp"
-              action={<Link to="/courses" className="btn btn-primary">Browse courses <ArrowRight size={16} /></Link>}
+              action={<Link to="/learning" className="btn btn-primary">Browse courses <ArrowRight size={16} /></Link>}
             />
           )}
         </Section>

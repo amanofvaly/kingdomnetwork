@@ -343,7 +343,7 @@ export const StoryRail = ({ items }) => {
         <ArrowUpRight className="me-promo-go" size={17} strokeWidth={2.4} />
       </Link>
 
-      <Link to="/courses" className="me-promo me-promo-course">
+      <Link to="/learning" className="me-promo me-promo-course">
         <span className="me-promo-art" aria-hidden="true">
           <span className="me-promo-shelf"><i /><i /><i /><i /></span>
         </span>

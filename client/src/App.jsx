@@ -1,4 +1,4 @@
-import { Navigate, Route, Routes, useLocation } from 'react-router-dom';
+import { Navigate, Route, Routes, useLocation, useParams } from 'react-router-dom';
 
 import { Layout } from './components/Layout.jsx';
 import { AdminShell, ChurchShell } from './components/admin/Shell.jsx';
@@ -9,7 +9,8 @@ import { Home } from './pages/Home.jsx';
 import { Outcome } from './pages/Outcome.jsx';
 import { Listing } from './pages/Listing.jsx';
 import { Search } from './pages/Search.jsx';
-import { Courses } from './pages/Courses.jsx';
+import { Learning } from './pages/Learning.jsx';
+import { Material } from './pages/Material.jsx';
 import { CourseDetail } from './pages/CourseDetail.jsx';
 import { Churches } from './pages/Churches.jsx';
 import { ChurchDetail } from './pages/ChurchDetail.jsx';
@@ -64,6 +65,18 @@ import {
 
 // Outcome pages sit at the root because they are the pages people land on.
 const OUTCOMES = ['ordination', 'certification', 'ministry-license', 'church-affiliation', 'invitation-letter'];
+
+/** Keeps the query string, so an old /courses?q=… link still lands on its results. */
+const RedirectWithQuery = ({ to }) => {
+  const { search } = useLocation();
+  return <Navigate to={`${to}${search}`} replace />;
+};
+
+/** The API calls them resources; people do not. */
+const RedirectResource = () => {
+  const { slug } = useParams();
+  return <Navigate to={`/materials/${slug}`} replace />;
+};
 
 const RequireAuth = ({ children }) => {
   const { user, memberships, ready } = useAuth();
@@ -145,8 +158,9 @@ export const App = () => (
       <Route path="credentials" element={<Outcome slug="all" />} />
       <Route path="listing/:slug" element={<Listing />} />
       <Route path="search" element={<Search />} />
-      <Route path="courses" element={<Courses />} />
+      <Route path="learning" element={<Learning />} />
       <Route path="courses/:slug" element={<CourseDetail />} />
+      <Route path="materials/:slug" element={<Material />} />
       <Route path="churches" element={<Churches />} />
       <Route path="churches/:slug" element={<ChurchDetail />} />
       <Route path="cart" element={<Cart />} />
@@ -184,6 +198,8 @@ export const App = () => (
       <Route path="passport" element={<Navigate to="/me/passport" replace />} />
       <Route path="orders" element={<Navigate to="/me/library" replace />} />
       <Route path="applications" element={<Navigate to="/me/journey" replace />} />
+      <Route path="courses" element={<RedirectWithQuery to="/learning" />} />
+      <Route path="resources/:slug" element={<RedirectResource />} />
       <Route path="pathways" element={<Navigate to="/ordination" replace />} />
       <Route path="teach" element={<Navigate to="/for-churches" replace />} />
 
