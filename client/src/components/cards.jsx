@@ -120,3 +120,81 @@ export const PathwayCard = ({ pathway }) => (
     </div>
   </article>
 );
+
+const MATERIAL_KIND_LABEL = {
+  course: 'Course',
+  book: 'Book',
+  audiobook: 'Audiobook',
+  'study-guide': 'Study guide',
+  'sermon-series': 'Sermon series',
+  album: 'Album',
+  workbook: 'Workbook',
+};
+
+/**
+ * One card for the whole catalogue.
+ *
+ * A course and a book are both things you buy, so they are not styled apart —
+ * the tag is what tells them apart, and the price and basket are common to
+ * both. The line DESIGN.md draws is between a material and standing, and
+ * standing is not on this shelf.
+ *
+ * Tolerant about where the minutes come from, because the same card renders a
+ * projected catalogue row, a raw resource from a church page, and a search hit.
+ */
+export const MaterialCard = ({ item }) => {
+  const { add, has } = useCart();
+  const isCourse = item.kind === 'course';
+  const cartKind = isCourse ? 'course' : 'resource';
+  const to = isCourse ? `/courses/${item.slug}` : `/materials/${item.slug}`;
+  const inCart = has(cartKind, item.slug);
+  const church = item.church;
+  const minutes = item.minutes ?? item.durationMinutes ?? item.totalMinutes;
+
+  const facts = [
+    minutes ? duration(minutes) : null,
+    isCourse && item.lectureCount ? plural(item.lectureCount, 'lesson') : null,
+    !isCourse && item.pages ? plural(item.pages, 'page') : null,
+    isCourse ? item.level : item.authorName,
+  ].filter(Boolean);
+
+  return (
+    <article className="card course-card">
+      {item.bestseller && <span className="flag badge-bestseller">Bestseller</span>}
+      <Link to={to} className="media media-3x2" tabIndex={-1} aria-hidden="true">
+        <img src={item.coverImage} alt="" loading="lazy" width={800} height={534} />
+      </Link>
+      <div className="card-body">
+        <span className="xs dim">{MATERIAL_KIND_LABEL[item.kind] ?? item.kind}</span>
+        <h3 className="course-title clamp-2"><Link to={to}>{item.title}</Link></h3>
+        {church && (
+          <Link to={`/churches/${church.slug}`} className="row small muted" style={{ gap: 6 }}>
+            <span className="clamp-1">{church.shortName ?? church.name}</span>
+            {church.verified && <Verified label="" size={13} />}
+          </Link>
+        )}
+        {isCourse && item.rating ? (
+          <div className="row" style={{ gap: 8 }}>
+            <Stars rating={item.rating} count={item.ratingCount} size={13} />
+          </div>
+        ) : null}
+        {facts.length ? (
+          <div className="course-meta">
+            {facts.map((fact, i) => <span key={fact}>{i > 0 && <span className="dot" />}{fact}</span>)}
+          </div>
+        ) : null}
+        <div className="course-foot">
+          <Price amount={item.price} was={item.compareAtPrice} currency={item.currency} />
+        </div>
+        {inCart ? (
+          <Link to="/cart" className="btn btn-outline btn-sm btn-block card-buy">In your basket <ArrowRight size={14} /></Link>
+        ) : (
+          <button type="button" className="btn btn-outline btn-sm btn-block card-buy"
+            onClick={() => add({ kind: cartKind, slug: item.slug })}>
+            <ShoppingBag size={14} /> {item.price ? 'Add to basket' : 'Get it free'}
+          </button>
+        )}
+      </div>
+    </article>
+  );
+};
