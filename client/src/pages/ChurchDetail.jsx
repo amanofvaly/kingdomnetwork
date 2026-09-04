@@ -94,7 +94,6 @@ export const ChurchDetail = () => {
             <div className="church-profile-name">
               <div className="church-profile-title-row">
                 <div className="row-wrap" style={{ gap: 8 }}><h1 id="church-name">{church.name || 'Church profile'}</h1>{church.verified ? <Verified label="Verified church" /> : null}</div>
-                {contact.email ? <a className="church-profile-mail" href={`mailto:${contact.email}`} aria-label={`Email ${church.name || 'this church'}`} title="Email church"><Mail size={17} /></a> : null}
               </div>
               <p>{profileCaption}</p>
               <div className="church-profile-meta">
@@ -115,8 +114,17 @@ export const ChurchDetail = () => {
                   onChange={(_, on) => setFollowers((n) => n + (on ? 1 : -1))}
                 />
               ) : null}
-              {website ? <a className="btn btn-inverse-outline" href={website} target="_blank" rel="noreferrer noopener">Website <ExternalLink size={14} /></a> : null}
-              {donations.enabled && shows('donate') ? <Link className="btn btn-inverse-outline" to={`/give/${church.slug}`}><HeartHandshake size={16} /> Give</Link> : null}
+              {/* Email and website are reference, not action — they live in the
+                  Church information panel, which already lists both. The banner
+                  keeps only what someone comes here to do. */}
+              {/* Giving is an action, not one of the page's content sections —
+                  it was previously also gated on `shows('donate')`, so a church
+                  that had arranged its sections at all lost the button. */}
+              {donations.enabled ? (
+                <Link className="btn btn-give" to={`/give/${church.slug}`}>
+                  <HeartHandshake size={16} /> Give
+                </Link>
+              ) : null}
             </div>
           </section>
         </div>

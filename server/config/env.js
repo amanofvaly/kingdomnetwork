@@ -81,8 +81,25 @@ export const assertProductionEnv = () => {
   if (!process.env.PUBLIC_BASE_URL) {
     missing.push('PUBLIC_BASE_URL must be set so payment callbacks and emailed links resolve');
   }
-  if (env.pesapal.mode === 'live' && (!env.pesapal.consumerKey || !env.pesapal.consumerSecret)) {
-    missing.push('PESAPAL_CONSUMER_KEY and PESAPAL_CONSUMER_SECRET are required when PESAPAL_ENV=live');
+
+  // A gateway that is asked for but not configured falls back to the mock, and
+  // the mock hands out credentials and course access for money that was never
+  // taken. In production that is worse than not starting.
+  if (env.pesapal.mode === 'mock') {
+    missing.push('PESAPAL_ENV must be `live` (or `sandbox`) — without it payments run on the development gateway and fulfil orders for free');
+  } else if (!env.pesapal.consumerKey || !env.pesapal.consumerSecret) {
+    missing.push(`PESAPAL_CONSUMER_KEY and PESAPAL_CONSUMER_SECRET are required when PESAPAL_ENV=${env.pesapal.mode}`);
+  }
+
+  // Pesapal calls the IPN from its own servers, so it has to be able to resolve
+  // us. A loopback or plain-http origin means notifications never arrive and
+  // payments hang as `pending` whenever a payer closes the tab.
+  const publicUrl = process.env.PUBLIC_BASE_URL ?? '';
+  if (publicUrl && !/^https:\/\//.test(publicUrl)) {
+    missing.push('PUBLIC_BASE_URL must be https so Pesapal can deliver the IPN');
+  }
+  if (/localhost|127\.0\.0\.1|\[::1\]/.test(publicUrl)) {
+    missing.push('PUBLIC_BASE_URL must be a public hostname, not loopback — Pesapal cannot reach it otherwise');
   }
 
   if (missing.length) {

@@ -16,14 +16,31 @@ const wanted = env.pesapal.mode;
 const configured = Boolean(env.pesapal.consumerKey && env.pesapal.consumerSecret);
 
 if (wanted !== 'mock' && !configured) {
+  const message = `PESAPAL_ENV=${wanted} but PESAPAL_CONSUMER_KEY/SECRET are missing`;
+
+  // On a laptop this is a nuisance worth a warning. In production the mock
+  // fulfils orders — issuing credentials and course access — for money that was
+  // never taken, so it must never be reached by accident.
+  if (env.isProduction) {
+    console.error(`[kingdom-network] refusing to start: ${message}.`);
+    process.exit(1);
+  }
+
   console.warn(
-    `[kingdom-network] PESAPAL_ENV=${wanted} but PESAPAL_CONSUMER_KEY/SECRET are missing — `
-    + 'falling back to the development gateway. No money will move.',
+    `[kingdom-network] ${message} — falling back to the development gateway. No money will move.`,
   );
 }
 
 export const mode = wanted !== 'mock' && configured ? wanted : 'mock';
 export const gateway = mode === 'mock' ? mock : live;
 export const isMock = mode === 'mock';
+
+// Which gateway is actually taking money is the single most consequential fact
+// about a running instance, and it was previously only visible by its absence.
+console.log(
+  mode === 'mock'
+    ? '[kingdom-network] payments: development gateway — no money moves'
+    : `[kingdom-network] payments: Pesapal ${mode} (${env.pesapal.baseUrl})`,
+);
 export const ensureIpnRegistered = (...args) => gateway.ensureIpnRegistered(...args);
 export { mock };

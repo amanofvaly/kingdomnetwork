@@ -1,6 +1,6 @@
 import mongoose from 'mongoose';
 
-import { acquisitionFor, isCredentialType } from '../lib/derive.js';
+import { acquisitionFor, isCredentialType, resolveOutcome } from '../lib/derive.js';
 
 /**
  * An Offering is one thing a church issues: a title, a standing, a document.
@@ -124,7 +124,8 @@ const offeringSchema = new mongoose.Schema(
     // certified → licensed → ordained, and the tier makes that legible.
     tier: { type: String, enum: ['certified', 'licensed', 'ordained', 'diploma', 'other'], default: 'other' },
 
-    // The comparison bucket. Many churches issue into the same outcome.
+    // The comparison bucket. Many churches issue into the same outcome, and
+    // which one is decided by the type — see `resolveOutcome`.
     outcome: { type: String, required: true, index: true },
 
     title: { type: String, required: true },
@@ -268,6 +269,10 @@ offeringSchema.pre('save', function derive(next) {
     this.set('requires.interview.required', true);
     this.set('requires.interview.faceToFace', true);
   }
+
+  // The comparison bucket follows from the type — a listing is only ever
+  // ranked against things of its own kind, whatever a client sent.
+  this.outcome = resolveOutcome(this.outcome, this.type);
 
   this.acquisition = acquisitionFor(this.requires, this.type);
   this.published = this.status === 'published';

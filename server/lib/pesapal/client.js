@@ -19,7 +19,7 @@ const base = env.pesapal.baseUrl;
 
 let cached = { token: null, expiresAt: 0 };
 
-const request = async (path, { method = 'POST', body, token, query } = {}) => {
+const request = async (path, { method = 'POST', body, token, query, tolerate = [] } = {}) => {
   const url = new URL(`${base}${path}`);
   for (const [key, value] of Object.entries(query ?? {})) url.searchParams.set(key, value);
 
@@ -36,8 +36,11 @@ const request = async (path, { method = 'POST', body, token, query } = {}) => {
   const payload = await res.json().catch(() => null);
 
   // Pesapal answers 200 with an `error` object rather than an error status, so
-  // the body has to be inspected even on success.
-  if (!res.ok || payload?.error?.code) {
+  // the body has to be inspected even on success. Some of those `errors` are
+  // not failures at all — see `tolerate`, which names the codes the caller
+  // would rather read than be thrown.
+  const code = payload?.error?.code;
+  if (!res.ok || (code && !tolerate.includes(code))) {
     const detail = payload?.error?.message ?? payload?.message ?? `HTTP ${res.status}`;
     throw Object.assign(new Error(`Pesapal: ${detail}`), { status: 502, pesapal: payload });
   }
@@ -128,6 +131,13 @@ export const transactionStatus = async (orderTrackingId) => {
     method: 'GET',
     token: await accessToken(),
     query: { orderTrackingId },
+    // An order nobody has paid yet answers with `payment_details_not_found`
+    // alongside a perfectly good status_code of 0 — which is the normal state of
+    // every order between submission and payment, not a failure. Throwing on it
+    // meant the browser callback threw for every payer who had not finished, and
+    // the IPN answered Pesapal with 500 and earned itself an endless retry.
+    // A genuinely bad id is a different code, and still throws.
+    tolerate: ['payment_details_not_found'],
   });
 
   return {

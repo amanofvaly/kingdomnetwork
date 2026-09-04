@@ -96,6 +96,12 @@ export const App = () => (
     <Route path="/learn/:slug" element={<RequireAuth><Learn /></RequireAuth>} />
     <Route path="/church/register" element={<ChurchRegister />} />
 
+    {/* Giving needs no account — and no site chrome either. Nav and footer are
+        exits standing beside a payment, so the page carries its own mark and
+        nothing else to click. */}
+    <Route path="/give/:slug" element={<Give />} />
+    <Route path="/give/:slug/thanks" element={<GiveThanks />} />
+
     {/* The user's own area. Its own chrome, like the consoles — but it is not
         one: a console exists to make an administrator careful, this exists to
         give a person somewhere of their own. */}
@@ -173,10 +179,6 @@ export const App = () => (
       <Route path="forgot-password" element={<ForgotPassword />} />
       <Route path="reset-password" element={<ResetPassword />} />
       <Route path="reference/:token" element={<ReferenceForm />} />
-
-      {/* Giving to a church needs no account. */}
-      <Route path="give/:slug" element={<Give />} />
-      <Route path="give/:slug/thanks" element={<GiveThanks />} />
 
       {/* Onboarding a church. */}
       <Route path="onboarding" element={<Navigate to="/church/register" replace />} />

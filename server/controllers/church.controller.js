@@ -266,6 +266,9 @@ export const updatePage = asyncHandler(async (req, res) => {
 
 /* ── donations settings ────────────────────────────────────────────────── */
 
+/** What the giving page can show in a single row. */
+export const MAX_CAUSES = 4;
+
 export const updateDonations = asyncHandler(async (req, res) => {
   const church = req.church;
   const body = req.body ?? {};
@@ -287,7 +290,10 @@ export const updateDonations = asyncHandler(async (req, res) => {
   }
 
   if (Array.isArray(body.causes)) {
-    church.donations.causes = body.causes.slice(0, 20).map((c) => {
+    // Four is the ceiling, not a display trick: the giving page shows the funds
+    // as one row of cards a giver takes in at a glance. A church that can name
+    // twenty things it needs money for has not decided what it is asking for.
+    church.donations.causes = body.causes.slice(0, MAX_CAUSES).map((c) => {
       const existing = church.donations.causes?.find((x) => x.id === c.id);
       return {
         id: c.id ?? slugify(c.title ?? 'cause') ?? String(Date.now()),

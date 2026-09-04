@@ -536,8 +536,17 @@ export const AdminSettings = () => {
           <dl className="a-kv">
             <dt>Gateway</dt>
             <dd>
-              {data.pesapal?.configured ? 'Pesapal' : 'The local development gateway'}
-              {data.pesapal?.configured ? null : <span className="dim small" style={{ display: 'block' }}>No Pesapal credentials configured. Payments are simulated.</span>}
+              {{
+                live: 'Pesapal — live',
+                sandbox: 'Pesapal — sandbox',
+              }[data.pesapal?.mode] ?? 'The local development gateway'}
+              {data.pesapal?.movesRealMoney ? null : (
+                <span className="dim small" style={{ display: 'block' }}>
+                  {data.pesapal?.mode === 'sandbox'
+                    ? 'Test keys against cybqa.pesapal.com. Orders and receipts are real; the money is not.'
+                    : 'No Pesapal credentials configured. Payments are simulated and orders are fulfilled for free.'}
+                </span>
+              )}
             </dd>
             <dt>Notification URL</dt><dd>{data.pesapal?.ipnUrl ?? <span className="dim">Not registered</span>}</dd>
             <dt>Notification id</dt><dd>{data.pesapal?.ipnId ? <code className="small">{data.pesapal.ipnId}</code> : <span className="dim">—</span>}</dd>

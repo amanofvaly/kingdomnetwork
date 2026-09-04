@@ -154,10 +154,20 @@ const churchSchema = new mongoose.Schema(
     },
 
     donations: {
-      enabled: { type: Boolean, default: false },
+      // On by default. Registration promises a church it can receive
+      // contributions from the moment its page is live, and a giving page that
+      // has to be found and switched on in a settings panel first is a promise
+      // the product does not keep. A church that would rather not receive gifts
+      // here turns it off.
+      enabled: { type: Boolean, default: true },
       headline: String,
       blurb: String,
-      causes: [causeSchema],
+      // At most four — see MAX_CAUSES in church.controller.js. The giving page
+      // presents these as one row of cards.
+      causes: {
+        type: [causeSchema],
+        validate: { validator: (v) => !v || v.length <= 4, message: 'A church may offer at most four funds.' },
+      },
       suggestedAmounts: { type: [Number], default: [25, 50, 100, 250] },
       allowCustom: { type: Boolean, default: true },
       minAmount: { type: Number, default: 5 },

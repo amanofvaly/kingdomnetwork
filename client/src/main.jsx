@@ -11,6 +11,7 @@ import './styles/admin.css';
 import './styles/me.css';
 import './styles/application.css';
 import './styles/apply.css';
+import './styles/give.css';
 
 import { App } from './App.jsx';
 import { AuthProvider } from './lib/auth.jsx';

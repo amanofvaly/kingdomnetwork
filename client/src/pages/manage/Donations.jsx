@@ -96,6 +96,8 @@ export const Donations = () => {
                   onChange={(causes) => set({ causes })}
                   makeItem={() => ({ id: `cause-${Date.now()}`, title: '', blurb: '', active: true })}
                   addLabel="Add a fund"
+                  max={4}
+                  maxHint="Four funds is the maximum — the giving page shows them as a single row."
                   title={(c) => c.title || 'New cause'}
                   empty="Donations go to your general fund unless you add one."
                   renderItem={(cause, i, update) => (

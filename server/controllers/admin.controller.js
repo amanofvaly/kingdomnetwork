@@ -3,7 +3,7 @@ import { audit } from '../lib/audit.js';
 import { reference as makeReference } from '../lib/ids.js';
 import { balanceFor, recordSettlement } from '../lib/ledger.js';
 import { notify } from '../lib/notify.js';
-import { isMock } from '../lib/pesapal/index.js';
+import { isMock, mode as pesapalMode } from '../lib/pesapal/index.js';
 import { clearVisibilityCache } from '../lib/visibility.js';
 import { Application } from '../models/Application.js';
 import { AuditLog } from '../models/AuditLog.js';
@@ -452,9 +452,12 @@ export const getSettings = asyncHandler(async (req, res) => {
       ...settings.toObject(),
       pesapal: {
         ...settings.pesapal?.toObject?.(),
-        // Whether a real gateway is configured. Credentials are never echoed.
-        mode: isMock ? 'mock' : 'live',
+        // Which gateway is taking money. `sandbox` is real Pesapal against test
+        // keys, so it is configured but still moves nothing — an administrator
+        // has to be able to tell it from `live`. Credentials are never echoed.
+        mode: pesapalMode,
         configured: !isMock,
+        movesRealMoney: pesapalMode === 'live',
       },
     },
   });

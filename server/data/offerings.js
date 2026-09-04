@@ -1,4 +1,4 @@
-import { acquisitionFor } from '../lib/derive.js';
+import { acquisitionFor, resolveOutcome } from '../lib/derive.js';
 
 // Seed supply. In production every one of these is written by the
 // church itself; this file stands in for that until the seller tooling is used.
@@ -51,6 +51,9 @@ const make = (o) => {
   return {
     ...o,
     requires,
+    // The comparison bucket is not authored: it follows from the type, and is
+    // only stated for a type that can sit in more than one. See `derive.js`.
+    outcome: resolveOutcome(o.outcome, o.type),
     acquisition: acquisitionFor(requires, o.type),
     disclosure: o.disclosure ?? DISCLOSURE[o.type],
     fee: {
@@ -88,7 +91,7 @@ export const offerings = [
   // ══════════════════════════════ ORDINATION ══════════════════════════════
   make({
     slug: 'ordained-minister-new-horizon', churchSlug: 'new-horizon-bible-college',
-    type: 'ordination', outcome: 'ordination',
+    type: 'ordination',
     title: 'Ordained Minister', subtitle: 'No coursework. Your ministry record and a face-to-face interview go to the college for decision.',
     description: [
       'New Horizon ordains ministers already serving in a congregation who have never held formal credentials. The college takes the view that the work came first and the paper should follow it, so it asks for the record of that work rather than for coursework.',
@@ -102,7 +105,7 @@ export const offerings = [
   }),
   make({
     slug: 'ordained-minister-ndw', churchSlug: 'ndw-ministries',
-    type: 'ordination', outcome: 'ordination',
+    type: 'ordination',
     title: 'Ordained Minister', subtitle: 'A written assessment and face-to-face panel interview before the church decides in Accra.',
     description: [
       'NDW Ministries has ordained ministers across West Africa since 1979. Ordination here carries a twenty-question assessment on doctrine, church order and pastoral conduct.',
@@ -116,7 +119,7 @@ export const offerings = [
   }),
   make({
     slug: 'ordained-minister-forerunner', churchSlug: 'forerunner-christian-church',
-    type: 'ordination', outcome: 'ordination',
+    type: 'ordination',
     title: 'Ordained Minister', subtitle: 'Scripture assessment, apprenticeship evidence, and a face-to-face ordination interview.',
     description: ['Forerunner considers scripture knowledge and a stated apprenticeship to a working ministry, then meets every candidate face to face before deciding whether to ordain.'],
     price: 34, compareAtPrice: 58,
@@ -127,7 +130,7 @@ export const offerings = [
   }),
   make({
     slug: 'ordained-minister-faith-life', churchSlug: 'faith-life-church',
-    type: 'ordination', outcome: 'ordination',
+    type: 'ordination',
     title: 'Ordained Minister', subtitle: 'Pastoral formation, a face-to-face panel interview, and church review in Kampala.',
     description: [
       'Faith Life Church has trained and ordained pastors in Uganda since 1998. Applying requires the pastoral theology core, a review of your ministry record, and a face-to-face meeting with the ordination panel.',
@@ -145,7 +148,7 @@ export const offerings = [
   }),
   make({
     slug: 'ordained-minister-divine-touch', churchSlug: 'divine-touch',
-    type: 'ordination', outcome: 'ordination',
+    type: 'ordination',
     title: 'Ordained Minister', subtitle: 'Ordination for diaspora and cross-cultural ministry.',
     description: ['Divine Touch ordains ministers serving immigrant and diaspora congregations, and those preparing to work across a cultural line.'],
     price: 52, compareAtPrice: 85,
@@ -156,7 +159,7 @@ export const offerings = [
   }),
   make({
     slug: 'ordained-minister-seminole', churchSlug: 'seminole-assembly',
-    type: 'ordination', outcome: 'ordination',
+    type: 'ordination',
     title: 'Ordained Minister', subtitle: 'Ordination weighted toward pastoral care and congregational practice.',
     description: ['Seminole Assembly ordains on the strength of demonstrated pastoral care rather than doctrinal examination alone.'],
     price: 75, compareAtPrice: 120,
@@ -167,7 +170,7 @@ export const offerings = [
   }),
   make({
     slug: 'ordained-minister-rock', churchSlug: 'rock-woi',
-    type: 'ordination', outcome: 'ordination',
+    type: 'ordination',
     title: 'Ordained Minister', subtitle: 'Doctrinal ordination. Systematic theology and a written examination.',
     description: [
       'The R.O.C.K. ordains on doctrine. You complete Systematic Theology I and sit a written examination marked against a published rubric.',
@@ -181,7 +184,7 @@ export const offerings = [
   }),
   make({
     slug: 'ordained-minister-ci', churchSlug: 'christian-international',
-    type: 'ordination', outcome: 'ordination',
+    type: 'ordination',
     title: 'Ordained Minister', subtitle: 'Ordination with network alignment and standing review.',
     description: [
       'Christian International ordains ministers into an alignment relationship. Ordination carries obligations in both directions and an annual standing assessment.',
@@ -201,7 +204,7 @@ export const offerings = [
   // ─────────────────────── higher titles, stacked ───────────────────────
   make({
     slug: 'senior-minister-rock', churchSlug: 'rock-woi',
-    type: 'ordination', outcome: 'ordination',
+    type: 'ordination',
     title: 'Senior Minister', subtitle: 'Requires ordination with The R.O.C.K. and two further certificates.',
     description: ['The second rung of The R.O.C.K. ministerial ladder. Held by ministers carrying oversight of other ministers.'],
     price: 145, compareAtPrice: 240,
@@ -215,7 +218,7 @@ export const offerings = [
   }),
   make({
     slug: 'apostolic-minister-ndw', churchSlug: 'ndw-ministries',
-    type: 'ordination', outcome: 'ordination',
+    type: 'ordination',
     title: 'Apostolic Minister', subtitle: 'For ministers overseeing works in more than one city.',
     description: ['NDW recognises apostolic ministry where a minister carries responsibility for congregations beyond their own.'],
     price: 180, compareAtPrice: 290,
@@ -229,7 +232,7 @@ export const offerings = [
   }),
   make({
     slug: 'bishop-ci', churchSlug: 'christian-international',
-    type: 'ordination', outcome: 'ordination',
+    type: 'ordination',
     title: 'Bishop', subtitle: 'The senior office in the Christian International network.',
     description: [
       'Consecration to the office of bishop within the Christian International network. Held by ministers who oversee other ordained ministers and carry covering for congregations.',
@@ -249,7 +252,7 @@ export const offerings = [
   // ═════════════════════════════ CERTIFICATION ═════════════════════════════
   make({
     slug: 'youth-ministry-certificate-forerunner', churchSlug: 'forerunner-christian-church',
-    type: 'certificate', outcome: 'certification',
+    type: 'certificate',
     title: 'Youth Ministry Certificate', subtitle: 'Reviewed by the youth pastor, then issued.',
     description: ['For leaders already running youth and young adult work who want it recognised.'],
     price: 19, compareAtPrice: 32,
@@ -259,7 +262,7 @@ export const offerings = [
   }),
   make({
     slug: 'evangelist-certificate-ndw', churchSlug: 'ndw-ministries',
-    type: 'certificate', outcome: 'certification',
+    type: 'certificate',
     title: 'Evangelist Certificate', subtitle: 'Reviewed against your record of evangelistic work.',
     description: ['Recognition for itinerant and open-air evangelists working under NDW covering.'],
     price: 22, compareAtPrice: 39,
@@ -269,7 +272,7 @@ export const offerings = [
   }),
   make({
     slug: 'biblical-studies-certificate-new-horizon', churchSlug: 'new-horizon-bible-college',
-    type: 'certificate', outcome: 'certification',
+    type: 'certificate',
     title: 'Biblical Studies Certificate', subtitle: 'Fifteen questions. Twenty minutes.',
     description: ['A short assessment covering how the Bible is organised, the shape of the biblical story, and reading a letter in its setting.'],
     price: 25, compareAtPrice: 42,
@@ -280,7 +283,7 @@ export const offerings = [
   }),
   make({
     slug: 'missions-certificate-divine-touch', churchSlug: 'divine-touch',
-    type: 'certificate', outcome: 'certification',
+    type: 'certificate',
     title: 'Cross-Cultural Missions Certificate', subtitle: 'Assessment on language, support and re-entry.',
     price: 33, compareAtPrice: 55,
     description: ['For ministers preparing to serve across a cultural line, or already doing so.'],
@@ -291,7 +294,7 @@ export const offerings = [
   }),
   make({
     slug: 'prophetic-ministry-certificate-ci', churchSlug: 'christian-international',
-    type: 'certificate', outcome: 'certification',
+    type: 'certificate',
     title: 'Prophetic Ministry Certificate', subtitle: 'Assessment on gifting, office, testing and accountability.',
     description: ['The entry requirement for ordination and alignment with Christian International.'],
     price: 36, compareAtPrice: 62,
@@ -302,7 +305,7 @@ export const offerings = [
   }),
   make({
     slug: 'pastoral-care-certificate-seminole', churchSlug: 'seminole-assembly',
-    type: 'certificate', outcome: 'certification',
+    type: 'certificate',
     title: 'Pastoral Care Certificate', subtitle: 'Full course, eighteen written cases.',
     description: ['The visit, the hospital, the graveside and the call at two in the morning. Case-based and marked.'],
     price: 40, compareAtPrice: 68,
@@ -313,7 +316,7 @@ export const offerings = [
   }),
   make({
     slug: 'church-admin-certificate-grace-covenant', churchSlug: 'grace-covenant-institute',
-    type: 'certificate', outcome: 'certification',
+    type: 'certificate',
     title: 'Church Administration Certificate', subtitle: 'Finance, governance and safeguarding.',
     description: ['The business side of running a congregation, taught from real documents and closed with a submitted operations manual.'],
     price: 48, compareAtPrice: 82,
@@ -324,7 +327,7 @@ export const offerings = [
   }),
   make({
     slug: 'chaplaincy-certificate-riverside', churchSlug: 'riverside-divinity',
-    type: 'certificate', outcome: 'certification',
+    type: 'certificate',
     title: 'Chaplaincy Certificate', subtitle: 'Hospital and correctional chaplaincy, with a supervised placement.',
     description: ['Training for ministry inside hospitals, prisons and universities, where you serve everyone in the building.'],
     price: 55, compareAtPrice: 95,
@@ -335,7 +338,7 @@ export const offerings = [
   }),
   make({
     slug: 'preaching-certificate-beacon-hill', churchSlug: 'beacon-hill-ministry',
-    type: 'certificate', outcome: 'certification',
+    type: 'certificate',
     title: 'Preaching Certificate', subtitle: 'Six recorded sermons, reviewed with timestamped notes.',
     description: ['Beacon Hill teaches preaching as a craft. You preach, you submit the recording, you get notes to the second.'],
     price: 58, compareAtPrice: 98,
@@ -346,7 +349,7 @@ export const offerings = [
   }),
   make({
     slug: 'theology-certificate-cornerstone', churchSlug: 'cornerstone-theological',
-    type: 'certificate', outcome: 'certification',
+    type: 'certificate',
     title: 'Theology Certificate', subtitle: 'Graduate-level. Three courses and a comprehensive examination.',
     description: ['New Testament survey, hermeneutics and early church history, closed by a supervised four-hour paper.'],
     price: 65, compareAtPrice: 110,
@@ -362,7 +365,7 @@ export const offerings = [
   // ══════════════════════════ MINISTRY LICENCE ══════════════════════════
   make({
     slug: 'ministry-license-new-horizon', churchSlug: 'new-horizon-bible-college',
-    type: 'license', outcome: 'ministry-license',
+    type: 'license',
     title: 'Ministry Licence', subtitle: 'Reviewed against your ministry record, then licensed for a year.',
     description: ['A licence to preach and to lead worship services under New Horizon.'],
     price: 18, compareAtPrice: 30,
@@ -372,7 +375,7 @@ export const offerings = [
   }),
   make({
     slug: 'ministry-license-faith-life', churchSlug: 'faith-life-church',
-    type: 'license', outcome: 'ministry-license',
+    type: 'license',
     title: 'Ministry Licence', subtitle: 'Short assessment on church order and conduct.',
     description: ['Authority to preach and to conduct services under Faith Life Church, renewable every two years.'],
     price: 30, compareAtPrice: 52,
@@ -383,7 +386,7 @@ export const offerings = [
   }),
   make({
     slug: 'preaching-license-rock', churchSlug: 'rock-woi',
-    type: 'license', outcome: 'ministry-license',
+    type: 'license',
     title: 'Preaching Licence', subtitle: 'Assessment on exposition and church order.',
     description: ['A licence to preach under The R.O.C.K., for lay preachers on a congregational rota.'],
     price: 35, compareAtPrice: 58,
@@ -396,7 +399,7 @@ export const offerings = [
   // ════════════════════════ CHURCH AFFILIATION ════════════════════════
   make({
     slug: 'affiliation-ndw', churchSlug: 'ndw-ministries',
-    type: 'affiliation', outcome: 'church-affiliation',
+    type: 'affiliation',
     title: 'NDW Ministries Affiliation', subtitle: 'Annual standing with an Accra ministry established in 1979.',
     description: ['Affiliation places your congregation or ministry under NDW covering, with an annual review and continued standing.'],
     price: 75, compareAtPrice: 120,
@@ -407,7 +410,7 @@ export const offerings = [
   }),
   make({
     slug: 'affiliation-faith-life', churchSlug: 'faith-life-church',
-    type: 'affiliation', outcome: 'church-affiliation',
+    type: 'affiliation',
     title: 'Faith Life Church Affiliation', subtitle: 'Standing with a Ugandan ministry, renewable each year.',
     description: ['For independent congregations across the Great Lakes region seeking covering and a named relationship.'],
     price: 60, compareAtPrice: 98,
@@ -418,7 +421,7 @@ export const offerings = [
   }),
   make({
     slug: 'affiliation-divine-touch', churchSlug: 'divine-touch',
-    type: 'affiliation', outcome: 'church-affiliation',
+    type: 'affiliation',
     title: 'Divine Touch Affiliation', subtitle: 'Covering for diaspora congregations.',
     description: ['Affiliation for immigrant and diaspora congregations without a denominational home.'],
     price: 90, compareAtPrice: 150,
@@ -429,7 +432,7 @@ export const offerings = [
   }),
   make({
     slug: 'affiliation-rock', churchSlug: 'rock-woi',
-    type: 'affiliation', outcome: 'church-affiliation',
+    type: 'affiliation',
     title: 'The R.O.C.K. Affiliation', subtitle: 'Doctrinal alignment and annual standing with a Houston ministry.',
     description: ['Affiliation with The R.O.C.K. carries a doctrinal statement you are expected to hold and teach.'],
     price: 120, compareAtPrice: 195,
@@ -440,7 +443,7 @@ export const offerings = [
   }),
   make({
     slug: 'affiliation-ci', churchSlug: 'christian-international',
-    type: 'affiliation', outcome: 'church-affiliation',
+    type: 'affiliation',
     title: 'Christian International Alignment', subtitle: 'Network alignment with covering and annual standing review.',
     description: ['Alignment carries obligations in both directions. The network provides covering and credentialing; you submit to review.'],
     price: 150, compareAtPrice: 240,
@@ -455,7 +458,7 @@ export const offerings = [
   // so every letter here is sold by a church in the country it invites to.
   make({
     slug: 'invitation-letter-new-horizon-dallas', churchSlug: 'new-horizon-bible-college',
-    type: 'invitation-letter', outcome: 'invitation-letter',
+    type: 'invitation-letter',
     title: 'Invitation to Dallas, Texas', subtitle: 'Annual teaching week at New Horizon Bible College.',
     description: [
       'New Horizon hosts visiting ministers for a teaching week each spring in Dallas. The letter names the college as your host for the visit and states the dates and purpose.',
@@ -470,7 +473,7 @@ export const offerings = [
   }),
   make({
     slug: 'invitation-letter-divine-touch-alabama', churchSlug: 'divine-touch',
-    type: 'invitation-letter', outcome: 'invitation-letter',
+    type: 'invitation-letter',
     title: 'Invitation to Montgomery, Alabama', subtitle: 'Diaspora ministry conference, hosted twice a year.',
     description: ['Divine Touch hosts ministers from West Africa and the wider diaspora at its conference in Montgomery.'],
     price: 80, compareAtPrice: 130,
@@ -482,7 +485,7 @@ export const offerings = [
   }),
   make({
     slug: 'invitation-letter-seminole-florida', churchSlug: 'seminole-assembly',
-    type: 'invitation-letter', outcome: 'invitation-letter',
+    type: 'invitation-letter',
     title: 'Invitation to Largo, Florida', subtitle: 'Pastoral care intensive and pulpit exchange.',
     description: ['Seminole Assembly invites visiting ministers for its pastoral care intensive, run twice a year on the Florida gulf coast.'],
     price: 85, compareAtPrice: 138,
@@ -494,7 +497,7 @@ export const offerings = [
   }),
   make({
     slug: 'invitation-letter-grace-covenant-atlanta', churchSlug: 'grace-covenant-institute',
-    type: 'invitation-letter', outcome: 'invitation-letter',
+    type: 'invitation-letter',
     title: 'Invitation to Atlanta, Georgia', subtitle: 'Church administration workshop for visiting leaders.',
     description: ['Grace Covenant runs a governance and finance workshop for visiting church leaders each autumn.'],
     price: 88, compareAtPrice: 142,
@@ -506,7 +509,7 @@ export const offerings = [
   }),
   make({
     slug: 'invitation-letter-forerunner-us', churchSlug: 'forerunner-christian-church',
-    type: 'invitation-letter', outcome: 'invitation-letter',
+    type: 'invitation-letter',
     title: 'Invitation to the United States', subtitle: 'Scripture and worship intensive for visiting leaders.',
     description: ['Forerunner invites visiting ministers to its scripture and worship intensive.'],
     price: 92, compareAtPrice: 150,
@@ -518,7 +521,7 @@ export const offerings = [
   }),
   make({
     slug: 'invitation-letter-rock-houston', churchSlug: 'rock-woi',
-    type: 'invitation-letter', outcome: 'invitation-letter',
+    type: 'invitation-letter',
     title: 'Invitation to Houston, Texas', subtitle: 'International ministers conference, hosted annually.',
     description: [
       'The R.O.C.K. hosts an international ministers conference in Houston each year and invites ordained ministers from its partner networks.',
@@ -533,7 +536,7 @@ export const offerings = [
   }),
   make({
     slug: 'invitation-letter-riverside-portland', churchSlug: 'riverside-divinity',
-    type: 'invitation-letter', outcome: 'invitation-letter',
+    type: 'invitation-letter',
     title: 'Invitation to Portland, Oregon', subtitle: 'Chaplaincy exchange and institutional placement visit.',
     description: ['Riverside hosts visiting chaplains for an observation placement across hospital and correctional settings.'],
     price: 99, compareAtPrice: 162,
@@ -545,7 +548,7 @@ export const offerings = [
   }),
   make({
     slug: 'invitation-letter-cornerstone-nashville', churchSlug: 'cornerstone-theological',
-    type: 'invitation-letter', outcome: 'invitation-letter',
+    type: 'invitation-letter',
     title: 'Invitation to Nashville, Tennessee', subtitle: 'Residential theology intensive at the seminary.',
     description: ['Cornerstone invites visiting ministers to a two-week residential intensive on its Nashville campus.'],
     price: 105, compareAtPrice: 170,
@@ -557,7 +560,7 @@ export const offerings = [
   }),
   make({
     slug: 'invitation-letter-ci-florida', churchSlug: 'christian-international',
-    type: 'invitation-letter', outcome: 'invitation-letter',
+    type: 'invitation-letter',
     title: 'Invitation to Santa Rosa Beach, Florida', subtitle: 'Prophetic ministry gathering for aligned ministers.',
     description: ['Christian International hosts its aligned ministers at the annual gathering in Florida.'],
     price: 110, compareAtPrice: 178,
@@ -569,7 +572,7 @@ export const offerings = [
   }),
   make({
     slug: 'invitation-letter-beacon-hill-boston', churchSlug: 'beacon-hill-ministry',
-    type: 'invitation-letter', outcome: 'invitation-letter',
+    type: 'invitation-letter',
     title: 'Invitation to Boston, Massachusetts', subtitle: 'Preaching intensive with recorded review.',
     description: ['Beacon Hill invites visiting preachers to its recorded review intensive in Boston.'],
     price: 120, compareAtPrice: 195,

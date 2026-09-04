@@ -1,0 +1,580 @@
+/* ---------------------------------------------------------------------------
+   Kingdom Network — giving
+
+   Built on the same split the church registration flow uses: the church's own
+   cover carries the left, under a heavy shade with the headline set large and
+   tight; the decision itself sits on warm cream to the right. Giving is an act
+   of trust in a specific church, so that church's face — not a form on white —
+   is what the page leads with.
+
+   Inside the form column everything descends in the order the decision is
+   actually made: how much, where it goes, who you are, what arrives.
+   --------------------------------------------------------------------------- */
+
+.give {
+  display: grid;
+  grid-template-columns: minmax(420px, 0.86fr) minmax(560px, 1.14fr);
+  /* `align-items: start` sized each column to its own content, so on a short
+     form neither reached the bottom of the screen. Both fill the viewport and
+     grow together when the form runs long. */
+  min-height: 100svh;
+}
+
+/* --- the art side --------------------------------------------------------- */
+
+/* The form is taller than the viewport. Left to stretch, the art column grows
+   with it and parks its headline hundreds of pixels below the fold — so it is
+   pinned to one screen instead, and the church stays in view for the whole
+   descent through the form. */
+.give-art {
+  position: sticky;
+  top: 0;
+  height: 100svh;
+  isolation: isolate;
+  overflow: hidden;
+  background: linear-gradient(150deg, #073fbd 0%, #51419a 55%, #24204a 100%);
+}
+.give-art > img {
+  position: absolute;
+  inset: 0;
+  z-index: -2;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.give-art-shade {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background:
+    linear-gradient(90deg, rgba(22, 17, 55, 0.92) 0%, rgba(28, 20, 64, 0.78) 46%, rgba(18, 15, 47, 0.42) 100%),
+    linear-gradient(0deg, rgba(17, 14, 42, 0.62), transparent 62%);
+}
+/* The ring, as on the issuer banners and the payment page. */
+.give-art::before {
+  content: '';
+  position: absolute;
+  z-index: -1;
+  right: -26%;
+  bottom: -34%;
+  width: 78%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  border: clamp(30px, 4.5vw, 62px) solid rgba(255, 206, 72, 0.22);
+  transform: rotate(-12deg);
+  pointer-events: none;
+}
+
+.give-brand {
+  position: absolute;
+  z-index: 3;
+  top: clamp(24px, 4vh, 40px);
+  left: clamp(22px, 5vw, 68px);
+  color: #fff;
+}
+.give-brand .brand-name { color: #fff; }
+.give-brand:hover { opacity: 0.82; }
+
+.give-art-copy {
+  position: absolute;
+  z-index: 2;
+  left: clamp(22px, 5vw, 68px);
+  right: clamp(22px, 5vw, 68px);
+  bottom: clamp(40px, 8vh, 88px);
+}
+
+.give-mark {
+  display: inline-block;
+  width: 54px;
+  height: 54px;
+  padding: 4px;
+  border-radius: var(--r-full);
+  background: rgba(255, 255, 255, 0.94);
+  box-shadow: 0 6px 20px rgba(12, 10, 30, 0.32);
+}
+.give-mark .monogram {
+  width: 100%;
+  height: 100%;
+  border-radius: var(--r-full);
+  object-fit: cover;
+}
+
+.give-art-copy h1 {
+  max-width: 14ch;
+  margin-top: var(--s-5);
+  color: #fff;
+  font-size: clamp(2.6rem, 4.4vw, 4.4rem);
+  line-height: 0.96;
+  letter-spacing: -0.04em;
+}
+.give-blurb {
+  max-width: 44ch;
+  margin: var(--s-5) 0 0;
+  color: rgba(255, 255, 255, 0.78);
+  font-size: clamp(1rem, 1.3vw, 1.13rem);
+  line-height: 1.55;
+}
+
+/* Place and standing on one quiet line. The shared <Verified> component sets
+   its own icon beside the words "Verified church", which read as noise stacked
+   next to a long church name — here it is one small gold mark instead. */
+.give-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px var(--s-4);
+  margin: var(--s-4) 0 0;
+  color: rgba(255, 255, 255, 0.72);
+  font-size: var(--text-sm);
+}
+.give-verified {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--gold-100);
+  font-weight: 550;
+}
+.give-verified svg { flex: none; }
+
+/* --- the form side -------------------------------------------------------- */
+
+.give-form {
+  display: grid;
+  /* Centred in its column rather than pinned to the left edge with the balance
+     left over as dead margin. `safe` keeps a long form scrolling from the top
+     instead of overflowing past it. */
+  align-content: safe center;
+  justify-items: center;
+  padding: clamp(40px, 6vh, 72px) clamp(24px, 4vw, 64px);
+  background: var(--bg-warm);
+}
+.give-form-inner { width: 100%; max-width: 540px; }
+
+.give-form h2 {
+  margin-bottom: var(--s-5);
+  font-size: clamp(1.9rem, 2.6vw, 2.6rem);
+  line-height: 1;
+  letter-spacing: -0.035em;
+}
+.give-section { margin-top: var(--s-6); }
+
+/* Quiet section labels. The page previously used bare <h2>, which the base
+   stylesheet renders at 36px — the size of a page title, over a form field. */
+.give-label {
+  display: block;
+  margin-bottom: var(--s-3);
+  font-size: var(--text-xs);
+  font-weight: 650;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+
+/* --- amount --------------------------------------------------------------- */
+
+.give-amounts {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--s-2);
+}
+.give-amount {
+  min-height: 68px;
+  padding: 0 var(--s-2);
+  border: 1.5px solid var(--gold-100);
+  border-radius: var(--r-md);
+  background: #fffdf8;
+  color: var(--ink);
+  font-family: var(--font-display);
+  font-size: var(--text-xl);
+  font-weight: 620;
+  letter-spacing: -0.035em;
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+  transition: border-color var(--dur-1) var(--ease-soft),
+              background-color var(--dur-1) var(--ease-soft),
+              color var(--dur-1) var(--ease-soft),
+              transform var(--dur-1) var(--ease-soft);
+}
+.give-amount:hover { border-color: var(--blue-500); transform: translateY(-1px); }
+.give-amount.is-on {
+  background: var(--blue-700);
+  border-color: var(--blue-700);
+  color: #fff;
+  box-shadow: 0 8px 20px rgba(7, 63, 189, 0.26);
+}
+.give-amount:focus-visible { outline: none; box-shadow: var(--focus); }
+
+/* One row at every width. Four cards wrapping to two on a phone made the
+   cheapest choice the most prominent and buried $250 below the fold; they are
+   a single comparable set, so they stay on one line and shrink instead. */
+@media (max-width: 560px) {
+  .give-amounts { gap: 6px; }
+  .give-amount { min-height: 56px; font-size: var(--text-md); letter-spacing: -0.03em; padding: 0 4px; }
+}
+
+.give-custom { position: relative; margin-top: var(--s-2); }
+.give-custom .give-currency {
+  position: absolute;
+  left: var(--s-4);
+  top: 50%;
+  transform: translateY(-50%);
+  font-family: var(--font-display);
+  font-size: var(--text-lg);
+  font-weight: 620;
+  color: var(--ink-3);
+  pointer-events: none;
+  transition: color var(--dur-1) var(--ease-soft);
+}
+.give-custom input {
+  width: 100%;
+  min-height: 56px;
+  padding: 0 var(--s-4) 0 36px;
+  border: 1.5px solid var(--gold-100);
+  border-radius: var(--r-md);
+  background: #fffdf8;
+  color: var(--ink);
+  font-family: var(--font-display);
+  font-size: var(--text-lg);
+  font-weight: 620;
+  letter-spacing: -0.025em;
+  font-variant-numeric: tabular-nums;
+  transition: border-color var(--dur-1) var(--ease-soft), box-shadow var(--dur-1) var(--ease-soft);
+}
+.give-custom input::placeholder {
+  font-family: var(--font-body);
+  font-size: var(--text-base);
+  font-weight: 400;
+  letter-spacing: 0;
+  color: var(--ink-3);
+}
+.give-custom input:focus { outline: none; border-color: var(--blue-600); box-shadow: var(--focus); }
+.give-custom.is-on .give-currency { color: var(--blue-700); }
+.give-custom.is-on input { border-color: var(--blue-600); background: #fff; }
+.give-custom input::-webkit-outer-spin-button,
+.give-custom input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+.give-custom input[type='number'] { -moz-appearance: textfield; appearance: textfield; }
+
+/* --- funds ---------------------------------------------------------------- */
+
+/* Four cards on one row: the choice is a glance, not a list to work through. */
+.give-funds {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--s-2);
+}
+@media (max-width: 620px) { .give-funds { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+
+.give-fund {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  min-height: 82px;
+  padding: var(--s-3);
+  border: 1.5px solid var(--gold-100);
+  border-radius: var(--r-md);
+  background: #fffdf8;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color var(--dur-1) var(--ease-soft), background-color var(--dur-1) var(--ease-soft);
+}
+.give-fund:hover { border-color: var(--blue-500); }
+.give-fund.is-on { border-color: var(--blue-600); background: var(--blue-50); }
+.give-fund:focus-visible { outline: none; box-shadow: var(--focus); }
+
+.give-fund b {
+  font-size: var(--text-sm);
+  font-weight: 600;
+  line-height: 1.25;
+  letter-spacing: -0.01em;
+  /* Titles vary; two lines keeps every card the same height. */
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.give-fund-note {
+  margin-top: auto;
+  font-size: var(--text-xs);
+  line-height: 1.35;
+  color: var(--ink-3);
+  font-variant-numeric: tabular-nums;
+}
+.give-fund.is-on .give-fund-note { color: var(--blue-700); }
+.give-fund .progress { margin-top: auto; height: 4px; background: rgba(33, 30, 59, 0.1); }
+.give-fund .progress + .give-fund-note { margin-top: 0; }
+
+.give-receipt {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--s-2) var(--s-4);
+  margin: 0;
+  padding: var(--s-3) var(--s-4);
+  border: 1px solid var(--gold-100);
+  border-radius: var(--r-md);
+  background: #fffdf8;
+  font-size: var(--text-sm);
+  color: var(--ink-2);
+}
+.give-receipt b { font-weight: 600; color: var(--ink); }
+.give-receipt button {
+  border: 0;
+  background: none;
+  padding: 0;
+  font: inherit;
+  font-weight: 550;
+  color: var(--blue-700);
+  cursor: pointer;
+}
+.give-receipt button:hover { text-decoration: underline; }
+
+/* --- details -------------------------------------------------------------- */
+
+.give-fields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--s-4); }
+@media (max-width: 620px) { .give-fields { grid-template-columns: minmax(0, 1fr); } }
+.give-fields .field-wide { grid-column: 1 / -1; }
+.give-fields .input, .give-fields .textarea { background: #fffdf8; border-color: var(--gold-100); }
+.give-fields .input:focus, .give-fields .textarea:focus { background: #fff; }
+
+.give-check {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 2px var(--s-3);
+  align-items: start;
+  cursor: pointer;
+}
+.give-check input {
+  grid-row: 1 / 3;
+  width: 18px; height: 18px;
+  margin: 1px 0 0;
+  accent-color: var(--blue-700);
+  cursor: pointer;
+}
+.give-check span { font-size: var(--text-base); color: var(--ink); }
+.give-check small { font-size: var(--text-xs); color: var(--ink-3); line-height: 1.5; }
+
+/* --- the ledger and the commitment ---------------------------------------- */
+
+/* Everything a giver may add but is never required to. Closed by default: the
+   payment needs an amount and a receipt address, and nothing else should stand
+   between someone reaching for their wallet and the button. */
+.give-more {
+  margin-top: var(--s-5);
+  border-top: 1px solid var(--gold-100);
+  border-bottom: 1px solid var(--gold-100);
+}
+.give-more > summary {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+  padding: var(--s-4) 0;
+  color: var(--ink-2);
+  font-size: var(--text-base);
+  font-weight: 550;
+  cursor: pointer;
+  list-style: none;
+}
+.give-more > summary::-webkit-details-marker { display: none; }
+.give-more > summary::after {
+  content: '+';
+  margin-left: auto;
+  font-size: var(--text-lg);
+  font-weight: 400;
+  color: var(--ink-3);
+  transition: transform var(--dur-1) var(--ease-soft);
+}
+.give-more[open] > summary::after { content: '\2212'; }
+.give-more > summary:hover { color: var(--blue-700); }
+.give-more > summary span {
+  padding: 2px var(--s-2);
+  border-radius: var(--r-full);
+  background: rgba(33, 30, 59, 0.06);
+  font-size: var(--text-xs);
+  font-weight: 500;
+  color: var(--ink-3);
+}
+.give-more-body { padding-bottom: var(--s-5); }
+
+.give-close { margin-top: var(--s-5); }
+
+/* The button follows the scroll rather than waiting at the bottom of the form.
+   The gradient lets the cream page fade under it instead of cutting a hard
+   edge across whatever field is passing behind. */
+.give-cta {
+  position: sticky;
+  bottom: 0;
+  z-index: 3;
+  padding-bottom: var(--s-3);
+  background: linear-gradient(to top, var(--bg-warm) 0%, var(--bg-warm) 76%, rgba(255, 249, 237, 0) 100%);
+}
+.give-cta::before {
+  content: '';
+  display: block;
+  height: var(--s-4);
+}
+
+.give-submit {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s-6);
+  width: 100%;
+  min-height: 56px;
+  margin-top: var(--s-4);
+  padding: 0 var(--s-5);
+  border: none;
+  border-radius: var(--r-md);
+  background: var(--blue-700);
+  color: #fff;
+  font-family: inherit;
+  font-size: var(--text-md);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  cursor: pointer;
+  transition: background-color var(--dur-1) var(--ease-soft), transform var(--dur-1) var(--ease-soft);
+}
+.give-submit:hover:not(:disabled) { background: var(--blue-900); transform: translateY(-1px); }
+.give-submit:disabled { background: #cdc7de; color: #fff; cursor: not-allowed; transform: none; }
+.give-submit:focus-visible { outline: none; box-shadow: var(--focus); }
+.give-submit svg { flex: none; }
+
+.give-trust {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin: var(--s-3) 0 0;
+  font-size: var(--text-xs);
+  color: var(--ink-3);
+}
+.give-trust svg { flex: none; }
+
+.give-fineprint {
+  margin: var(--s-5) 0 0;
+  font-size: var(--text-xs);
+  line-height: 1.65;
+  color: var(--ink-3);
+}
+
+/* --- narrow --------------------------------------------------------------- */
+
+@media (max-width: 940px) {
+  .give { grid-template-columns: minmax(0, 1fr); }
+
+  /* A full-height cover on a phone is a wall: the amount buttons started an
+     entire screen below the fold. The art becomes a header instead, tall
+     enough to carry the church and short enough that the form is visible
+     without scrolling. */
+  /* `relative`, not `static`: the cover is an absolutely positioned child, so
+     un-positioning this element hands it the viewport as its containing block
+     and the image covers the whole page with the form floating over it. */
+  .give-art {
+    position: relative;
+    /* `top` survives from the sticky rule above; on a relative box it shifts
+       the art down by the header height, leaving a gap above it and lapping it
+       over the form by the same amount. */
+    top: auto;
+    height: auto;
+    min-height: 0;
+    padding: var(--s-3) 0 var(--s-4);
+  }
+  .give-art-copy {
+    position: static;
+    padding-inline: clamp(20px, 6vw, 40px);
+  }
+  /* The banner is the page's title on a phone, so it is one compact row —
+     mark beside the name — rather than a stacked block, and the form's own
+     "Make a donation" heading would only say it a second time. */
+  .give-art-copy {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: center;
+    column-gap: var(--s-3);
+  }
+  .give-mark { grid-row: 1 / 3; width: 42px; height: 42px; padding: 3px; }
+  /* Small, high and set apart: at full size directly above the church row it
+     read as the first line of the church's own name. */
+  .give-brand {
+    position: static;
+    gap: 7px;
+    padding: 10px clamp(20px, 6vw, 40px) 0;
+    opacity: 0.72;
+  }
+  .give-brand .brand-mark { width: 16px; height: 20px; }
+  .give-brand .brand-name { font-size: var(--text-xs); font-weight: 550; letter-spacing: -0.01em; }
+  .give-art-copy { margin-top: var(--s-4); }
+  .give-art-copy h1 {
+    grid-column: 2;
+    max-width: none;
+    margin-top: 0;
+    font-size: clamp(1.35rem, 5.4vw, 1.85rem);
+    line-height: 1.05;
+  }
+  .give-meta { grid-column: 2; margin-top: 3px; font-size: var(--text-xs); gap: 4px var(--s-3); }
+  .give-blurb { display: none; }
+  .give-form > .give-form-inner > h2 { display: none; }
+  /* Four price cards need no caption; the label is the first thing to go when
+     the screen is this narrow. */
+  .give-label-amount { display: none; }
+  .give-art::before { right: -34%; bottom: -120%; width: 86%; }
+
+  .give-form { padding-top: var(--s-6); padding-bottom: 132px; }
+  .give-form-inner { max-width: none; }
+
+  /* `sticky` never lifts an element above its place in the flow, so it only
+     reveals the button once you have already scrolled to it. A phone needs the
+     gift one tap away from anywhere in the form, which means a real fixed bar. */
+  .give-cta {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 20;
+    padding: var(--s-3) clamp(20px, 6vw, 40px) calc(var(--s-3) + env(safe-area-inset-bottom, 0px));
+    background: var(--bg-warm);
+    border-top: 1px solid var(--gold-100);
+    box-shadow: 0 -8px 24px rgba(33, 30, 59, 0.1);
+  }
+  .give-cta::before { display: none; }
+  .give-trust { justify-content: center; margin-top: var(--s-2); }
+}
+
+/* --- the way in ----------------------------------------------------------- */
+
+/* On the church page this sits over a photograph among outline buttons. Gold
+   rather than blue: it is the one action there that is not about the viewer's
+   own standing, and it has to survive whatever image is behind it. */
+.btn-give {
+  background: #ffce48;
+  border-color: #ffce48;
+  color: #3a2700;
+  font-weight: 650;
+  box-shadow: 0 6px 18px rgba(20, 14, 0, 0.28);
+}
+.btn-give:hover { background: #ffdc77; border-color: #ffdc77; color: #2e1e00; }
+
+/* --- thanks --------------------------------------------------------------- */
+
+.give-thanks {
+  display: grid;
+  place-items: center;
+  min-height: 100svh;
+  padding: var(--s-8) var(--gutter);
+  background: var(--bg-warm);
+}
+.give-thanks-inner { max-width: 540px; text-align: center; }
+.give-thanks h1 { margin-top: var(--s-4); font-size: clamp(2.4rem, 4vw, 3.4rem); line-height: 1; letter-spacing: -0.04em; }
+.give-thanks .lede { margin-top: var(--s-4); color: var(--ink-2); font-size: var(--text-md); line-height: 1.6; }
+.give-thanks .give-ref {
+  display: inline-block;
+  margin-top: var(--s-5);
+  padding: 6px var(--s-3);
+  border-radius: var(--r-full);
+  background: #fffdf8;
+  border: 1px solid var(--gold-100);
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  color: var(--ink-2);
+}
+.give-thanks .give-fineprint { margin-top: var(--s-5); }
+.give-thanks .btn { margin-top: var(--s-6); }

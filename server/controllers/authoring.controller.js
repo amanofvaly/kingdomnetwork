@@ -1,6 +1,9 @@
 import { asyncHandler } from '../middleware/asyncHandler.js';
 import { audit } from '../lib/audit.js';
-import { acquisitionFor, assignCurriculumKeys, isCredentialType, slugify, validateOfferingForPublish } from '../lib/derive.js';
+import {
+  acquisitionFor, assignCurriculumKeys, defaultOutcomeForType, isCredentialType, isOfferingType, slugify,
+  validateOfferingForPublish,
+} from '../lib/derive.js';
 import { shortId } from '../lib/ids.js';
 import { dependantsOfCourse, dependantsOfOffering, findRequirementCycle, proposeSlug } from '../lib/slugs.js';
 import { Assessment } from '../models/Assessment.js';
@@ -81,14 +84,21 @@ export const createOffering = asyncHandler(async (req, res) => {
   const title = String(req.body?.title ?? '').trim();
   if (!title) return res.status(400).json({ success: false, message: 'Give the listing a title.' });
 
+  const type = req.body?.type ?? 'certificate';
+  if (!isOfferingType(type)) {
+    return res.status(400).json({ success: false, message: 'That is not a kind of credential a church can issue.' });
+  }
+
   const slug = await proposeSlug(Offering, title, { churchSlug: req.church.slug });
 
   const offering = new Offering({
     slug,
     churchSlug: req.church.slug,
     title,
-    type: req.body?.type ?? 'certificate',
-    outcome: req.body?.outcome ?? 'certification',
+    type,
+    // Not asked for at creation: the bucket a listing competes in follows from
+    // its kind, and the one type that can sit in two is moved in the builder.
+    outcome: defaultOutcomeForType(type),
     price: 0,
     fee: { amount: 0, currency: 'USD', label: 'Application fee' },
     status: 'draft',
@@ -110,9 +120,16 @@ export const updateOffering = asyncHandler(async (req, res) => {
 
   const before = { title: offering.title, fee: offering.fee?.amount, status: offering.status };
 
+  if (req.body?.type !== undefined && !isOfferingType(req.body.type)) {
+    return res.status(400).json({ success: false, message: 'That is not a kind of credential a church can issue.' });
+  }
+
   for (const field of OFFERING_FIELDS) {
     if (req.body?.[field] !== undefined) offering[field] = req.body[field];
   }
+
+  // Changing the kind can strand the bucket it was competing in; the model's
+  // pre-save hook corrects that rather than failing the write.
 
   // Merchandising is the platform's lever, not the church's, and never applies
   // to something that confers standing.

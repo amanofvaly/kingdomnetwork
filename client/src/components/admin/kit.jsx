@@ -139,7 +139,7 @@ export const ParagraphEditor = ({ label, help, value = [], onChange, placeholder
 };
 
 /** A list of things a person adds, removes and reorders. */
-export const RepeatableList = ({ items = [], onChange, renderItem, title, addLabel = 'Add', makeItem, collapsible = true, empty }) => {
+export const RepeatableList = ({ items = [], onChange, renderItem, title, addLabel = 'Add', makeItem, collapsible = true, empty, max, maxHint }) => {
   const [collapsed, setCollapsed] = useState(() => new Set());
 
   const update = (i, next) => onChange(items.map((item, n) => (n === i ? next : item)));
@@ -188,7 +188,10 @@ export const RepeatableList = ({ items = [], onChange, renderItem, title, addLab
         </div>
       ))}
 
-      <button type="button" className="btn btn-outline btn-sm" onClick={() => onChange([...items, makeItem()])} style={{ justifySelf: 'start' }}>
+      {max && items.length >= max ? (
+        <p className="a-field-help" style={{ margin: 0 }}>{maxHint ?? `You can add up to ${max}.`}</p>
+      ) : null}
+      <button type="button" className="btn btn-outline btn-sm" disabled={max ? items.length >= max : false} onClick={() => onChange([...items, makeItem()])} style={{ justifySelf: 'start' }}>
         <Plus size={14} strokeWidth={2} /> {addLabel}
       </button>
     </div>

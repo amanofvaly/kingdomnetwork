@@ -295,9 +295,22 @@
 .church-profile-mark > img, .church-profile-mark > .monogram { width: 100%; height: 100%; border-radius: 9px; object-fit: cover; font-size: var(--text-2xl); }
 .church-profile-name h1 { color: #fff; font-size: clamp(1.8rem, 3.5vw, 2.7rem); letter-spacing: -.035em; }
 .church-profile-name .verified { color: #fff; }
-.church-profile-title-row { display: flex; align-items: center; justify-content: space-between; gap: var(--s-3); }
-.church-profile-mail { display: grid; place-items: center; flex: none; width: 36px; height: 36px; border: 1px solid rgba(255,255,255,.42); border-radius: var(--r-md); color: #fff; background: rgba(21,18,48,.18); }
-.church-profile-mail:hover { border-color: #fff; background: rgba(255,255,255,.14); }
+.church-profile-title-row { display: flex; align-items: center; gap: var(--s-3); }
+/* A square icon button sized to sit level with Website and Give beside it. */
+.church-profile-mail { flex: none; width: 44px; padding: 0; }
+
+/* Follow defaults to filled blue because it used to be the only thing worth
+   pressing up here. Give is that now, so Follow steps back to an outline —
+   two filled buttons side by side just argue with each other. */
+.church-profile-actions .me-follow.btn-primary {
+  background: transparent;
+  border-color: rgba(255, 255, 255, 0.32);
+  color: #fff;
+}
+.church-profile-actions .me-follow.btn-primary:hover:not(:disabled) {
+  border-color: #fff;
+  background: rgba(255, 255, 255, 0.08);
+}
 .church-profile-name > p { max-width: 62ch; margin: 6px 0 0; color: rgba(255,255,255,.88); }
 .church-profile-meta { display: flex; flex-wrap: wrap; gap: 6px var(--s-4); margin-top: 8px; color: rgba(255,255,255,.72); font-size: var(--text-sm); }
 .church-profile-meta span { display: inline-flex; align-items: center; gap: 5px; }
@@ -371,6 +384,9 @@
   .church-profile-name h1 { font-size: 1.65rem; }
   .church-profile-name > p { font-size: var(--text-sm); }
   .church-profile-actions .btn { flex: 1; padding-inline: var(--s-3); }
+  /* Contact stays a square icon here. Sharing the row equally with Give made a
+     secondary action look like a second primary one. */
+  .church-profile-actions .church-profile-mail { flex: 0 0 44px; padding-inline: 0; }
   .church-profile-body { padding-block: var(--s-3) var(--s-6); }
   .church-profile-layout { padding-inline: var(--s-3); gap: var(--s-3); }
   .church-profile-panel, .church-profile-section { border-radius: var(--r-md); }

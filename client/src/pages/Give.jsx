@@ -1,22 +1,27 @@
 import { useState } from 'react';
+import { ArrowRight, BadgeCheck, Check, Lock } from 'lucide-react';
 import { Link, useParams, useSearchParams } from 'react-router-dom';
-import { Heart, Lock } from 'lucide-react';
 
-import { Checkbox, Input, Textarea } from '../components/admin/kit.jsx';
-import { ErrorState, ChurchMark, Spinner, Verified } from '../components/ui.jsx';
+import { ErrorState, ChurchMark, Spinner } from '../components/ui.jsx';
 import { api } from '../lib/api.js';
 import { useAuth } from '../lib/auth.jsx';
 import { money } from '../lib/format.js';
 import { useToast } from '../lib/toast.jsx';
 import { useApi } from '../lib/useAsync.js';
 
+const FALLBACK_COVER = '/media/church-registration-cross.jpg';
+
 /**
  * Giving to a church.
  *
- * No account is asked for — requiring one before someone can give is a barrier
- * with no purpose. What the platform keeps is stated on the form rather than
- * buried, because a giver intending money for a church should be told what
- * actually reaches it.
+ * No account, and as little asked for as the payment actually needs: an amount
+ * and one way to send a receipt. Everything else a giver might want to add —
+ * their name, a message, whether to be listed — is real, but it is not the
+ * price of giving, so it sits behind one optional disclosure rather than in the
+ * way. A long form in front of someone reaching for their wallet loses gifts.
+ *
+ * Laid out on the same split as church registration: the church's own cover
+ * carries the left, the decision sits on cream to the right.
  */
 export const Give = () => {
   const { slug } = useParams();
@@ -31,19 +36,24 @@ export const Give = () => {
   const [anonymous, setAnonymous] = useState(false);
   const [consent, setConsent] = useState(false);
   const [busy, setBusy] = useState(false);
+  const [ownEmail, setOwnEmail] = useState(false);
 
-  if (loading) return <div className="wrap band"><Spinner /></div>;
+  if (loading) return <div className="wrap band"><Spinner label="Loading" /></div>;
   if (error) return <div className="wrap band"><ErrorState error={error} onRetry={reload} /></div>;
 
   const { church } = data;
   const value = amount ?? (Number(custom) || 0);
+
+  const belowMinimum = value > 0 && value < data.minAmount;
+  const reachable = Boolean(form.email || form.phone || user?.email);
+  const ready = value >= data.minAmount && reachable && !busy;
 
   const give = async () => {
     setBusy(true);
     try {
       const intent = await api.post(`/give/${slug}`, {
         amount: value,
-        causeId: causeId || undefined,
+        causeId: chosen || undefined,
         anonymous,
         consentToDisplay: consent && !anonymous,
         name: form.name || user?.name,
@@ -59,164 +69,252 @@ export const Give = () => {
     }
   };
 
-  const cause = data.causes.find((c) => c.id === causeId);
-  const reaches = value ? value * (1 - data.commissionPercent / 100) : 0;
+  const place = [church.city, church.country].filter(Boolean).join(', ');
+
+  // A church may name at most four funds (MAX_CAUSES, server side), and the row
+  // holds four cards. So "where it is needed most" takes a card only when there
+  // is one spare — never at the cost of hiding a fund the church asked for.
+  const funds = data.causes.slice(0, 4);
+  const showGeneral = funds.length < 4;
+  const chosen = causeId || (showGeneral ? '' : funds[0]?.id ?? '');
 
   return (
-    <>
-      <div className="band band-warm">
-        <div className="wrap stack stack-3">
-          <Link to={`/churches/${slug}`} className="row" style={{ gap: 12, alignItems: 'center', textDecoration: 'none', color: 'inherit' }}>
+    <div className="give">
+      <section className="give-art">
+        {/* Every church resolves to an image: its own cover, or the platform's.
+            A church without one used to fall through to a bare gradient. */}
+        <img
+          src={church.coverImage || FALLBACK_COVER}
+          alt=""
+          onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = FALLBACK_COVER; }}
+        />
+        <div className="give-art-shade" />
+
+        {/* The page's only way out, and the only mark on it. */}
+        <Link to="/" className="brand give-brand">
+          <img className="brand-mark" src="/brand-mark-white.png" alt="" width="26" height="32" />
+          <span className="brand-name">Kingdom Network</span>
+        </Link>
+
+        <div className="give-art-copy">
+          <Link to={`/churches/${slug}`} className="give-mark" aria-label={church.name}>
             <ChurchMark church={church} />
-            <span className="stack" style={{ gap: 0 }}>
-              <span className="small">{church.name} {church.verified ? <Verified /> : null}</span>
-              <span className="dim xs">{[church.city, church.country].filter(Boolean).join(', ')}</span>
-            </span>
           </Link>
+
+          {/* The church is named once, here. */}
           <h1>{data.headline ?? `Give to ${church.shortName ?? church.name}`}</h1>
-          {data.blurb ? <p className="lede">{data.blurb}</p> : null}
-        </div>
-      </div>
 
-      <div className="wrap band">
-        <div className="detail-grid">
-          <div className="stack stack-5">
-            {data.causes.length ? (
-              <section>
-                <h2>Choose a fund</h2>
-                <div className="stack stack-3">
-                  <button
-                    type="button"
-                    className={`radio-card ${!causeId ? 'is-chosen' : ''}`}
-                    onClick={() => setCauseId('')}
-                    style={{ textAlign: 'left', width: '100%' }}
-                  >
-                    <span className="radio-dot" />
-                    <span>
-                      <b>General fund</b>
-                      <span className="dim small" style={{ display: 'block' }}>The church decides.</span>
-                    </span>
-                  </button>
-                  {data.causes.map((c) => (
-                    <button
-                      key={c.id}
-                      type="button"
-                      className={`radio-card ${causeId === c.id ? 'is-chosen' : ''}`}
-                      onClick={() => setCauseId(c.id)}
-                      style={{ textAlign: 'left', width: '100%' }}
-                    >
-                      <span className="radio-dot" />
-                      <span style={{ flex: 1 }}>
-                        <b>{c.title}</b>
-                        {c.blurb ? <span className="dim small" style={{ display: 'block' }}>{c.blurb}</span> : null}
-                        {c.goalAmount ? (
-                          <span style={{ display: 'block', marginTop: 8 }}>
-                            <span className="progress"><span style={{ width: `${Math.min(100, ((c.raisedAmount ?? 0) / c.goalAmount) * 100)}%` }} /></span>
-                            <span className="dim xs">{money(c.raisedAmount ?? 0)} of {money(c.goalAmount)}</span>
-                          </span>
-                        ) : null}
-                      </span>
-                    </button>
-                  ))}
-                </div>
-              </section>
+          <p className="give-meta">
+            {place ? <span>{place}</span> : null}
+            {church.verified ? (
+              <span className="give-verified">
+                <BadgeCheck size={14} strokeWidth={2.2} /> Verified church
+              </span>
             ) : null}
+          </p>
 
-            <section>
-              <h2>Amount</h2>
-              <div className="row row-wrap" style={{ gap: 10 }}>
-                {(data.suggestedAmounts ?? []).map((a) => (
+          {data.blurb ? <p className="give-blurb">{data.blurb}</p> : null}
+        </div>
+      </section>
+
+      <form className="give-form" onSubmit={(e) => { e.preventDefault(); if (ready) give(); }}>
+        <div className="give-form-inner">
+          <h2>Make a donation</h2>
+
+          {data.causes.length ? (
+            <section className="give-section">
+              <span className="give-label">Where it goes</span>
+              <div className="give-funds">
+                {showGeneral ? (
                   <button
-                    key={a}
                     type="button"
-                    className={`btn ${amount === a ? 'btn-primary' : 'btn-outline'}`}
-                    onClick={() => { setAmount(a); setCustom(''); }}
+                    className={`give-fund ${!chosen ? 'is-on' : ''}`}
+                    aria-pressed={!chosen}
+                    onClick={() => setCauseId('')}
                   >
-                    {money(a)}
+                    <b>Where it is needed most</b>
+                    <span className="give-fund-note">The church decides</span>
+                  </button>
+                ) : null}
+
+                {funds.map((c) => (
+                  <button
+                    key={c.id}
+                    type="button"
+                    className={`give-fund ${chosen === c.id ? 'is-on' : ''}`}
+                    aria-pressed={chosen === c.id}
+                    onClick={() => setCauseId(c.id)}
+                  >
+                    <b>{c.title}</b>
+                    {c.goalAmount ? (
+                      <>
+                        <span className="progress">
+                          <span style={{ width: `${Math.min(100, ((c.raisedAmount ?? 0) / c.goalAmount) * 100)}%` }} />
+                        </span>
+                        <span className="give-fund-note">
+                          {Math.round(((c.raisedAmount ?? 0) / c.goalAmount) * 100)}% of {money(c.goalAmount)}
+                        </span>
+                      </>
+                    ) : (
+                      <span className="give-fund-note">{c.blurb ?? ''}</span>
+                    )}
                   </button>
                 ))}
-                {data.allowCustom ? (
+              </div>
+            </section>
+          ) : null}
+
+          <section className="give-section">
+            <span className="give-label give-label-amount">Amount</span>
+            <div className="give-amounts">
+              {(data.suggestedAmounts ?? []).map((a) => (
+                <button
+                  key={a}
+                  type="button"
+                  className={`give-amount ${amount === a ? 'is-on' : ''}`}
+                  aria-pressed={amount === a}
+                  onClick={() => { setAmount(a); setCustom(''); }}
+                >
+                  {money(a)}
+                </button>
+              ))}
+            </div>
+
+            {data.allowCustom ? (
+              <div className={`give-custom ${custom ? 'is-on' : ''}`}>
+                <span className="give-currency" aria-hidden="true">$</span>
+                <input
+                  type="number"
+                  inputMode="decimal"
+                  min={data.minAmount}
+                  step="0.01"
+                  placeholder="Another amount"
+                  aria-label="Another amount"
+                  value={custom}
+                  onChange={(e) => { setCustom(e.target.value); setAmount(null); }}
+                />
+              </div>
+            ) : null}
+
+            {belowMinimum ? (
+              <p className="err" style={{ marginTop: 'var(--s-3)' }}>
+                The smallest gift is {money(data.minAmount)}.
+              </p>
+            ) : null}
+          </section>
+
+          {/* The only thing needed beyond the amount: somewhere to send the
+              receipt. Everything else is optional and folded away below. */}
+          {/* Signed in, the receipt address is already known — showing an empty
+              box with the address greyed out as a placeholder reads as another
+              question to answer. It is stated, with a way to change it. */}
+          <section className="give-section">
+            {user?.email && !ownEmail ? (
+              <p className="give-receipt">
+                <span>Receipt goes to <b>{user.email}</b></span>
+                <button type="button" onClick={() => setOwnEmail(true)}>Use another</button>
+              </p>
+            ) : (
+              <div className="field">
+                <label htmlFor="give-email">Email for your receipt</label>
+                <input
+                  id="give-email" className="input" type="email" autoComplete="email"
+                  value={form.email} autoFocus={ownEmail}
+                  onChange={(e) => setForm({ ...form, email: e.target.value })}
+                />
+              </div>
+            )}
+          </section>
+
+          <details className="give-more">
+            <summary>
+              Add your name or a message <span>optional</span>
+            </summary>
+
+            <div className="give-more-body">
+              <div className="give-fields">
+                {!anonymous ? (
+                  <>
+                    <div className="field">
+                      <label htmlFor="give-name">Your name</label>
+                      <input
+                        id="give-name" className="input" autoComplete="name"
+                        value={form.name} placeholder={user?.name}
+                        onChange={(e) => setForm({ ...form, name: e.target.value })}
+                      />
+                    </div>
+                    <div className="field">
+                      <label htmlFor="give-country">Country</label>
+                      <input
+                        id="give-country" className="input" autoComplete="country-name"
+                        value={form.country} placeholder={user?.country}
+                        onChange={(e) => setForm({ ...form, country: e.target.value })}
+                      />
+                    </div>
+                  </>
+                ) : null}
+
+                <div className="field field-wide">
+                  <label htmlFor="give-phone">Phone</label>
                   <input
-                    className="input"
-                    type="number"
-                    min={data.minAmount}
-                    placeholder="Another amount"
-                    style={{ maxWidth: 180 }}
-                    value={custom}
-                    onChange={(e) => { setCustom(e.target.value); setAmount(null); }}
+                    id="give-phone" className="input" autoComplete="tel"
+                    value={form.phone}
+                    onChange={(e) => setForm({ ...form, phone: e.target.value })}
                   />
+                  <span className="hint">Only if you would rather not leave an email.</span>
+                </div>
+
+                <div className="field field-wide">
+                  <label htmlFor="give-message">Message to the church</label>
+                  <textarea
+                    id="give-message" className="textarea" rows={3}
+                    value={form.message}
+                    onChange={(e) => setForm({ ...form, message: e.target.value })}
+                  />
+                </div>
+              </div>
+
+              <div className="stack stack-3" style={{ marginTop: 'var(--s-4)' }}>
+                {data.allowAnonymous ? (
+                  <label className="give-check">
+                    <input type="checkbox" checked={anonymous} onChange={(e) => setAnonymous(e.target.checked)} />
+                    <span>Give anonymously</span>
+                    <small>Your name is not shared with the church.</small>
+                  </label>
+                ) : null}
+
+                {!anonymous ? (
+                  <label className="give-check">
+                    <input type="checkbox" checked={consent} onChange={(e) => setConsent(e.target.checked)} />
+                    <span>You may show my name on this page</span>
+                    <small>Your name only. The amount is never shown.</small>
+                  </label>
                 ) : null}
               </div>
-              {value > 0 && value < data.minAmount ? (
-                <p className="small" style={{ color: 'var(--red-600)' }}>The smallest gift is {money(data.minAmount)}.</p>
-              ) : null}
-            </section>
+            </div>
+          </details>
 
-            <section className="a-form">
-              <h2>Your details</h2>
-              {data.allowAnonymous ? (
-                <Checkbox label="Give anonymously" help="Your name is not shared with the church." checked={anonymous} onChange={setAnonymous} />
-              ) : null}
-              {!anonymous ? (
-                <div className="a-row">
-                  <Input label="Your name" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder={user?.name} />
-                  <Input label="Country" value={form.country} onChange={(e) => setForm({ ...form, country: e.target.value })} placeholder={user?.country} />
-                </div>
-              ) : null}
-              <div className="a-row">
-                <Input label="Email" type="email" help="Your receipt will be sent here." value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} placeholder={user?.email} />
-                <Input label="Phone" help="Either an email or phone number is required." value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} />
-              </div>
-              <Textarea label="Message to the church" rows={3} value={form.message} onChange={(e) => setForm({ ...form, message: e.target.value })} />
-              {!anonymous ? (
-                <Checkbox label="You may show my name on this page" help="Your name only. The amount is never shown." checked={consent} onChange={setConsent} />
-              ) : null}
-            </section>
-          </div>
-
-          <aside>
-            <div className="buy-card">
-              <h3 style={{ marginTop: 0 }}><Heart size={16} strokeWidth={1.8} style={{ verticalAlign: -2 }} /> Your gift</h3>
-              <dl className="a-kv" style={{ marginBottom: 'var(--s-4)' }}>
-                <dt>Toward</dt><dd>{cause?.title ?? 'General fund'}</dd>
-                <dt>Amount</dt><dd className="strong">{value ? money(value) : '—'}</dd>
-                <dt>Platform fee</dt><dd className="dim">{value ? `−${money(value - reaches)}` : '—'}</dd>
-                <dt>Reaches the church</dt><dd className="strong">{value ? money(reaches) : '—'}</dd>
-              </dl>
-
-              <button
-                type="button"
-                className="btn btn-primary btn-block btn-lg"
-                disabled={busy || value < data.minAmount || (!form.email && !form.phone && !user?.email)}
-                onClick={give}
-              >
-                {busy ? 'One moment…' : value ? `Give ${money(value)}` : 'Choose an amount'}
+          <section className="give-close">
+            {/* Sticky: the button stays reachable however far down the form
+                someone has scrolled, so the gift is never more than one tap
+                away. */}
+            <div className="give-cta">
+              <button type="submit" className="give-submit" disabled={!ready}>
+                <span>{busy ? 'One moment…' : value ? `Give ${money(value)}` : 'Choose an amount'}</span>
+                {busy ? <span className="spinner" /> : <ArrowRight size={19} />}
               </button>
 
-              <p className="dim xs" style={{ marginTop: 12 }}>
-                <Lock size={12} strokeWidth={1.8} style={{ verticalAlign: -2 }} /> Handled by Pesapal. Kingdom Network
-                never sees your card or wallet details.
+              <p className="give-trust">
+                <Lock size={12} strokeWidth={1.8} />
+                Kingdom Network never sees your card or wallet details.
               </p>
             </div>
 
-            <div className="panel" style={{ marginTop: 'var(--s-4)', padding: 'var(--s-4)' }}>
-              <p className="dim xs" style={{ margin: 0 }}>{data.disclosure}</p>
-            </div>
-
-            {data.recent?.length ? (
-              <div className="panel" style={{ marginTop: 'var(--s-4)', padding: 'var(--s-4)' }}>
-                <h4 className="eyebrow" style={{ marginTop: 0 }}>Recent donors</h4>
-                <ul className="stack stack-1" style={{ listStyle: 'none', padding: 0, margin: 0 }}>
-                  {data.recent.map((g, i) => (
-                    <li key={i} className="small">{g.name}{g.country ? <span className="dim"> · {g.country}</span> : null}</li>
-                  ))}
-                </ul>
-              </div>
-            ) : null}
-          </aside>
+            <p className="give-fineprint">{data.disclosure}</p>
+          </section>
         </div>
-      </div>
-    </>
+      </form>
+    </div>
   );
 };
 
@@ -230,26 +328,28 @@ export const GiveThanks = () => {
   const failed = data?.status !== 'completed';
 
   return (
-    <div className="wrap band">
-      <div className="wrap-narrow stack stack-4" style={{ textAlign: 'center', alignItems: 'center' }}>
+    <div className="give-thanks">
+      <div className="give-thanks-inner">
         {failed ? (
           <>
             <h1>That gift did not go through.</h1>
             <p className="lede">Nothing has been taken. You are welcome to try again.</p>
-            <Link className="btn btn-primary" to={`/give/${slug}`}>Try again</Link>
+            <Link className="btn btn-primary btn-lg" to={`/give/${slug}`}>Try again</Link>
           </>
         ) : (
           <>
-            <span className="pill pill-good">Received</span>
+            <span className="pill pill-good"><Check size={13} strokeWidth={2.4} /> Received</span>
             <h1>Thank you.</h1>
             <p className="lede">
               Your gift of {money(data.amount)}{data.cause ? ` toward ${data.cause}` : ''} has reached{' '}
               {data.church?.name}. A receipt is on its way to you.
             </p>
             {data.message ? <p className="lede">{data.message}</p> : null}
-            <p className="dim small">Reference {data.reference}</p>
-            <p className="dim xs" style={{ maxWidth: 520 }}>{data.disclosure}</p>
-            <Link className="btn btn-outline" to={`/churches/${slug}`}>Back to {data.church?.shortName ?? 'the church'}</Link>
+            <span className="give-ref">{data.reference}</span>
+            <p className="give-fineprint">{data.disclosure}</p>
+            <Link className="btn btn-outline" to={`/churches/${slug}`}>
+              Back to {data.church?.shortName ?? 'the church'}
+            </Link>
           </>
         )}
       </div>

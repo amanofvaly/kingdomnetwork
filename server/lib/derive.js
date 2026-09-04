@@ -27,6 +27,52 @@ export const CREDENTIAL_TYPES = ['ordination', 'certificate', 'license', 'diplom
 
 export const isCredentialType = (type) => CREDENTIAL_TYPES.includes(type);
 
+/** Every kind of thing a church can issue, in the order the panel offers them. */
+export const OFFERING_TYPES = [
+  'ordination', 'license', 'certificate', 'diploma', 'letter-of-standing', 'affiliation', 'invitation-letter',
+];
+
+export const isOfferingType = (type) => OFFERING_TYPES.includes(type);
+
+/**
+ * The comparison buckets a type may be listed under, most apt first.
+ *
+ * A type is what a credential is, and it decides the rules: ordination needs a
+ * live interview, an invitation letter needs a destination. An outcome is the
+ * page where churches issuing the same thing are compared. For six of the
+ * seven types the two are the same question, so the bucket follows the type
+ * rather than being asked for twice. Only a letter of standing is genuinely
+ * placeable — it reads either as a licence or as an affiliation — and it is
+ * the one type the panel asks about.
+ *
+ * The buckets themselves are defined in `server/data/outcomes.js`; this is the
+ * only place that says which type belongs to which.
+ */
+const OUTCOMES_BY_TYPE = {
+  ordination: ['ordination'],
+  license: ['ministry-license'],
+  certificate: ['certification'],
+  diploma: ['certification'],
+  'letter-of-standing': ['ministry-license', 'church-affiliation'],
+  affiliation: ['church-affiliation'],
+  'invitation-letter': ['invitation-letter'],
+};
+
+export const outcomesForType = (type) => OUTCOMES_BY_TYPE[type] ?? [];
+
+/** The bucket a listing of this type lands in unless the church moves it. */
+export const defaultOutcomeForType = (type) => outcomesForType(type)[0] ?? null;
+
+export const outcomeFitsType = (outcome, type) => outcomesForType(type).includes(outcome);
+
+/**
+ * The bucket to store, given what was asked for. A bucket the type cannot be
+ * compared under is not an error to argue with — it is corrected to the
+ * default for the type, which is the only thing it could have meant.
+ */
+export const resolveOutcome = (outcome, type) =>
+  (outcomeFitsType(outcome, type) ? outcome : defaultOutcomeForType(type));
+
 const hasGroups = (groups) => Array.isArray(groups) && groups.some((g) => (g?.offeringSlugs?.length || g?.courseSlugs?.length));
 
 /**
@@ -112,6 +158,9 @@ export const validateOfferingForPublish = (offering) => {
   if (!offering.title?.trim()) problems.push('Give the listing a title.');
   if (!offering.churchSlug) problems.push('The listing is not attached to a church.');
   if (!offering.outcome) problems.push('Choose which outcome this listing competes in.');
+  else if (!outcomeFitsType(offering.outcome, offering.type)) {
+    problems.push('This listing is filed under an outcome its kind cannot be compared under.');
+  }
   if (!offering.disclosure?.trim()) {
     problems.push('Write the disclosure: what this confers, and what it does not.');
   }

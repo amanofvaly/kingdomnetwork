@@ -32,13 +32,25 @@ const TYPES = [
   { value: 'invitation-letter', label: 'Invitation letter' },
 ];
 
+/**
+ * The comparison pages, and which kinds may be listed on them.
+ *
+ * A kind is what the credential is and it decides the rules; the page it is
+ * compared on follows from that, so it is never asked for twice. Only a letter
+ * of standing reads two ways — as a licence or as an affiliation — and it is
+ * the one kind offered a choice. Mirrors `OUTCOMES_BY_TYPE` in
+ * `server/lib/derive.js`, which is what actually enforces it.
+ */
 const OUTCOMES = [
-  { value: 'ordination', label: 'Ordination' },
-  { value: 'certification', label: 'Certification' },
-  { value: 'ministry-license', label: 'Ministry licence' },
-  { value: 'church-affiliation', label: 'Church affiliation' },
-  { value: 'invitation-letter', label: 'Invitation letter' },
+  { value: 'ordination', label: 'Ordination', types: ['ordination'] },
+  { value: 'certification', label: 'Certification', types: ['certificate', 'diploma'] },
+  { value: 'ministry-license', label: 'Ministry licence', types: ['license', 'letter-of-standing'] },
+  { value: 'church-affiliation', label: 'Church affiliation', types: ['affiliation', 'letter-of-standing'] },
+  { value: 'invitation-letter', label: 'Invitation letter', types: ['invitation-letter'] },
 ];
+
+const outcomesForType = (type) => OUTCOMES.filter((o) => o.types.includes(type));
+const outcomeLabel = (value) => OUTCOMES.find((o) => o.value === value)?.label ?? value;
 
 const TIERS = [
   { value: 'certified', label: 'Certified' },
@@ -56,7 +68,7 @@ export const Credentials = () => {
   const { fail } = useToast();
   const { data, error, loading, reload } = useApi(`/manage/${churchSlug}/offerings`);
   const [creating, setCreating] = useState(false);
-  const [form, setForm] = useState({ title: '', type: 'certificate', outcome: 'certification' });
+  const [form, setForm] = useState({ title: '', type: 'certificate' });
 
   const create = async () => {
     try {
@@ -134,13 +146,12 @@ export const Credentials = () => {
         }
       >
         <Input label="Title" value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} placeholder="Ordained Minister" autoFocus />
-        <Select label="Type" value={form.type} onChange={(e) => setForm({ ...form, type: e.target.value })} options={TYPES} />
         <Select
-          label="Category"
-          help="The page where applicants compare churches."
-          value={form.outcome}
-          onChange={(e) => setForm({ ...form, outcome: e.target.value })}
-          options={OUTCOMES}
+          label="Kind"
+          help={`Sets what this must satisfy, and lists it under ${outcomeLabel(outcomesForType(form.type)[0]?.value)}.`}
+          value={form.type}
+          onChange={(e) => setForm({ ...form, type: e.target.value })}
+          options={TYPES}
         />
       </Dialog>
     </>

@@ -1,8 +1,13 @@
 /**
  * Outcomes are the comparison buckets. A buyer arrives wanting to become
  * something; every church selling into that outcome competes on one page.
- * These are platform taxonomy — churches pick which bucket they list into,
- * and define the title itself however they want.
+ * These are platform taxonomy — churches define the title itself however they
+ * want, but they do not invent the bucket.
+ *
+ * Which credential types land in which bucket is not decided here: a type is
+ * what a credential is and it decides the rules, so the bucket follows from it.
+ * That map lives in `server/lib/derive.js`, next to the other values a record
+ * computes from what it already carries.
  */
 export const outcomes = [
   {
@@ -13,7 +18,6 @@ export const outcomes = [
     lede: 'Recognised ministerial standing, issued and signed by a church.',
     blurb:
       'Ordination is granted by a church, on its own authority and under its own name. Compare what each ministry requires, what it costs, and how long it takes.',
-    types: ['ordination'],
     coverImage: '/media/scenes/congregation-praying.jpg',
     coverAlt: 'A congregation praying together during a church service',
     icon: 'flame',
@@ -26,7 +30,6 @@ export const outcomes = [
     lede: 'Church-issued certificates in ministry, care, chaplaincy and doctrine.',
     blurb:
       'A certificate names a competence and the church that vouches for it. Some are issued on purchase, some after a short assessment, some after coursework.',
-    types: ['certificate'],
     coverImage: '/media/scenes/students-laptop.webp',
     coverAlt: 'Smiling students learning together around a laptop',
     icon: 'award',
@@ -39,7 +42,6 @@ export const outcomes = [
     lede: 'Authority to preach, marry, bury and serve under a named church.',
     blurb:
       'A licence carries permissions rather than a title. What it authorises depends entirely on the issuing church and on local law.',
-    types: ['license'],
     coverImage: '/media/scenes/preacher-and-congregation.jpg',
     coverAlt: 'A preacher addressing a congregation from the stage',
     icon: 'scroll',
@@ -52,7 +54,6 @@ export const outcomes = [
     lede: 'Standing with an established ministry, renewable each year.',
     blurb:
       'Affiliation puts an independent minister or congregation under a named church. It is a relationship with obligations on both sides, and it lapses if it is not renewed.',
-    types: ['affiliation'],
     coverImage: '/media/scenes/discussion-table.webp',
     coverAlt: 'Church leaders talking around a table',
     icon: 'link',
@@ -65,7 +66,6 @@ export const outcomes = [
     lede: 'A signed invitation from a host church in the country you are travelling to.',
     blurb:
       'Churches abroad invite ministers to conferences, pulpit exchanges and mission engagements. The letter is issued on the host church’s letterhead and names them as your host for the visit.',
-    types: ['invitation-letter'],
     coverImage: '/media/scenes/friends-overlook.webp',
     coverAlt: 'Friends travelling together and looking across a new city',
     icon: 'plane',
@@ -90,7 +90,6 @@ export const everyCredential = {
   // No blurb. The five buckets each define an unfamiliar idea and need a
   // sentence; the index defines nothing. Heading, counts, listings.
   blurb: '',
-  types: [],
   coverImage: '/media/scenes/congregation-praying.jpg',
   coverAlt: 'A congregation praying together during a church service',
   icon: 'award',
