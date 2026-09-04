@@ -225,3 +225,32 @@ describe('a material’s detail page', () => {
     expect(data.church.shortName).toBe('Grace');
   });
 });
+
+describe('search', () => {
+  it('finds a material as well as a credential, without mixing the counts', async () => {
+    if (!available) return;
+    const market = await import('../controllers/market.controller.js');
+    const data = await run(market.search, { query: { q: 'psalms' }, user: null });
+
+    expect(data.materials.map((m) => m.slug)).toEqual(['psalms-book']);
+    // `total` is the credential count; materials are a separate group, so a
+    // search that matches only a book must not claim a credential result.
+    expect(data.total).toBe(0);
+  });
+
+  it('returns no materials when nothing was searched for', async () => {
+    if (!available) return;
+    const market = await import('../controllers/market.controller.js');
+    const data = await run(market.search, { query: {}, user: null });
+
+    expect(data.materials).toEqual([]);
+  });
+
+  it('names the church on a material it found', async () => {
+    if (!available) return;
+    const market = await import('../controllers/market.controller.js');
+    const data = await run(market.search, { query: { q: 'psalms' }, user: null });
+
+    expect(data.materials[0].church.shortName).toBe('Grace');
+  });
+});

@@ -285,15 +285,15 @@ export const search = asyncHandler(async (req, res) => {
   if (destination) filter['letter.destinationCountry'] = destination;
   if (maxPrice) filter.price = { $lte: Number(maxPrice) };
 
+  const rx = term ? new RegExp(term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i') : null;
   if (term) {
-    const rx = new RegExp(term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i');
     filter.$or = [{ title: rx }, { subtitle: rx }, { outcome: rx }, { 'award.title': rx }, { 'letter.destinationCity': rx }, { 'letter.destinationCountry': rx }];
   }
 
   const perPage = Math.min(Number(limit) || 18, 48);
   const skip = (Math.max(Number(page) || 1, 1) - 1) * perPage;
 
-  const [docs, total, facetOutcome, facetChurch, facetMode, matchedChurches] = await Promise.all([
+  const [docs, total, facetOutcome, facetChurch, facetMode, matchedChurches, matchedMaterials] = await Promise.all([
     Offering.find(filter, CARD).sort(SORTS[sort] ?? RANK).skip(skip).limit(perPage),
     Offering.countDocuments(filter),
     Offering.aggregate([{ $match: base }, { $group: { _id: '$outcome', count: { $sum: 1 } } }]),
@@ -309,6 +309,19 @@ export const search = asyncHandler(async (req, res) => {
           'slug name shortName monogram city country coverImage verified stats.credentialsIssued',
         ).limit(4)
       : [],
+    // Materials are a second group rather than a second kind of row. Standing
+    // is what the platform is for; a book does not compete with an ordination
+    // for the same line of a result list.
+    term
+      ? Resource.find(
+          {
+            status: 'published',
+            ...(await publicFilter()),
+            $or: [{ title: rx }, { subtitle: rx }, { authorName: rx }, { tags: rx }],
+          },
+          'slug title subtitle kind coverImage coverAlt price compareAtPrice currency churchSlug pages durationMinutes authorName',
+        ).limit(8)
+      : [],
   ]);
 
   const churchNames = await Church.find({}, 'slug name shortName country verified');
@@ -318,6 +331,7 @@ export const search = asyncHandler(async (req, res) => {
     success: true,
     data: {
       offerings: await withChurch(docs),
+      materials: await withChurch(matchedMaterials),
       churches: matchedChurches,
       total,
       page: Number(page) || 1,
