@@ -29,7 +29,7 @@ router.get('/learning', catalogue.list);
 router.get('/courses', learning.listCourses);
 router.get('/courses/:slug', learning.courseDetail);
 router.get('/resources', market.listResources);
-router.get('/resources/:slug', market.resourceDetail);
+router.get('/resources/:slug', optionalAuth, market.resourceDetail);
 
 // ── giving ──
 router.get('/give/:slug', donation.givingPage);

@@ -158,3 +158,70 @@ describe('the combined catalogue', () => {
     expect(by['romans-series'].minutes).toBe(400);
   });
 });
+
+describe('a material’s detail page', () => {
+  let MediaAsset; let Enrollment; let User; let market;
+  let file; let sample; let buyer;
+
+  beforeEach(async () => {
+    if (!available) return;
+    market = await import('../controllers/market.controller.js');
+    ({ MediaAsset } = await import('../models/MediaAsset.js'));
+    ({ Enrollment } = await import('../models/Enrollment.js'));
+    ({ User } = await import('../models/User.js'));
+
+    await Promise.all([MediaAsset.deleteMany({}), Enrollment.deleteMany({}), User.deleteMany({})]);
+
+    file = await MediaAsset.create({
+      storageKey: 'grace/resources/full.mp3', churchSlug: 'grace', kind: 'audio',
+      mimeType: 'audio/mpeg', filename: 'full.mp3', bytes: 10, checksum: 'full', visibility: 'private',
+    });
+    sample = await MediaAsset.create({
+      storageKey: 'grace/resources/sample.mp3', churchSlug: 'grace', kind: 'audio',
+      mimeType: 'audio/mpeg', filename: 'sample.mp3', bytes: 5, checksum: 'sample', visibility: 'public',
+    });
+
+    await Resource.updateOne(
+      { slug: 'psalms-book' },
+      { $set: { fileMediaIds: [file._id], previewMediaId: sample._id } },
+    );
+
+    buyer = await User.create({ name: 'Buyer', email: 'b@example.com' });
+  });
+
+  const detail = (user) => run(market.resourceDetail, { params: { slug: 'psalms-book' }, user });
+
+  it('offers the sample to anyone', async () => {
+    if (!available) return;
+    const data = await detail(undefined);
+
+    expect(data.sample.url).toContain(sample.storageKey);
+    expect(data.sample.mimeType).toBe('audio/mpeg');
+  });
+
+  it('does not hand the paid file to someone who has not bought it', async () => {
+    if (!available) return;
+    const data = await detail(undefined);
+
+    expect(data.owned).toBe(false);
+    expect(data.files).toEqual([]);
+    expect(JSON.stringify(data)).not.toContain('full.mp3');
+  });
+
+  it('hands over the files once it has been bought', async () => {
+    if (!available) return;
+    await Enrollment.create({ userId: buyer._id, kind: 'resource', resourceSlug: 'psalms-book', churchSlug: 'grace' });
+    const data = await detail(buyer);
+
+    expect(data.owned).toBe(true);
+    expect(data.files).toHaveLength(1);
+    expect(data.files[0].url).toContain(file.storageKey);
+  });
+
+  it('still names the church that published it', async () => {
+    if (!available) return;
+    const data = await detail(undefined);
+
+    expect(data.church.shortName).toBe('Grace');
+  });
+});

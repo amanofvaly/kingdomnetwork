@@ -493,16 +493,63 @@ export const listResources = asyncHandler(async (req, res) => {
   });
 });
 
+/**
+ * Everything a page needs to sell one material and, to the person who has
+ * bought it, to play it. The paid files are attached only in that second case:
+ * a private asset would refuse the request anyway, but a URL that reads as an
+ * invitation and then refuses is worse than not offering it.
+ */
 export const resourceDetail = asyncHandler(async (req, res) => {
   const resource = await Resource.findOne({ slug: req.params.slug, status: 'published' });
   if (!resource) return res.status(404).json({ success: false, message: 'That is not available.' });
 
-  const [church, alsoFrom] = await Promise.all([
+  const [church, alsoFrom, owned, assets] = await Promise.all([
     Church.findOne({ slug: resource.churchSlug }, 'slug name shortName monogram city country verified'),
-    Resource.find({ churchSlug: resource.churchSlug, slug: { $ne: resource.slug }, status: 'published' }).limit(4),
+    Resource.find(
+      { churchSlug: resource.churchSlug, slug: { $ne: resource.slug }, status: 'published' },
+      'slug title subtitle kind coverImage coverAlt price compareAtPrice currency pages durationMinutes authorName churchSlug',
+    ).limit(4),
+    req.user
+      ? Enrollment.exists({ userId: req.user._id, kind: 'resource', resourceSlug: resource.slug })
+      : null,
+    MediaAsset.find(
+      { _id: { $in: [...(resource.fileMediaIds ?? []), resource.previewMediaId].filter(Boolean) } },
+      'storageKey filename mimeType kind bytes durationSeconds',
+    ),
   ]);
 
-  res.json({ success: true, data: { resource, church, alsoFrom } });
+  const shapeAsset = (asset) => ({
+    id: String(asset._id),
+    url: `/api/media/file/${asset.storageKey}`,
+    filename: asset.filename,
+    mimeType: asset.mimeType,
+    kind: asset.kind,
+    bytes: asset.bytes,
+    durationSeconds: asset.durationSeconds,
+  });
+
+  const by = Object.fromEntries(assets.map((a) => [String(a._id), a]));
+  const sample = resource.previewMediaId ? by[String(resource.previewMediaId)] : null;
+
+  // The ids are of no use to a page and naming a file it may not have is a
+  // small leak of what it would get, so neither travels.
+  const card = resource.toObject();
+  delete card.fileMediaIds;
+  delete card.previewMediaId;
+
+  res.json({
+    success: true,
+    data: {
+      resource: card,
+      church,
+      alsoFrom,
+      owned: Boolean(owned),
+      sample: sample ? shapeAsset(sample) : null,
+      files: owned
+        ? (resource.fileMediaIds ?? []).map((id) => by[String(id)]).filter(Boolean).map(shapeAsset)
+        : [],
+    },
+  });
 });
 
 export const reviewsFor = asyncHandler(async (req, res) => {
