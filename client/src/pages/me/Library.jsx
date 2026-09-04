@@ -3,7 +3,7 @@ import {
   ArrowRight, BookOpen, Download, Headphones, Package, Receipt,
 } from 'lucide-react';
 
-import { AreaHero, Section, SectionHead, Tile, ZeroState } from '../../components/me/kit.jsx';
+import { Section, SectionHead, Tile, ZeroState } from '../../components/me/kit.jsx';
 import { ErrorState, Spinner } from '../../components/ui.jsx';
 import { bytes, dateShort, duration, money, plural } from '../../lib/format.js';
 import { useApi } from '../../lib/useAsync.js';
@@ -24,7 +24,7 @@ const KIND_ICON = {
 };
 
 const OrderStatus = ({ status }) => {
-  const tone = status === 'paid' ? 'tag tag-green' : status === 'failed' ? 'tag tag-red' : 'tag tag-gold';
+  const tone = status === 'paid' ? 'tag tag-blue' : status === 'failed' ? 'tag tag-red' : 'tag tag-gold';
   const label = status === 'paid' ? 'Paid' : status === 'refunded' ? 'Refunded' : status === 'failed' ? 'Failed' : 'Pending';
   return <span className={tone}>{label}</span>;
 };
@@ -91,22 +91,12 @@ export const MeLibrary = () => {
 
   return (
     <>
-      <AreaHero
-        art="/media/scenes/theology-shelf.webp"
-        artAlt="A shelf of theology books"
-        kicker="Library"
-        title="Books and materials you own."
-        lede={items.length
-          ? 'Everything you have bought from a church on this network, ready to download.'
-          : 'Books, study guides and audio published by the churches themselves gather here once you buy them.'}
-        figures={figures}
-      />
 
       <div className="me-wrap me-body">
         <Section tone="library">
           <SectionHead
             title="Your materials"
-            lede={items.length ? 'Downloads do not expire, and buying once is enough.' : null}
+            lede={items.length ? 'Buy once. Downloads do not expire.' : null}
             action={<Link to="/search" className="link">Find materials <ArrowRight size={14} /></Link>}
           />
           {items.length ? (
@@ -116,7 +106,7 @@ export const MeLibrary = () => {
           ) : (
             <ZeroState
               title="No materials yet"
-              lede="Churches on this network publish their own books, workbooks and teaching audio. Anything you buy lands here to download, for good."
+              lede="Churches here publish their own books, workbooks and teaching audio. Anything you buy stays here to download."
               art="/media/scenes/books-colorful.webp"
               action={<Link to="/search" className="btn btn-primary">Browse materials <ArrowRight size={16} /></Link>}
             />
@@ -158,7 +148,7 @@ export const MeLibrary = () => {
             <ZeroState
               small
               title="No orders yet"
-              lede="Anything you buy from a church will be receipted here, with the payment method and what it covered."
+              lede="Receipts for anything you buy, with the payment method and what it covered."
             />
           )}
         </Section>

@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { BadgeCheck, Check, KeyRound, LogOut, ShieldAlert } from 'lucide-react';
 
-import { AreaHero, Section, SectionHead } from '../../components/me/kit.jsx';
+import { Section, SectionHead } from '../../components/me/kit.jsx';
 import { api } from '../../lib/api.js';
 import { dateLong } from '../../lib/format.js';
 import { useAuth } from '../../lib/auth.jsx';
@@ -19,8 +19,8 @@ import { useToast } from '../../lib/toast.jsx';
 const PREFS = [
   ['applicationUpdates', 'Application updates', 'A church asks you for something, marks your paper, or reaches a decision.'],
   ['interviewReminders', 'Interview reminders', 'Before an interview you have booked.'],
-  ['courseProgress', 'Course progress', 'Occasional nudges about coursework you have started but not finished.'],
-  ['marketing', 'News from Kingdom Network', 'New churches, new credentials, and what the platform is doing. Off by default.'],
+  ['courseProgress', 'Course progress', 'Reminders about coursework you have started but not finished.'],
+  ['marketing', 'News from Kingdom Network', 'New churches and new credentials. Off by default.'],
 ];
 
 const Toggle = ({ on, onChange, label }) => (
@@ -33,7 +33,7 @@ const Toggle = ({ on, onChange, label }) => (
     style={{
       flex: 'none', width: 46, height: 27, padding: 3,
       borderRadius: 'var(--r-full)',
-      background: on ? 'var(--green-700)' : 'var(--line-strong)',
+      background: on ? 'var(--blue-700)' : 'var(--line-strong)',
       transition: 'background-color var(--dur-1)',
     }}
   >
@@ -109,17 +109,10 @@ export const MeSettings = () => {
 
   return (
     <>
-      <AreaHero
-        art="/media/scenes/open-notebook.webp"
-        artAlt="An open notebook on a desk"
-        kicker="Settings"
-        title="Sign-in and alerts."
-        lede="How you get into your account, and what this network is allowed to tell you about."
-      />
 
       <div className="me-wrap me-body">
         <Section tone="settings">
-          <SectionHead title="Your account" />
+          <SectionHead title="Account" />
           <div className="me-card">
             <div className="me-card-in">
               <div className="me-switch">
@@ -132,14 +125,14 @@ export const MeSettings = () => {
                   </span>
                 </div>
                 {user.emailVerified ? (
-                  <span className="tag tag-green"><BadgeCheck size={12} /> Confirmed</span>
+                  <span className="tag tag-blue"><BadgeCheck size={12} /> Confirmed</span>
                 ) : (
                   <span className="tag tag-gold">Unconfirmed</span>
                 )}
               </div>
               <div className="me-switch">
                 <div className="me-switch-copy">
-                  <b>Personal account</b>
+                  <b>Account type</b>
                   <span>
                     A church is registered separately and signs in separately — an account is one or the
                     other, never both. <Link className="link" to="/church/register">Register a church</Link>
@@ -157,7 +150,7 @@ export const MeSettings = () => {
         </Section>
 
         <Section tone="settings">
-          <SectionHead title="Password" lede="Changing it requires the one you use now." />
+          <SectionHead title="Password" lede="You will need your current password to change it." />
           <div className="me-card">
             <form className="me-card-in" onSubmit={savePassword}>
               {pwError ? (
@@ -223,7 +216,7 @@ export const MeSettings = () => {
         </Section>
 
         <Section tone="settings">
-          <SectionHead title="What we tell you about" lede="These control email. Everything still appears in your inbox here." />
+          <SectionHead title="Email notifications" lede="These control email only. Everything still appears in your inbox." />
           <div className="me-card">
             <div className="me-card-in">
               {PREFS.map(([key, label, help]) => (

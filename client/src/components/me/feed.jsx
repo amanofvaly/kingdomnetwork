@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Award, BadgeCheck, Check, Plus, Sparkles } from 'lucide-react';
+import { BadgeCheck, Check, Plus, Sparkles } from 'lucide-react';
 
 import { Avatar } from '../ui.jsx';
 import { ChurchMark } from './kit.jsx';
@@ -37,7 +37,7 @@ const since = (value) => {
 
 /* --- follow -------------------------------------------------------------- */
 
-export const FollowButton = ({ slug, following, onChange, size = 'btn-sm', variant = 'button' }) => {
+export const FollowButton = ({ slug, following, onChange, size = 'btn-sm', variant = 'button', inverse = false, style, className = '' }) => {
   const [on, setOn] = useState(following);
   const [busy, setBusy] = useState(false);
 
@@ -60,26 +60,111 @@ export const FollowButton = ({ slug, following, onChange, size = 'btn-sm', varia
     return (
       <button
         type="button"
-        className={`me-follow-text ${on ? 'is-on' : ''}`}
+        className={`me-follow-text ${on ? 'is-on' : ''} ${className}`}
         onClick={toggle}
         disabled={busy}
         aria-pressed={on}
+        style={style}
       >
         {on ? 'Following' : 'Follow'}
       </button>
     );
   }
 
+  // On a cover photograph the unfollowed state is still the bright blue —
+  // it is the one thing on the header meant to be pressed. Only the followed
+  // state goes to a white outline, which is what stays readable over a photo.
+  const skin = on
+    ? (inverse ? 'btn-inverse-outline' : 'btn-outline')
+    : 'btn-primary';
+
   return (
     <button
       type="button"
-      className={`btn ${size} me-follow ${on ? 'btn-outline' : 'btn-primary'}`}
+      className={`btn ${size} me-follow ${skin} ${className}`}
       onClick={toggle}
       disabled={busy}
       aria-pressed={on}
+      style={style}
     >
       {on ? <><Check size={14} /> Following</> : <><Plus size={14} /> Follow</>}
     </button>
+  );
+};
+
+
+/**
+ * The seal from the printed certificate, drawn small enough to sit in a pill.
+ * A generic award icon says "achievement"; this says "issued under seal",
+ * which is the specific thing that happened.
+ */
+const Seal = ({ size = 13 }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" aria-hidden="true">
+    <circle cx="12" cy="10" r="6.4" stroke="currentColor" strokeWidth="1.6" />
+    <circle cx="12" cy="10" r="3.6" stroke="currentColor" strokeWidth="1" opacity=".65" />
+    <path d="M8.3 15.4 6.8 22l5.2-2.6 5.2 2.6-1.5-6.6" stroke="currentColor" strokeWidth="1.5"
+      strokeLinejoin="round" strokeLinecap="round" />
+  </svg>
+);
+
+/** The certificate itself, laid out the way `server/lib/documents.js` prints it. */
+const DOC_TYPE = {
+  ordination: 'Certificate of Ordination',
+  license: 'Certificate of Licensing',
+  certificate: 'Certificate',
+  diploma: 'Diploma',
+  'letter-of-standing': 'Letter of Standing',
+  affiliation: 'Certificate of Affiliation',
+};
+
+const longDate = (v) =>
+  v ? new Date(v).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }) : '';
+
+const Certificate = ({ credential: c }) => {
+  const church = c.church ?? {};
+  const place = [church.city, church.country].filter(Boolean).join(', ');
+  const signatory = church.signatory;
+
+  return (
+    <div className="me-cert">
+      <div className="me-cert-doc">
+        <div className="me-cert-issuer">{church.name ?? 'Issuing church'}</div>
+        {place ? <div className="me-cert-place">{place}</div> : null}
+        <span className="me-cert-rule" />
+
+        <div className="me-cert-doctype">{DOC_TYPE[c.kind] ?? 'Certificate'}</div>
+        <h3 className="me-cert-title">{c.title}</h3>
+
+        <div className="me-cert-certify">This is to certify that</div>
+        <div className="me-cert-holder">{c.holderName}</div>
+        <span className="me-cert-rule me-cert-rule-wide" />
+
+        <p className="me-cert-body">
+          has satisfied the requirements set by {church.name ?? 'the issuing church'} and is granted
+          this credential in good standing as of {longDate(c.issuedAt)}.
+        </p>
+
+        <div className="me-cert-seal">
+          <b>{church.monogram ?? 'KN'}</b>
+          <small>ISSUED UNDER SEAL</small>
+        </div>
+
+        <div className="me-cert-foot">
+          <span className="me-cert-sign">
+            <b>{signatory?.name ?? 'Authorised signatory'}</b>
+            <span>{signatory?.title ?? 'For the issuing church'}</span>
+          </span>
+          <span className="me-cert-sign me-cert-sign-end">
+            <b>{c.credentialId}</b>
+            <span>Issued {longDate(c.issuedAt)}</span>
+          </span>
+        </div>
+
+        <div className="me-cert-verify">
+          Verify at kingdom.network/verify/{c.verifyCode ?? ''}
+        </div>
+      </div>
+    </div>
   );
 };
 
@@ -117,32 +202,30 @@ const ReactionBar = ({ post, onReact }) => {
   const shown = REACTIONS.filter((r) => (counts[r.type] ?? 0) > 0).slice(0, 3);
 
   return (
-    <>
+    <div className="me-react-bar">
+      {REACTIONS.map((r) => (
+        <button
+          key={r.type}
+          type="button"
+          className={mine === r.type ? 'is-on' : ''}
+          onClick={() => choose(r.type)}
+          aria-pressed={mine === r.type}
+          aria-label={mine === r.type ? `${r.label} — yours, tap to remove` : r.label}
+        >
+          <em aria-hidden="true">{r.emoji}</em>
+          <span>{r.label}</span>
+        </button>
+      ))}
+
       {total > 0 ? (
-        <div className="me-react-summary">
+        <span className="me-react-count">
           <span className="me-react-faces">
             {shown.map((r) => <span key={r.type}>{r.emoji}</span>)}
           </span>
-          <span>{total}</span>
-        </div>
+          {total}
+        </span>
       ) : null}
-
-      <div className="me-react-bar">
-        {REACTIONS.map((r) => (
-          <button
-            key={r.type}
-            type="button"
-            className={mine === r.type ? 'is-on' : ''}
-            onClick={() => choose(r.type)}
-            aria-pressed={mine === r.type}
-            aria-label={r.label}
-          >
-            <em aria-hidden="true">{r.emoji}</em>
-            <span>{r.label}</span>
-          </button>
-        ))}
-      </div>
-    </>
+    </div>
   );
 };
 
@@ -173,7 +256,7 @@ const Head = ({ post }) => {
       </div>
 
       {post.kind === 'offering' ? <span className="me-post-kind me-post-kind-offering">New</span> : null}
-      {post.kind === 'credential' ? <span className="me-post-kind me-post-kind-credential"><Award size={12} /> Granted</span> : null}
+      {post.kind === 'credential' ? <span className="me-post-kind me-post-kind-credential"><Seal size={13} /> Granted</span> : null}
     </div>
   );
 };
@@ -184,13 +267,7 @@ export const PostCard = ({ post, onReact }) => (
 
     {post.body ? <div className="me-post-body">{post.body}</div> : null}
 
-    {post.kind === 'credential' && post.credential ? (
-      <div className="me-post-cred">
-        <span className="me-post-cred-kind"><Award size={13} /> {post.credential.kind.replace(/-/g, ' ')}</span>
-        <b>{post.credential.title}</b>
-        <span>Granted by {post.church?.name} · {dateShort(post.credential.issuedAt)}</span>
-      </div>
-    ) : null}
+    {post.kind === 'credential' && post.credential ? <Certificate credential={post.credential} /> : null}
 
     {post.images?.length ? (
       <div className={`me-post-media me-post-media-${Math.min(post.images.length, 2)}`}>
@@ -242,7 +319,9 @@ export const SuggestionRow = ({ church, onChange }) => (
       <ChurchMark church={church} size={38} />
     </Link>
     <div className="me-suggest-copy grow">
-      <b className="clamp-1">{church.shortName ?? church.name}</b>
+      <Link to={`/churches/${church.slug}`} className="clamp-1" style={{ fontWeight: 'bold' }}>
+        {church.shortName ?? church.name}
+      </Link>
       <span className="clamp-1">
         {church.followers ? `${church.followers} following` : church.city || 'On this network'}
       </span>

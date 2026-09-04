@@ -4,34 +4,50 @@ import {
   acquisitionFor, assignCurriculumKeys, isCredentialType, lectureKeys, slugify,
   tallyCurriculum, validateOfferingForPublish,
 } from '../lib/derive.js';
+import { offerings } from '../data/offerings.js';
 
-describe('the rule that a credential is never issued on payment alone', () => {
-  it('refuses to publish a credential with no church decision behind it', () => {
+describe('the rule that a church service is never granted on payment alone', () => {
+  it('refuses to publish any service with no church decision behind it', () => {
     const problems = validateOfferingForPublish({
-      type: 'ordination', title: 'Ordained Minister', churchSlug: 'x', outcome: 'ordination',
+      type: 'affiliation', title: 'Affiliation', churchSlug: 'x', outcome: 'affiliation',
       disclosure: 'A statement.', requires: {}, fee: { amount: 0 },
     });
     expect(problems).toContain(
-      'A credential cannot be issued on payment alone. Require a church review, an interview, or both.',
+      'A church service cannot be granted on payment alone. Require a church review, an interview, or both.',
     );
   });
 
-  it('accepts a review, or an interview, as that decision', () => {
+  it('accepts a review, or an interview, for a non-ordination service', () => {
     const base = {
-      type: 'ordination', title: 'Ordained Minister', churchSlug: 'x', outcome: 'ordination',
+      type: 'certificate', title: 'Certificate', churchSlug: 'x', outcome: 'certification',
       disclosure: 'A statement.', fee: { amount: 0 },
     };
     expect(validateOfferingForPublish({ ...base, requires: { review: { required: true } } })).toHaveLength(0);
     expect(validateOfferingForPublish({ ...base, requires: { interview: { required: true } } })).toHaveLength(0);
   });
 
-  it('does not impose the rule on affiliations or letters', () => {
+  it('requires ordination to include an explicitly face-to-face interview', () => {
+    const base = {
+      type: 'ordination', title: 'Ordained Minister', churchSlug: 'x', outcome: 'ordination',
+      disclosure: 'A statement.', fee: { amount: 0 },
+    };
+    expect(validateOfferingForPublish({ ...base, requires: { review: { required: true } } }))
+      .toContain('Ordination requires a live face-to-face interview, by video or in person.');
+    expect(validateOfferingForPublish({ ...base, requires: { interview: { required: true } } }))
+      .toContain('Ordination requires a live face-to-face interview, by video or in person.');
+    expect(validateOfferingForPublish({ ...base, requires: { interview: { required: true, faceToFace: true } } }))
+      .toHaveLength(0);
+  });
+
+  it('requires a church decision for invitation letters', () => {
     const letter = validateOfferingForPublish({
       type: 'invitation-letter', title: 'Invitation', churchSlug: 'x', outcome: 'invitation-letter',
       disclosure: 'A statement.', requires: {}, fee: { amount: 0 },
       letter: { destinationCountry: 'Uganda' },
     });
-    expect(letter).toHaveLength(0);
+    expect(letter).toContain(
+      'A church service cannot be granted on payment alone. Require a church review, an interview, or both.',
+    );
   });
 
   it('never reports a credential type as instant', () => {
@@ -43,6 +59,16 @@ describe('the rule that a credential is never issued on payment alone', () => {
   it('knows which types confer standing', () => {
     expect(isCredentialType('ordination')).toBe(true);
     expect(isCredentialType('invitation-letter')).toBe(false);
+  });
+
+  it('keeps every seeded service behind a church decision and every ordination face to face', () => {
+    for (const offering of offerings) {
+      expect(offering.requires?.review?.required || offering.requires?.interview?.required, offering.slug).toBe(true);
+      if (offering.type === 'ordination') {
+        expect(offering.requires?.interview?.required, offering.slug).toBe(true);
+        expect(offering.requires?.interview?.faceToFace, offering.slug).toBe(true);
+      }
+    }
   });
 });
 

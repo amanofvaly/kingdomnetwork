@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom';
 import { ArrowRight, HandCoins, Heart, Quote, Receipt } from 'lucide-react';
 
-import { AreaHero, Section, SectionHead, Stat, ZeroState } from '../../components/me/kit.jsx';
+import { Section, SectionHead, Stat, ZeroState } from '../../components/me/kit.jsx';
 import { ErrorState, Spinner } from '../../components/ui.jsx';
 import { dateShort, money } from '../../lib/format.js';
 import { useApi } from '../../lib/useAsync.js';
@@ -78,22 +78,12 @@ export const MeGiving = () => {
 
   return (
     <>
-      <AreaHero
-        art="/media/scenes/congregation-gathering.webp"
-        artAlt="A congregation gathered together"
-        kicker="Giving"
-        title="Your giving."
-        lede={totals.giftCount
-          ? 'Every gift you have made through Kingdom Network, and everything else you have paid.'
-          : 'Gifts you make to a church on this network are recorded here, alongside everything else you have paid.'}
-        figures={figures}
-      />
 
       <div className="me-wrap me-body">
         <Section tone="giving">
           <SectionHead
             title="Your gifts"
-            lede={gifts.length ? 'Recorded as given, with the cause each one was for.' : null}
+            lede={gifts.length ? 'With the cause each one was given towards.' : null}
             action={<Link to="/churches" className="link">Find a church to support <ArrowRight size={14} /></Link>}
           />
           {gifts.length ? (
@@ -103,7 +93,7 @@ export const MeGiving = () => {
           ) : (
             <ZeroState
               title="No gifts yet"
-              lede="Churches on this network receive gifts towards named causes — a building fund, a mission, a benevolence fund. Anything you give is recorded here for your own records."
+              lede="Churches here receive gifts towards named causes — a building fund, a mission, a benevolence fund. Anything you give is recorded here."
               art="/media/scenes/hands-raised-dark.webp"
               action={<Link to="/churches" className="btn btn-primary">Find a church <ArrowRight size={16} /></Link>}
             />
@@ -112,7 +102,7 @@ export const MeGiving = () => {
 
         {withMessage.length ? (
           <Section tone="giving">
-            <SectionHead title="What you wrote" lede="The notes you sent with your gifts." />
+            <SectionHead title="Your notes" lede="Messages you sent with your gifts." />
             <div className="me-grid me-grid-2 me-stagger">
               {withMessage.slice(0, 4).map((g, i) => (
                 <div key={g.reference} className="me-card" style={{ '--i': i }}>
@@ -131,8 +121,8 @@ export const MeGiving = () => {
 
         <Section tone="giving">
           <SectionHead
-            title="Everything you have paid"
-            lede="Application fees, renewals, courses, materials and gifts, in one statement."
+            title="All payments"
+            lede="Application fees, renewals, courses, materials and gifts in one statement."
           />
           {entries.length ? (
             <>
@@ -164,7 +154,7 @@ export const MeGiving = () => {
               <div className="row" style={{ gap: 'var(--s-4)', flexWrap: 'wrap' }}>
                 <HandCoins size={24} strokeWidth={1.6} color="var(--gold-700)" />
                 <div className="grow" style={{ minWidth: 240 }}>
-                  <h3 style={{ fontSize: 'var(--text-lg)' }}>Giving does not need an account</h3>
+                  <h3 style={{ fontSize: 'var(--text-lg)' }}>Giving without an account</h3>
                   <p className="small muted" style={{ margin: '4px 0 0' }}>
                     Anyone can give to a church here without signing in. Gifts made while you are signed in
                     are the ones recorded on this page.

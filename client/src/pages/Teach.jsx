@@ -14,7 +14,6 @@ export const Teach = () => {
       <section className="band-ink" style={{ paddingBlock: 'var(--s-9)' }}>
         <div className="wrap for-churches">
           <div className="stack stack-5">
-            <span className="eyebrow">For churches and ministries</span>
             <h1 style={{ fontSize: 'clamp(2.1rem, 4vw, 3.1rem)' }}>Your syllabus. Your standards. Your credential.</h1>
             <p className="lede" style={{ color: 'rgba(255,255,255,.74)' }}>
               Publish what you already teach, take enrolments in the currencies your people actually use,

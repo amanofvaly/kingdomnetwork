@@ -1,10 +1,13 @@
+import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { ArrowUpRight, BookOpen, Calendar, ExternalLink, Globe2, GraduationCap, HeartHandshake, Images, Mail, MapPin, Phone, Users } from 'lucide-react';
 
 import { CourseCard } from '../components/cards.jsx';
 import { OfferingCard } from '../components/market.jsx';
 import { ErrorState, Monogram, Spinner, Stars, Verified } from '../components/ui.jsx';
+import { FollowButton } from '../components/me/feed.jsx';
 import { useApi } from '../lib/useAsync.js';
+import { useAuth } from '../lib/auth.jsx';
 import { compact, money, plural } from '../lib/format.js';
 
 const FALLBACK_COVER = '/media/church-registration-cross.jpg';
@@ -29,6 +32,13 @@ const EmptyBlock = ({ icon: Icon, title, copy, action, to }) => (
 export const ChurchDetail = () => {
   const { slug } = useParams();
   const { data, error, loading, reload } = useApi(`/churches/${slug}`);
+  const { user } = useAuth();
+
+  // A church account cannot follow a church; there is nothing for it to do
+  // with a feed. Signed out, the button would only lead to a sign-in wall.
+  const canFollow = Boolean(user && user.accountKind !== 'church');
+  const [followers, setFollowers] = useState(0);
+  useEffect(() => { if (data) setFollowers(data.followers ?? 0); }, [data]);
   if (loading) return <div className="wrap band"><Spinner label="Loading church" /></div>;
   if (error) return <div className="wrap band"><ErrorState error={error} onRetry={reload} /></div>;
 
@@ -61,6 +71,15 @@ export const ChurchDetail = () => {
     languages.length && { icon: Globe2, label: languages.join(', ') },
     deliveryModes.length && { icon: GraduationCap, label: deliveryModes.join(', ') },
   ].filter(Boolean);
+  const facultyBySlug = new Map(faculty.map((person) => [person.slug, person]));
+  const leaderNames = new Set((church.leaders ?? []).map((person) => cleanText(person.name)?.toLowerCase()));
+  const people = [
+    ...(church.leaders ?? []).map((leader) => ({
+      ...leader,
+      ...(leader.instructorSlug ? facultyBySlug.get(leader.instructorSlug) : null),
+    })),
+    ...faculty.filter((person) => !leaderNames.has(cleanText(person.name)?.toLowerCase())),
+  ];
 
   return (
     <main className="church-profile">
@@ -82,18 +101,29 @@ export const ChurchDetail = () => {
                 {location ? <span><MapPin size={14} />{location}</span> : null}
                 {stats.credentialsIssued ? <span>{compact(stats.credentialsIssued)} credentials issued</span> : null}
                 {stats.learners ? <span>{compact(stats.learners)} learners</span> : null}
+                <span>{compact(followers)} {followers === 1 ? 'follower' : 'followers'}</span>
               </div>
             </div>
-            {website || (donations.enabled && shows('donate')) ? <div className="church-profile-actions">
+            <div className="church-profile-actions">
+              {canFollow ? (
+                <FollowButton
+                  slug={church.slug}
+                  following={data.following}
+                  size=""
+                  className="btn-vibrant-blue"
+                  inverse
+                  onChange={(_, on) => setFollowers((n) => n + (on ? 1 : -1))}
+                />
+              ) : null}
               {website ? <a className="btn btn-inverse-outline" href={website} target="_blank" rel="noreferrer noopener">Website <ExternalLink size={14} /></a> : null}
               {donations.enabled && shows('donate') ? <Link className="btn btn-inverse-outline" to={`/give/${church.slug}`}><HeartHandshake size={16} /> Give</Link> : null}
-            </div> : null}
+            </div>
           </section>
         </div>
 
         <nav className="church-profile-tabs" aria-label="Church page sections">
           <a href="#about">About</a><a href="#offerings">Credentials and learning</a>
-          {church.leaders?.length || faculty.length ? <a href="#people">People</a> : null}
+          {people.length ? <a href="#people">People</a> : null}
           {gallery.length ? <a href="#photos">Photos</a> : null}
         </nav>
       </div>
@@ -130,9 +160,9 @@ export const ChurchDetail = () => {
               {!hasOfferings ? <EmptyBlock icon={BookOpen} title="Nothing published yet" copy={`${shortName} has not published credentials, courses or resources yet.`} action="Browse credentials and courses" to="/search" /> : null}
             </section>
 
-            {(church.leaders?.length || faculty.length) ? <section className="church-profile-section" id="people">
+            {people.length ? <section className="church-profile-section" id="people">
               <div className="church-profile-section-head"><div><h2>People</h2><p>Leaders and teachers serving this community.</p></div></div>
-              <div className="church-profile-people">{[...(church.leaders ?? []), ...faculty].map((person, index) => <article className="church-profile-person" key={`${person.slug || person.name}-${index}`}>
+              <div className="church-profile-people">{people.map((person) => <article className="church-profile-person" key={person.slug || person.name}>
                 {person.image ? <img src={person.image} alt="" loading="lazy" /> : <Monogram text={person.name?.slice(0, 2)} />}<div><h3>{person.name}</h3><p>{person.title || 'Church team'}</p>{person.bio ? <span>{person.bio}</span> : null}</div>{person.rating ? <Stars rating={person.rating} size={13} /> : null}{person.learners ? <small><Users size={13} />{compact(person.learners)} learners</small> : null}
               </article>)}</div>
             </section> : null}

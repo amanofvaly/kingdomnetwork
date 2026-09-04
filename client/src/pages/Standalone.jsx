@@ -57,7 +57,6 @@ export const ReferenceForm = () => {
     <div className="wrap band">
       <div className="wrap-narrow stack stack-5">
         <div className="stack stack-2">
-          <span className="eyebrow">A reference request</span>
           <h1>{data.applicantName} has named you.</h1>
           <p className="lede">
             They have applied to {data.churchName} for {data.offeringTitle}

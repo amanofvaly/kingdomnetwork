@@ -34,8 +34,8 @@
    =========================================================================== */
 
 .me {
-  --tone: var(--green-700);
-  --tone-soft: var(--green-50);
+  --tone: var(--blue-700);
+  --tone-soft: var(--blue-50);
   --rail-w: 268px;
   display: grid;
   grid-template-columns: var(--rail-w) minmax(0, 1fr);
@@ -587,7 +587,7 @@
   position: absolute;
   inset: 0 0 auto;
   height: 4px;
-  background: linear-gradient(90deg, var(--green-700), var(--gold-600), var(--green-700));
+  background: linear-gradient(90deg, var(--blue-700), var(--gold-600), var(--blue-700));
 }
 .me-passport::after {
   content: '';
@@ -641,7 +641,7 @@
 }
 .me-stamp-filled {
   background: rgba(255, 255, 255, .95);
-  color: var(--green-900);
+  color: var(--blue-900);
   box-shadow: var(--shadow-sm);
 }
 .me-stamp-filled b { font-size: 11px; font-weight: 650; line-height: 1.15; letter-spacing: -.01em; }
@@ -678,7 +678,7 @@
   position: absolute;
   inset: 0 0 auto;
   height: 4px;
-  background: linear-gradient(90deg, var(--green-700), var(--gold-600), var(--green-700));
+  background: linear-gradient(90deg, var(--blue-700), var(--gold-600), var(--blue-700));
 }
 .me-cred-lapsed { background: var(--bg-sunken); }
 .me-cred-lapsed::before { background: var(--line-strong); }
@@ -724,7 +724,7 @@
   color: var(--ink-3);
 }
 .me-step-now { border-color: var(--tone); background: var(--tone); color: #fff; }
-.me-step-done { border-color: var(--green-100); background: var(--green-50); color: var(--green-700); }
+.me-step-done { border-color: var(--blue-100); background: var(--blue-50); color: var(--blue-700); }
 .me-step-copy { display: grid; gap: 3px; padding-top: 3px; }
 .me-step-copy b { font-size: var(--text-base); font-weight: 600; }
 .me-step-copy span { color: var(--ink-2); font-size: var(--text-sm); line-height: 1.5; }
@@ -789,7 +789,7 @@
   border-radius: 12px;
   background: var(--bg);
 }
-.me-note-unread { border-color: var(--green-100); background: var(--green-50); }
+.me-note-unread { border-color: var(--blue-100); background: var(--blue-50); }
 .me-note-mark {
   display: grid;
   place-items: center;
@@ -881,7 +881,7 @@
   font-weight: 650;
   letter-spacing: -.01em;
 }
-.me-post-who b svg { color: var(--green-600); flex: none; }
+.me-post-who b svg { color: var(--blue-600); flex: none; }
 .me-post-when { color: var(--ink-3); font-size: var(--text-xs); }
 .me-post-kind {
   margin-left: auto;
@@ -894,7 +894,7 @@
   font-size: var(--text-xs);
   font-weight: 600;
 }
-.me-post-kind-offering { background: var(--green-50); color: var(--green-700); }
+.me-post-kind-offering { background: var(--blue-50); color: var(--blue-700); }
 .me-post-kind-credential { background: var(--gold-50); color: var(--gold-700); }
 
 .me-post-body {
@@ -930,93 +930,181 @@
 .me-post-card-copy b { font-size: var(--text-base); font-weight: 650; letter-spacing: -.01em; }
 .me-post-card-copy span { color: var(--ink-3); font-size: var(--text-sm); }
 
-/* A shared credential shown as the thing it is, not as an attachment. */
-.me-post-cred {
-  position: relative;
+/* A shared credential drawn as the document it is.
+   ---------------------------------------------------------------------------
+   The same layout `server/lib/documents.js` prints: cream ground, a blue rule
+   with a gold rule inside it, the issuer in gold caps, the holder's name in
+   blue italic, an embossed seal, and the credential number in the footer.
+   Sizes are in container units so the whole certificate scales as one object
+   instead of reflowing into something that is no longer a certificate. The
+   literal PDF would not render inline on most phones. */
+
+.me-cert {
+  container-type: inline-size;
   margin: 0 var(--s-4) var(--s-4);
-  padding: var(--s-5);
+  border-radius: var(--r-md);
   overflow: hidden;
-  border-radius: 12px;
-  background: linear-gradient(150deg, #24204a 0%, #2c2456 52%, #1b1740 100%);
-  color: #fff;
+  box-shadow: var(--shadow-md);
 }
-.me-post-cred::before {
-  content: '';
-  position: absolute;
-  inset: 0 0 auto;
-  height: 3px;
-  background: linear-gradient(90deg, var(--green-700), var(--gold-600), var(--green-700));
-}
-.me-post-cred-kind {
+.me-cert-doc {
+  position: relative;
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 8px;
-  color: var(--gold-100);
-  font-size: var(--text-xs);
-  font-weight: 600;
-  letter-spacing: .11em;
+  aspect-ratio: 297 / 210;
+  padding: 4cqw;
+  background: #fffdf8;
+  color: #14171a;
+  text-align: center;
+}
+.me-cert-doc::before,
+.me-cert-doc::after { content: ''; position: absolute; pointer-events: none; }
+.me-cert-doc::before { inset: 4cqw; border: 0.3cqw solid #0c3b2e; }
+.me-cert-doc::after { inset: 5cqw; border: 0.09cqw solid #8a6a1f; }
+
+.me-cert-issuer {
+  margin-top: 3cqw;
+  color: #8a6a1f;
+  font-size: 1.1cqw;
+  font-weight: 700;
+  letter-spacing: .28cqw;
   text-transform: uppercase;
 }
-.me-post-cred b {
-  display: block;
-  margin-top: 9px;
+.me-cert-place { margin-top: .9cqw; color: #4c535c; font-size: 1cqw; letter-spacing: .12cqw; }
+.me-cert-rule { display: block; width: 10cqw; height: .12cqw; margin: 2.4cqw auto; background: #c9c2b4; }
+.me-cert-rule-wide { width: 31cqw; margin: 1cqw auto 0; }
+.me-cert-doctype { color: #4c535c; font-size: 1.3cqw; letter-spacing: .07cqw; }
+.me-cert-title {
+  max-width: 78%;
+  margin: 1.9cqw 0 0;
+  color: #14171a;
   font-family: var(--font-display);
-  font-size: clamp(1.15rem, 2.2vw, 1.5rem);
-  font-weight: 600;
-  letter-spacing: -.03em;
+  font-size: 3.5cqw;
+  font-weight: 700;
   line-height: 1.1;
+  letter-spacing: -.04cqw;
 }
-.me-post-cred span { display: block; margin-top: 6px; color: rgba(255, 255, 255, .62); font-size: var(--text-sm); }
-
-/* --- reactions ----------------------------------------------------------- */
-
-.me-react-summary {
-  display: flex;
-  align-items: center;
-  gap: 7px;
-  padding: 0 var(--s-4) var(--s-3);
-  color: var(--ink-3);
-  font-size: var(--text-sm);
+.me-cert-certify { margin-top: 2.2cqw; color: #4c535c; font-size: 1.25cqw; }
+.me-cert-holder {
+  max-width: 84%;
+  margin-top: 1.1cqw;
+  color: #0c3b2e;
+  font-family: var(--font-display);
+  font-size: 4cqw;
+  font-weight: 700;
+  font-style: italic;
+  line-height: 1.12;
+  letter-spacing: -.03cqw;
 }
-.me-react-faces { display: flex; }
-.me-react-faces span {
+
+.me-cert-body {
+  max-width: 62%;
+  margin: 2cqw 0 0;
+  color: #4c535c;
+  font-size: 1.05cqw;
+  line-height: 1.7;
+}
+
+.me-cert-seal {
   display: grid;
   place-items: center;
-  width: 21px;
-  height: 21px;
-  margin-right: -5px;
-  border-radius: var(--r-full);
-  background: var(--bg);
-  box-shadow: 0 0 0 1.5px var(--bg);
-  font-size: 12px;
+  gap: .2cqw;
+  width: 8.1cqw;
+  height: 8.1cqw;
+  margin-top: auto;
+  border: .14cqw solid #8a6a1f;
+  border-radius: 50%;
+  box-shadow: inset 0 0 0 .6cqw #fffdf8, inset 0 0 0 .66cqw #8a6a1f;
+  color: #8a6a1f;
 }
+.me-cert-seal b { font-size: 1.55cqw; font-weight: 700; letter-spacing: .12cqw; line-height: 1; }
+.me-cert-seal small { font-size: .62cqw; letter-spacing: .08cqw; line-height: 1; }
+
+.me-cert-foot {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 2cqw;
+  width: 100%;
+  margin-top: 2.4cqw;
+  padding: 0 6cqw;
+  text-align: left;
+}
+.me-cert-sign { flex: 1; min-width: 0; max-width: 24cqw; padding-top: .8cqw; border-top: .09cqw solid #14171a; }
+.me-cert-sign b { display: block; font-size: 1cqw; font-weight: 700; }
+.me-cert-sign span { display: block; margin-top: .3cqw; color: #4c535c; font-size: .88cqw; }
+.me-cert-sign-end { text-align: right; }
+.me-cert-verify { width: 100%; margin-top: 1.6cqw; color: #4c535c; font-size: .82cqw; letter-spacing: .08cqw; }
+
+/* --- reactions -----------------------------------------------------------
+   One row: the four choices, and how many people have chosen. A separate
+   summary line above the bar pushed the count away from the thing it counts
+   and spent a whole row saying one number. */
 
 .me-react-bar {
-  display: grid;
-  grid-auto-flow: column;
-  grid-auto-columns: 1fr;
+  display: flex;
+  align-items: center;
   gap: 2px;
-  padding: 4px;
+  padding: 5px;
   border-top: 1px solid var(--line);
 }
 .me-react-bar button {
+  flex: 1 1 0;
+  min-width: 0;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 7px;
   min-height: 42px;
+  padding: 0 6px;
+  border: 1px solid transparent;
   border-radius: var(--r-md);
   color: var(--ink-2);
   font-size: var(--text-sm);
   font-weight: 550;
-  transition: background-color var(--dur-1), color var(--dur-1);
+  transition: background-color var(--dur-1), color var(--dur-1), border-color var(--dur-1);
 }
 .me-react-bar button:hover { background: var(--bg-sunken); }
-.me-react-bar button em { font-style: normal; font-size: 17px; line-height: 1; transition: transform var(--dur-1) var(--ease-soft); }
+.me-react-bar button em { font-style: normal; font-size: 18px; line-height: 1; transition: transform var(--dur-1) var(--ease-soft); }
 .me-react-bar button:hover em { transform: scale(1.18); }
-.me-react-bar button.is-on { background: var(--tone-soft); color: var(--tone); font-weight: 650; }
+
+/* Chosen has to be unmistakable at a glance: filled, outlined and in the
+   section's own colour. A faint tint alone did not read as a state. */
+.me-react-bar button.is-on {
+  background: var(--tone-soft);
+  border-color: color-mix(in oklab, var(--tone) 34%, transparent);
+  color: var(--tone);
+  font-weight: 700;
+}
 .me-react-bar button.is-on em { animation: me-pop .34s var(--ease-expo); }
 @keyframes me-pop { 0% { transform: scale(1); } 45% { transform: scale(1.42); } 100% { transform: scale(1); } }
+
+.me-react-count {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin-left: 2px;
+  padding: 0 var(--s-3) 0 var(--s-2);
+  border-left: 1px solid var(--line);
+  color: var(--ink-3);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+.me-react-faces { display: flex; }
+.me-react-faces span {
+  display: grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  margin-right: -6px;
+  border-radius: var(--r-full);
+  background: var(--bg);
+  box-shadow: 0 0 0 1.5px var(--bg);
+  font-size: 11px;
+}
+.me-react-faces span:last-child { margin-right: 2px; }
 
 /* --- the rail of what you have open -------------------------------------- */
 
@@ -1071,6 +1159,12 @@
 /* --- follow -------------------------------------------------------------- */
 
 .me-follow { min-width: 92px; }
+/* Bright blue, the way every feed marks its follow action. The brand indigo
+   is too muted to read as the one thing on the row you are meant to press. */
+.me-follow.btn-primary { background: #1877f2; }
+.me-follow.btn-primary:hover:not(:disabled) { background: #0f6ae0; }
+.me-follow-text { color: #1877f2; }
+.me-follow-text:hover { color: #0f6ae0; }
 
 /* A church's own logo, on its own ground. base.css tints every img with a
    loading placeholder, which shows through a logo saved with transparency. */
@@ -1079,12 +1173,11 @@
 .me-follow-text {
   flex: none;
   padding: 4px 2px;
-  color: var(--green-700);
+  color: var(--blue-700);
   font-size: var(--text-sm);
   font-weight: 650;
   letter-spacing: -.01em;
 }
-.me-follow-text:hover { color: var(--green-900); }
 .me-follow-text.is-on { color: var(--ink-3); font-weight: 500; }
 
 /* The feed opens on its first post; there is no banner above it. */
@@ -1109,7 +1202,11 @@
     border-inline: 0;
   }
   .me-post-media-1 img { max-height: 76svh; }
-  .me-react-bar button { gap: 5px; font-size: var(--text-xs); }
+  /* Labels go, the choices and the count stay. */
+  .me-react-bar button span { display: none; }
+  .me-react-bar button em { font-size: 20px; }
+  .me-react-count { font-size: var(--text-xs); }
+  .me-cert { margin-inline: var(--s-3); }
 }
 
 /* ===========================================================================

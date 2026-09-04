@@ -238,7 +238,7 @@ export const AssessmentEditor = () => {
                                 : [oi];
                               update({ ...q, answers });
                             }}
-                            style={{ width: 16, height: 16, accentColor: 'var(--green-700)' }}
+                            style={{ width: 16, height: 16, accentColor: 'var(--blue-700)' }}
                           />
                           <input
                             className="input grow"

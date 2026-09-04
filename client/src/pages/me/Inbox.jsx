@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowRight, Bell, CheckCheck, MailWarning } from 'lucide-react';
 
-import { AreaHero, Section, SectionHead, ZeroState } from '../../components/me/kit.jsx';
+import { Section, SectionHead, ZeroState } from '../../components/me/kit.jsx';
 import { ErrorState, Spinner } from '../../components/ui.jsx';
 import { api } from '../../lib/api.js';
 import { dateTime } from '../../lib/format.js';
@@ -85,15 +85,6 @@ export const MeInbox = () => {
 
   return (
     <>
-      <AreaHero
-        art="/media/scenes/discussion-table.webp"
-        artAlt="People talking around a table"
-        kicker="Inbox"
-        title="Your notifications."
-        lede={notes.length
-          ? 'Everything the churches you deal with have told you, newest first.'
-          : 'When a church asks you for something, marks your paper or reaches a decision, it will appear here.'}
-      />
 
       <div className="me-wrap me-body">
         <Section tone="inbox">
@@ -113,7 +104,7 @@ export const MeInbox = () => {
           ) : (
             <ZeroState
               title="No notifications yet"
-              lede="This fills up once you are dealing with a church — a request for a document, a marked paper, a booked interview, a decision."
+              lede="Requests for documents, marked papers, booked interviews and decisions all appear here."
               art="/media/scenes/table-meeting.webp"
               action={<Link to="/ordination" className="btn btn-primary">Find a credential <ArrowRight size={16} /></Link>}
             />

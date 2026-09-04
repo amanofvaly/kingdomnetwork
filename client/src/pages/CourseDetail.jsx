@@ -201,8 +201,8 @@ export const CourseDetail = () => {
                 <div>
                   <h2 style={{ fontSize: 'var(--text-2xl)' }}>Credentials this course counts toward</h2>
                   <p className="small muted">
-                    {plural(unlocks.length, 'credential')} name this course as a requirement. Buying the credential
-                    includes the course.
+                    {plural(unlocks.length, 'credential')} name this course as a requirement. Completing it satisfies
+                    that requirement; the issuing church still decides the application.
                   </p>
                 </div>
                 <div className="grid grid-2">

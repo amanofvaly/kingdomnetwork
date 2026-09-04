@@ -116,13 +116,15 @@ export const validateOfferingForPublish = (offering) => {
     problems.push('Write the disclosure: what this confers, and what it does not.');
   }
 
-  if (isCredentialType(offering.type)) {
-    const decided = requires.review?.required || requires.interview?.required;
-    if (!decided) {
-      problems.push(
-        'A credential cannot be issued on payment alone. Require a church review, an interview, or both.',
-      );
-    }
+  const decided = requires.review?.required || requires.interview?.required;
+  if (!decided) {
+    problems.push(
+      'A church service cannot be granted on payment alone. Require a church review, an interview, or both.',
+    );
+  }
+
+  if (offering.type === 'ordination' && (!requires.interview?.required || !requires.interview?.faceToFace)) {
+    problems.push('Ordination requires a live face-to-face interview, by video or in person.');
   }
 
   if (requires.assessment?.required && !offering.assessmentSlug) {

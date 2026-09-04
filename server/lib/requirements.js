@@ -172,9 +172,12 @@ export const evaluate = (offering, context = {}) => {
     const status = outcome === 'pass' ? DONE : outcome === 'fail' ? 'failed' : PENDING;
     steps.push(step('interview', 'interview', 'Interview with the church', status, {
       detail: requires.interview.instructions
-        ?? `${requires.interview.durationMinutes ?? 30} minutes with ${(requires.interview.panelSize ?? 1) > 1 ? 'the panel' : 'a member of the church'}.`,
+        ?? (requires.interview.faceToFace
+          ? `${requires.interview.durationMinutes ?? 30} minute face-to-face meeting with ${(requires.interview.panelSize ?? 1) > 1 ? 'the panel' : 'a member of the church'}, by live video or in person.`
+          : `${requires.interview.durationMinutes ?? 30} minutes with ${(requires.interview.panelSize ?? 1) > 1 ? 'the panel' : 'a member of the church'}.`),
       meta: {
         durationMinutes: requires.interview.durationMinutes,
+        faceToFace: Boolean(requires.interview.faceToFace),
         whatIsAssessed: requires.interview.whatIsAssessed,
         booked: Boolean(context.interviewScheduledFor),
         scheduledFor: context.interviewScheduledFor,

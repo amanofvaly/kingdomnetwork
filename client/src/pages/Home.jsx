@@ -33,10 +33,9 @@ const Hero = ({ data }) => {
     <section className="market-hero">
       <div className="wrap market-hero-inner">
         <div className="hero-copy">
-          <span className="eyebrow">Kingdom Network</span>
           <h1>{slot?.headline ?? 'Find your next ministry step.'}</h1>
           <p className="hero-sub">
-            {slot?.blurb ?? 'Compare what churches issue — ordination, licences, certificates and invitations — and what each one asks of you.'}
+            {slot?.blurb ?? 'Discover pathways to ordination, licensing, and ministry training. Find the church community that aligns with your calling.'}
           </p>
           <form
             className="search hero-search"
@@ -248,7 +247,6 @@ export const Home = () => {
       <section className="band-ink">
         <div className="wrap for-churches">
           <div className="stack stack-5">
-            <span className="eyebrow">For churches and ministries</span>
             <h2>List what you already issue.</h2>
             <p className="lede" style={{ color: 'rgba(255,255,255,.74)' }}>
               Set your own titles, your own requirements and your own prices. Take payment in mobile money and

@@ -19,7 +19,7 @@ import { useApi } from '../../lib/useAsync.js';
 
 const KIND = {
   update: ['Post', 'tag'],
-  offering: ['New credential', 'tag tag-green'],
+  offering: ['New credential', 'tag tag-blue'],
   credential: ['Someone shared', 'tag tag-gold'],
 };
 
@@ -144,7 +144,7 @@ export const Posts = () => {
                         onClick={() => setPicked((p) => (on ? p.filter((x) => x._id !== a._id) : [...p, a].slice(0, 4)))}
                         style={{
                           borderRadius: 'var(--r-md)', overflow: 'hidden', aspectRatio: '4/3',
-                          outline: on ? '3px solid var(--green-700)' : '1px solid var(--line)',
+                          outline: on ? '3px solid var(--blue-700)' : '1px solid var(--line)',
                         }}
                       >
                         <img src={`/api/media/file/${a.storageKey}`} alt={a.alt ?? ''}

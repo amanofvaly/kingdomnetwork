@@ -5,8 +5,8 @@ import { useAuth } from '../lib/auth.jsx';
 import { ApiError } from '../lib/api.js';
 
 const ART = {
-  login: { src: '/media/scenes/study-group.webp', alt: 'A small group studying together around a table' },
-  signup: { src: '/media/scenes/students-writing.webp', alt: 'Two students working through written coursework' },
+  login: { src: '/media/scenes/church-sanctuary.webp', alt: 'Inside a church sanctuary ready for a gathering' },
+  signup: { src: '/media/scenes/hands-open-bible.webp', alt: 'Hands opening a Bible in preparation for ministry' },
 };
 
 const Shell = ({ mode, title, lede, children, footer }) => (

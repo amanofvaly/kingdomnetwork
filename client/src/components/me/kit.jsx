@@ -13,14 +13,14 @@ import { Link } from 'react-router-dom';
 /* Each section's accent and its signature photograph. Tone values come from
    tokens.css; the photographs are already in the repo. */
 export const TONES = {
-  home: { tone: 'var(--green-700)', soft: 'var(--green-50)', onDark: '#ffe1a3', art: '/media/scenes/sunrise-arms-raised.webp' },
-  journey: { tone: 'var(--green-600)', soft: 'var(--green-50)', onDark: '#bcd0ff', art: '/media/scenes/seminar-room.webp' },
+  home: { tone: 'var(--blue-700)', soft: 'var(--blue-50)', onDark: '#ffe1a3', art: '/media/scenes/sunrise-arms-raised.webp' },
+  journey: { tone: 'var(--blue-600)', soft: 'var(--blue-50)', onDark: '#bcd0ff', art: '/media/scenes/seminar-room.webp' },
   passport: { tone: 'var(--gold-600)', soft: 'var(--gold-50)', onDark: '#ffe1a3', art: '/media/church-registration-cross.jpg' },
   learning: { tone: 'var(--aqua)', soft: 'var(--aqua-soft)', onDark: '#8fe6e2', art: '/media/scenes/hands-open-bible.webp' },
   library: { tone: 'var(--coral)', soft: 'var(--coral-soft)', onDark: '#ffc3b3', art: '/media/scenes/theology-shelf.webp' },
   giving: { tone: 'var(--gold-700)', soft: 'var(--gold-50)', onDark: '#ffe1a3', art: '/media/scenes/congregation-gathering.webp' },
-  inbox: { tone: 'var(--green-700)', soft: 'var(--green-50)', onDark: '#bcd0ff', art: '/media/scenes/discussion-table.webp' },
-  profile: { tone: 'var(--green-700)', soft: 'var(--green-50)', onDark: '#bcd0ff', art: '/media/scenes/handshake.webp' },
+  inbox: { tone: 'var(--blue-700)', soft: 'var(--blue-50)', onDark: '#bcd0ff', art: '/media/scenes/discussion-table.webp' },
+  profile: { tone: 'var(--blue-700)', soft: 'var(--blue-50)', onDark: '#bcd0ff', art: '/media/scenes/handshake.webp' },
   settings: { tone: 'var(--ink)', soft: 'var(--bg-sunken)', onDark: '#bcd0ff', art: '/media/scenes/open-notebook.webp' },
 };
 
@@ -149,7 +149,7 @@ export const PassportBook = ({ holder, role, number, stamps = [], slots = 4, chi
   return (
     <div className="me-passport me-passport-sheen">
       <div className="me-passport-in">
-        <div className="me-passport-crest">Kingdom Network · Minister passport</div>
+        <div className="me-passport-crest">Kingdom Network · Official Record</div>
         <div className="me-passport-holder">
           <b>{holder}</b>
           <span>{role || 'Ministry standing held on this network'}</span>

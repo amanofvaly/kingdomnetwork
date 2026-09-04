@@ -70,7 +70,7 @@ export const ApplicationDetail = () => {
         <div className="detail-grid">
           <div className="stack stack-5">
             {paidJustNow && a.paymentRef ? (
-              <div className="notice notice-green">
+              <div className="notice notice-blue">
                 <strong>Payment received. Your application is with {a.church?.name}.</strong>
                 <p style={{ margin: '4px 0 0' }}>
                   The church will now review your application.
@@ -79,7 +79,7 @@ export const ApplicationDetail = () => {
             ) : null}
 
             {a.decision ? (
-              <div className={`notice ${a.decision.outcome === 'approved' ? 'notice-green' : a.decision.outcome === 'declined' ? 'notice-red' : 'notice-gold'}`}>
+              <div className={`notice ${a.decision.outcome === 'approved' ? 'notice-blue' : a.decision.outcome === 'declined' ? 'notice-red' : 'notice-gold'}`}>
                 <strong>
                   {a.decision.outcome === 'approved' ? 'Approved and issued'
                     : a.decision.outcome === 'declined' ? 'The church has declined this application'

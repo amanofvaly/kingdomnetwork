@@ -32,7 +32,6 @@ import { AcceptInvite, ForgotPassword, ReferenceForm, ResetPassword } from './pa
 
 import { MeShell } from './components/me/Shell.jsx';
 import { MeHome } from './pages/me/Home.jsx';
-import { MeDiscover } from './pages/me/Discover.jsx';
 import { MeJourney } from './pages/me/Journey.jsx';
 import { MePassport } from './pages/me/Passport.jsx';
 import { MeLearning } from './pages/me/Learning.jsx';
@@ -89,7 +88,6 @@ export const App = () => (
         give a person somewhere of their own. */}
     <Route path="/me" element={<MeShell />}>
       <Route index element={<MeHome />} />
-      <Route path="discover" element={<MeDiscover />} />
       <Route path="journey" element={<MeJourney />} />
       <Route path="passport" element={<MePassport />} />
       <Route path="learning" element={<MeLearning />} />

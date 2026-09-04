@@ -3,7 +3,6 @@ import { Link } from 'react-router-dom';
 export const NotFound = () => (
   <div className="wrap band">
     <div className="stack stack-5" style={{ alignItems: 'center', textAlign: 'center', paddingBlock: 'var(--s-8)' }}>
-      <span className="eyebrow">404</span>
       <h1 style={{ fontSize: 'var(--text-3xl)' }}>That page does not exist.</h1>
       <p className="lede" style={{ maxWidth: '44ch' }}>
         The link may be out of date.

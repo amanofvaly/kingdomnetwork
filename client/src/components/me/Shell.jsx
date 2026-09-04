@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link, NavLink, Outlet, useLocation } from 'react-router-dom';
 import {
-  ArrowUpRight, Bell, BookOpen, Compass, HandCoins, Home, IdCard, Library,
+  ArrowUpRight, Bell, BookOpen, HandCoins, Home, IdCard, Library,
   LogOut, Menu, Route as RouteIcon, Settings as SettingsIcon, User, X,
 } from 'lucide-react';
 
@@ -25,9 +25,8 @@ const ICON = { size: 18, strokeWidth: 1.7 };
 
 const PRIMARY = [
   { to: '/me', end: true, key: 'home', label: 'Home', icon: <Home {...ICON} /> },
-  { to: '/me/discover', key: 'discover', label: 'Discover', icon: <Compass {...ICON} /> },
   { to: '/me/journey', key: 'journey', label: 'Journey', icon: <RouteIcon {...ICON} /> },
-  { to: '/me/passport', key: 'passport', label: 'Passport', icon: <IdCard {...ICON} /> },
+  { to: '/me/passport', key: 'passport', label: 'Digital Passport', icon: <IdCard {...ICON} /> },
   { to: '/me/learning', key: 'learning', label: 'Learning', icon: <BookOpen {...ICON} /> },
   { to: '/me/library', key: 'library', label: 'Library', icon: <Library {...ICON} /> },
   { to: '/me/giving', key: 'giving', label: 'Giving', icon: <HandCoins {...ICON} /> },
@@ -40,7 +39,7 @@ const SECONDARY = [
 ];
 
 const TITLES = {
-  home: 'Home', discover: 'Discover', journey: 'Your journey', passport: 'Minister passport', learning: 'Learning',
+  home: 'Home', journey: 'Your journey', passport: 'Digital Passport', learning: 'Learning',
   library: 'Library', giving: 'Giving', inbox: 'Inbox', profile: 'Profile', settings: 'Settings',
 };
 

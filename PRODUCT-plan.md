@@ -1,938 +1,466 @@
-Kingdom Network — from demo marketplace to a real credentialing 
- platform
+Plan written. Here's the shape of it.
+
+  Yes — I understand the ask, and the exploration confirmed the 
+  diagnosis exactly. Churches get a real console at /manage/:churchSlug
+  with 16 sections and a shared shell. Personal accounts get five
+  orphaned routes wrapped in the marketing layout, no shared nav, and
+  /dashboard labelled three different things in three places. There is
+  no place. That's what this builds.
+
+  What I'm reusing vs. building. The token layer in tokens.css is
+  complete and stays. The utility kit in app.css (.wrap, .band*,
+  .grid-*, .btn-*, .media, .scrim, .eyebrow) is the shared vocabulary —
+  the area extends it, never forks it. ui.jsx, cards.jsx and market.jsx
+  components come across as-is. What's genuinely new is the shell, the
+  motion layer, and a vibrant component kit.
+
+  The registration flow's actual technique, carried over: full-bleed
+  photography under two-gradient scrims; display type at letter-spacing:
+  -.04em; the .is-started morph where one surface transforms rather
+  than navigating (outgoing layer blurs and scales away, incoming fades
+  in on a delay) — which I'm using for the first-run → populated
+  transition, so the area becomes alive rather than swapping pages; and
+  objects that genuinely float with 0 32px 80px shadows and slow idle
+  drift.
+
+  On empty states — you were right to flag it, and it changed the build
+  order. The area's hardest surface is a fresh database, so I'm building
+  it first, not last. Every list routes through one ZeroState primitive
+  (art + one sentence + exactly one action), each section gets its own
+  zero state rather than a generic one, and the unstamped PassportBook
+  becomes an aspirational artifact instead of an error. Verification
+  explicitly fails if any surface shows a bare empty box.
+
+  Three things worth flagging:
+  - Closing the gaps needs only three new endpoints. Notifications, the
+    full profile block, notificationPrefs and password change are
+    already fully supported server-side and simply have no UI — that's
+    client work only.
+  - One is a real bug, not a polish item: a user can buy a book today
+    and has no way whatsoever to retrieve it (Resource.fileMediaIds is
+    never returned to the purchaser). /me/library fixes it.
+  - Rather than add a fourth copy of the auth guard, I extract one
+    shared <Gate> and use it in the new shell. Migrating the other three
+    onto it I've left explicitly out of scope.
+
+  Applications.jsx is the one file needing care — it exports both the
+  list (replaced) and ApplicationDetail (a deep flow that stays), so it
+  gets split rather than deleted.
+
+────────────────────────────────────────────────────────────────────────
+ Ready to code?
+     
+ Here is Claude's plan:
+╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌
+ The User Area — a dedicated, vibrant home for personal accounts
 
  Context
 
- The repo today is a working MERN monolith (Express 5 + Mongoose 8 +
- React 19/Vite, plain JS, no
- TypeScript) with a genuinely good read-path: 12 churches, 39
- offerings, 27 courses (778 lessons),
- faceted search, a requirement graph that stacks credentials across
- churches, live PDF document
- rendering, and a Digital Minister Passport with public verification.
- All of it is real code against
- a real database — what is fake is the seed catalogue and the payment 
- simulator.
+ Kingdom Network gives churches a polished, shell-based console at
+ /manage/:churchSlug (16 sections, shared Rail/ConsoleHeader/kit.jsx)
+ and platform staff a matching one at /admin. A personal account gets
+ neither. Its experience is five orphaned top-level routes —
+ /dashboard, /account, /passport, /orders, /applications — each wrapped
+ only in the public marketing Layout, each fetching its own data, with
+ no shared shell and no persistent nav between them. The only way to
+ move between them is a dropdown in the marketing header, where
+ /dashboard is labelled three different things depending on where you
+ look ("My account" at Layout.jsx:143, "My learning" at
+ Layout.jsx:191).
 
- What does not exist at all:
+ The individual pages are functionally complete; the problem is
+ architectural. There is no place. A signed-in minister never feels
+ they have entered their own zone.
 
- - No church-side console. User.role has 'church' and 'admin',
-   requireChurch middleware
-   is written — and nothing anywhere reads any of it. There is no
-   listing editor, no course builder,
-   no test builder, no applicant queue, no page manager, no payout
-   screen.
- - No exit from in-review. Every credential a church is supposed to
-   sign sits in that state
-   forever; no code path issues or declines one. This is the single
-   biggest hole.
- - No application entity. A Credential in in-progress/in-review is the
-   application, with
-   requirements encoded as string tokens ('course:foo',
-   'credential:bar') parsed by .slice(7).
- - No file upload anywhere. No <input type="file"> exists in the
-   codebase.
- - No real payments, no fees, no donations, no payouts, no ledger.
- - No platform admin.
+ This builds that zone from scratch — the same way ChurchRegister.jsx
+ was built from scratch in 5213cee rather than patched onto the dead
+ 758-line Onboarding.jsx it replaced. It inherits the design system of
+ the homepage, listing page, church profile and registration flow, but
+ turns the energy up: photography-led, gradient-rich, animated. It is
+ explicitly not the flat dark-rail console idiom of /admin and /manage.
 
- And one ethical problem in the current model: acquisition: 'instant'
- means pay → ordained, with
- compareAtPrice struck through and "Add to basket" on ordination cards.
- That reads as a store
- selling titles.
-
- This plan builds the real system: church onboarding and landing pages,
- a full church admin panel
- with authoring tools, an application/interview/approval workflow,
- Pesapal payments and donations
- with platform-admin settlement, a platform admin console, and an
- ethics pass on the language and
- rules. The existing site structure, design tokens and read-path stay.
-
- Decisions already made
-
- ┌─────────────┬───────────────────────────────────────────────────┐
- │             │                                                   │
- ├─────────────┼───────────────────────────────────────────────────┤
- │ Delivery    │ One plan, implemented straight through all phases │
- ├─────────────┼───────────────────────────────────────────────────┤
- │ Payments    │ Pesapal API 3.0 only; the 6-rail simulator is     │
- │             │ removed (a dev mock keeps local work possible)    │
- ├─────────────┼───────────────────────────────────────────────────┤
- │ Currency    │ USD everywhere — no FX, no per-church currency    │
- ├─────────────┼───────────────────────────────────────────────────┤
- │ Interviews  │ Provider-agnostic scheduling — church publishes   │
- │             │ slots and pastes any Zoom/Meet/Teams/phone link   │
- ├─────────────┼───────────────────────────────────────────────────┤
- │ Church      │ Page goes live immediately on publish; "Verified" │
- │ publishing  │  is a badge a platform admin grants               │
- ├─────────────┼───────────────────────────────────────────────────┤
- │             │ Credentials can never be issued on payment alone  │
- │ Ethics gate │ — every ordination/licence/certificate must carry │
- │             │  at least one church decision step                │
- ├─────────────┼───────────────────────────────────────────────────┤
- │ Commerce    │ Credentials use a dedicated /apply flow; the      │
- │ split       │ basket survives for courses, books and resources  │
- ├─────────────┼───────────────────────────────────────────────────┤
- │ Storage     │ Local disk, path from UPLOAD_DIR, behind a driver │
- │             │  seam (Render persistent disk in production)      │
- ├─────────────┼───────────────────────────────────────────────────┤
- │ Seed data   │ Demo catalogue stays, behind demo: true + a       │
- │             │ DEMO_MODE switch and an admin toggle              │
- └─────────────┴───────────────────────────────────────────────────┘
-
- Vocabulary (from how churches actually credential)
-
- Research confirms the real ladder is Certified → Licensed → Ordained
- (Assemblies of God,
- Wesleyan and others), that licences are typically annually renewable
- with continuing-education
- hours, that Bible institutes issue certificates, diplomas and credit
- units, and that
- letters of good standing / recommendation are distinct artifacts. The
- existing model already
- supports stacking; the plan adds tiers, renewal, credit units,
- references, attestations and
- interviews so the vocabulary a church actually uses is expressible
- without inventing new nouns.
+ Decisions locked with the user:
+ - Personal accounts only. /manage/* (church) is untouched. An account
+   is personal or church, never both — already enforced by
+   User.accountKind and requirePersonal.
+ - Namespace /me/*. Old personal routes redirect in, then their files
+   are deleted.
+ - Immersive full-bleed shell: own chrome, own dark rail, no marketing
+   header, no footer, art to the edges.
+ - Photography-led + rich gradients. Accent colour used sparingly, one
+   tone per section.
+ - First-run home and per-section zero states. No empty boxes anywhere.
+ - Close all four data gaps: notifications inbox, full
+   profile/settings, giving + payments ledger, library downloads +
+   interviews.
+ - Deep task flows (assessment, interview booking, course player) keep
+   working and inherit the new tokens; their full rebuild is Phase 2.
 
  ---
 
- Architecture decisions
+ What already exists (reuse, do not rebuild)
 
- 1. Roles become multi-tenant
+ Tokens — client/src/styles/tokens.css. Complete and good. --ink
+ #211e3b, --bg-ink #24204a, --bg-warm #fff9ed, --bg-sunken #f5f2ff; the
+ --green-* ramp is actually indigo/blue (--green-700 #3157a4);
+ --gold-*, --coral #e86852, --aqua #1e8d91; --s-1..9,
+ --r-sm/md/lg/full, --shadow-sm/md/lg, --text-xs..4xl, --header-h 68px,
+ --page-max 1280px, --gutter clamp(16px,4vw,48px), --focus. Add only
+ motion tokens (below).
 
- User.role is platform-level only: 'member' | 'platform_admin'
- (migrated from
- learner|church|admin). Church-scoped authority moves to a new
- ChurchMembership — a person
- can administer two churches and still be an applicant at a third.
+ Kit — client/src/styles/app.css. .wrap, .band*, .stack-2..7, .row*,
+ .grid-2/3/4 with their collapse queries, .btn-* (44px baseline, -sm 36
+ / -lg 52), .chip, .tag, .eyebrow, .lede, .clamp-1/2/3, .num, .media +
+ -4x3/16x9/3x2/1x1, .scrim, .field/.input/.select/.textarea, .panel,
+ .notice, .skeleton, .spinner, .section-head. Use these throughout —
+ the area adds to this vocabulary, it does not fork it.
 
- Church roles: owner, admin, registrar (applications + issuance),
- instructor (courses +
- assessments), finance (payments + payouts), reviewer (interviews +
- decisions, read-only
- elsewhere).
+ Components — client/src/components/ui.jsx (Stars, Verified, Monogram,
+ Avatar, Price, Spinner, ErrorState, Breadcrumbs,
+ SkeletonCard/SkeletonGrid), cards.jsx (CourseCard, CourseRow),
+ market.jsx (ACQUISITION map, AcquisitionTag, OutcomeIcon,
+ OfferingCard, confersStanding()). All reused as-is.
 
- New middleware in server/middleware/auth.js beside the existing
- requireAuth/optionalAuth:
- requirePlatformAdmin, requireChurchRole(...roles) (resolves req.church
- +
- req.membership from :churchSlug). requireChurch is replaced.
+ Auth — client/src/lib/auth.jsx. useAuth() → { user, memberships,
+ ready, login, logout, ... }. user carries id, name, email, role,
+ accountKind, status, avatar, country, city, phone, timezone,
+ hasPassword, ministryRole, ministry, bio, emailVerified,
+ notificationPrefs, createdAt.
 
- 2. Application becomes a first-class entity
+ Endpoints that already return exactly what the area needs:
+ - GET /me/dashboard (learning.controller.js:12) → { pending[] (with
+   outstanding steps, church, offering, infoRequest), courses[]
+   ({enrollment, course, church}), credentials[], stats{issued,
+   waiting, courses, completed} }. Calls advanceAllFor() first, so it
+   self-heals.
+ - GET /me/passport (passport.controller.js:24) → { holder,
+   credentials[] (with expired, renewalDueInDays, disclosures),
+   applications[], counts{issued, expired, inProgress, letters} }.
+ - GET /me/entitlements, GET /me/credentials/:id/document.pdf, GET
+   /orders, GET /orders/:reference.
+ - GET /me/notifications + POST /me/notifications/read
+   (notification.controller.js) — fully built, zero client usage.
+   Returns { notifications, unread }.
+ - PATCH /auth/me (auth.controller.js) — already accepts timezone, the
+   whole ministry{yearsInMinistry, currentRole, congregation,
+   denomination, priorCredentials} block,
+   notificationPrefs{applicationUpdates, interviewReminders,
+   courseProgress, marketing}, and password/currentPassword.
+   Account.jsx exposes none of these.
 
- Credential stops doubling as an application and becomes purely the
- issued artifact.
-
- Application {
-   reference, userId, churchSlug, offeringSlug,
-   status: draft | submitted | fee_pending | under_review |
- info_requested
-         | coursework | assessment | interview | final_review
-         | approved | issued | declined | withdrawn | expired,
-   steps: [{ key, type, label, status, startedAt, completedAt,
- waivedBy, waiverReason, note }],
-   answers: {},                                   // church-defined
- application form
-   documents: [{ key, mediaId, status, note, reviewedBy, reviewedAt }],
-   references: [{ name, email, phone, relationship, status, token,
- respondedAt, response }],
-   attestations: [{ key, statement, agreedAt }],
-   attempts: [assessmentAttemptId], interviewId, paymentRef,
- credentialId,
-   decision: { by, at, outcome, reason, publicNote, internalNote },
-   timeline: [{ at, actorId, actorRole, event, note, visibility:
- church|applicant|both }],
- }
-
- timeline is the tracking the applicant and the church both read; steps
- is the derived
- checklist. Existing in-progress/in-review credentials migrate into
- Applications.
-
- 3. One requirement evaluator, one workflow engine
-
- Today the same requirement logic is written twice — inline in
- grantAccess()
- (server/controllers/checkout.controller.js) and again in settle()
- (server/controllers/passport.controller.js). Both are replaced by:
-
- - server/lib/requirements.js — a pure evaluate(offering, context)
-   returning typed steps
-   ({ type: 'course'|'credential'|'assessment'|'interview'|'document'|'
-   reference'|'attestation'|'fee'|'review', status, ... }).
-   It also resolves the new requirement groups (all / any / atLeast N
-   over a set), which is
-   how "credits in a degree" is expressed.
- - server/lib/workflow.js — advances an Application through its states,
-   called on every
-   event (fee paid, course completed, assessment passed, document
-   uploaded, interview outcome,
-   church decision). It is the only thing that writes
-   Application.status and the only thing that
-   mints a Credential.
-
- Both are pure and reused by the applicant dashboard, the church queue,
- and the public listing page.
-
- 4. Structural fixes the admin panel forces
-
- These are latent bugs that only bite once churches can edit data. Fix
- them as part of the
- foundation, not after.
-
- Problem: Slugs are the universal FK (requires.credentials:
- ['ordained-minister-rock', ...]) with zero integrity. A church
- renaming a slug shatters the cross-church requirement graph.
- Fix: Slugs become immutable after first publish. Editing a title never
-
- changes the slug. Deleting/unpublishing an offering runs a dependency
-  check ("3 offerings at 2 churches require this") and blocks or
- warns. Store slugHistory[]. New relations carry ObjectId refs
- alongside the slug.
- ────────────────────────────────────────
- Problem: Lecture progress keys are
- slugify(section.title)/slugify(lecture.title) — renaming a lesson
- silently orphans every learner's progress.
- Fix: Lectures and sections get stable generated ids at authoring time.
-
- Migration rewrites existing completedLectures[] keys.
- ────────────────────────────────────────
- Problem: Offering.acquisition and Course.totalMinutes/lectureCount/...
-
- are derived only at seed time by modeOf() and finalise().
- Fix: Move both into server/lib/derive.js, called from model
- pre('save')
- hooks and reused by the seed script.
- ────────────────────────────────────────
- Problem: Assessment passes are stored as a string stuffed into
- Credential.notes ('assessment:passed score:85').
- Fix: Real AssessmentAttempt records.
- ────────────────────────────────────────
- Problem: paperFor() caps every paper at 10 questions while offerings
- declare 25–60.
- Fix: Church-authored assessments with real banks and a drawCount that
- is validated against pool size.
- ────────────────────────────────────────
- Problem: Three text indexes are declared and never used — search is
- regex $or.
- Fix: Keep regex for now (correct for prefix/typeahead) but drop the
- dead text indexes, or wire $text for the full-search path. Decide
- during Phase 1; do not leave both.
- ────────────────────────────────────────
- Problem: Church.leaders[] duplicates Instructor records for the same
- people.
- Fix: Instructor gains an optional userId and Church.leaders[] gains an
-
- optional instructorSlug, so one person is edited once.
+ No animation, charting, form or date library exists. Do not add one —
+ hand-roll, matching client/src/lib/format.js.
 
  ---
 
- Data model
+ The design language of the area
 
- Modified
+ Lifted from ChurchRegister.jsx + pages.css:177-338, which is the
+ reference for "built from scratch, beautiful":
 
- server/models/User.js — role: ['member','platform_admin']; add status:
- active|suspended,
- emailVerifiedAt, passwordResetToken/ExpiresAt, timezone,
- notificationPrefs{},
- ministry: { yearsInMinistry, currentRole, congregation, denomination,
- priorCredentials[] },
- lastLoginAt. Keep churchSlug as a nullable convenience;
- ChurchMembership is the source of truth.
+ 1. Full-bleed photography under layered scrims. 100svh-class art with
+    a two-gradient scrim (one directional for text legibility, one from
+    the bottom), e.g. linear-gradient(90deg, rgba(22,17,55,.92) 0%,
+    rgba(28,20,64,.7) 38%, rgba(18,15,47,.08) 72%),
+    linear-gradient(0deg, rgba(17,14,42,.56), transparent 58%).
+ 2. Oversized display type, hard negative tracking. clamp(2.7rem,
+    4.4vw, 4.5rem), line-height: .95, letter-spacing: -.04em. Gold
+    rule-and-caps accent for kickers (--gold-100 #ffe1a3, .1em
+    tracking, uppercase, with a 28px ::before hairline).
+ 3. State-driven transformation, not navigation. The .is-started
+    pattern: one surface morphs — outgoing layer opacity: 0; transform:
+    scale(.94) translateY(-4%); filter: blur(10px) over .8s
+    cubic-bezier(.16,1,.3,1), incoming layer fades in on a .18s delay.
+    Use this for the first-run → populated home transition and for
+    section entry.
+ 4. Objects that float. box-shadow: 0 32px 80px rgba(15,10,62,.34),
+    slow 7s ease-in-out infinite idle drift, oversized decorative rings
+    (::before with a 90px border, border-radius: 50%, pushed
+    off-canvas).
+ 5. Existing motifs to carry over: the issued-credential gold sweep
+    linear-gradient(90deg, var(--green-700), var(--gold-600),
+    var(--green-700)) on a 4px rule (.cred.issued::before);
+    currentColor-tinted image scrims (.category-image::after); hover
+    image zoom scale(1.035) on transform .5s cubic-bezier(.2,.6,.2,1);
+    horizontal scroll-snap-type: x mandatory rails on mobile.
 
- server/models/Church.js — add:
- status: draft|published|suspended, publishedAt, ownerId, timezone,
- currency (fixed 'USD'),
- denomination, tradition, legal: { registeredName, registrationNumber,
- registrationCountry, taxId },
- contact: { email, phone, whatsapp, addressLines[], mapUrl, socials{}
- },
- serviceTimes: [{ day, time, label, format }],
- verification: { tier, state: unverified|pending|verified|rejected,
- documents[], submittedAt, reviewedBy, reviewedAt, notes }
- (verified: Boolean is kept as a derived mirror so no read-path code
- breaks),
- onboarding: { currentStep, completedSteps[], startedAt, completedAt },
- page: { accent, sections: [{ id, type, order, visible, data }] },
- donations: { enabled, headline, blurb, causes: [{ id, title, blurb,
- mediaId, goalAmount, raisedAmount, active }], suggestedAmounts[],
- allowCustom, minAmount, allowAnonymous, thankYouMessage,
- showRecentGifts },
- payout: { method: mpesa|mobile-money|bank, accountName,
- accountRefMasked, accountRefEncrypted, bankName, branch, swift,
- country, confirmedAt },
- commissionPercentOverride, signatory: { name, title, signatureMediaId
- }.
+ Motion layer (new). Only 5 keyframes exist in the whole app. Add to
+ tokens.css (purely additive):
+ --ease-expo: cubic-bezier(.16, 1, .3, 1);   /* promote: already used
+ by the register flow */
+ --ease-soft: cubic-bezier(.2, .6, .2, 1);   /* promote: already used
+ by media zoom */
+ --dur-1: .18s;  --dur-2: .32s;  --dur-3: .7s;
+ New keyframes in me.css: me-rise (translateY + fade tile entrance),
+ me-art-settle (hero photo scale(1.06)→1 with saturate(.85)→1, modelled
+ on church-art-arrive), me-float, me-sheen (gradient sweep across
+ passport/credential surfaces), me-ring (progress-ring stroke draw).
+ Stagger with an inline custom property — style={{ '--i': i }} and
+ animation-delay: calc(var(--i) * 55ms) — never with JS timers.
+ base.css already neutralises all animation under
+ prefers-reduced-motion, so this is safe by default.
 
- server/models/Offering.js — type enum gains 'letter-of-standing' and
- 'diploma'.
- requires gains:
- interview:   { required, durationMinutes, panelSize, instructions,
- whatIsAssessed[] }
- documents:   [{ key, label, description, required, acceptedTypes[],
- maxMb }]
- references:  [{ key, label, required, relationship }]
- attestations:[{ key, statement, required }]
- credentialGroups: [{ label, mode: all|any|atLeast, count,
- offeringSlugs[] }]
- courseGroups:     [{ label, mode: all|any|atLeast, count,
- courseSlugs[], creditUnits }]
- minMonthsInMinistry, minAge
- Plus on the offering itself: assessmentSlug (→ the church's own
- Assessment),
- applicationForm: [{ key, label, type, options[], required, help }],
- fee: { amount, currency, label, refundable, refundPolicy,
- renewalAmount },
- renewal: { required, everyMonths, continuingEducationHours, graceDays
- },
- creditValue, tier (certified|licensed|ordained|diploma|other),
- curriculumOutline: [{ stage, label, description, courseSlugs[],
- creditUnits }],
- capacity, intake: { mode: rolling|windows, windows: [{ opensAt,
- closesAt, seats }] },
- status: draft|published|archived, publishedAt, slugHistory[],
- disclosure (required church-authored statement of what the credential
- does and does not confer).
- acquisition stays (derived) but gains 'application' and can no longer
- be 'instant' for
- credential types — enforced in derive.js and at publish time.
+ Per-section identity. Each section owns a signature photograph and one
+ accent tone, set as --tone on the section root so children inherit it
+ (the .issuer-palette-* technique from Home.jsx, which switches 8
+ custom properties at once per index). Assets already on disk in
+ client/public/media/: scenes/auditorium-crowd,
+ scenes/congregation-gathering, scenes/bible-being-taught,
+ scenes/seminar-room, scenes/audience-seated (each with @800 variants),
+ people/* (~34 portraits), church-registration-cross.jpg,
+ hero-featured-henry.jpg. No new assets required.
 
- server/models/Course.js — stable section.key / lecture.key;
- lecture.mediaId;
- lecture.kind gains 'live-session'; status: draft|published|archived;
- version;
- assignment: { brief, rubric[], submissionTypes[], dueDays } on
- assignment lectures;
- creditUnits; authoredBy; keep demo.
-
- server/models/Credential.js — add applicationId, issuedBy (user),
- signatory{},
- renewal: { dueAt, lastRenewedAt, renewalCount }, revocation: { by, at,
- reason, publicReason },
- documentMediaId (the rendered PDF, cached). Drop the outstanding[]
- token array and the
- notes-as-assessment-store hack (both move to Application). Keep
- pathwaySlug out of new writes.
-
- server/models/Enrollment.js — kind gains 'resource'; add resourceSlug,
- applicationId,
- creditUnitsEarned, certificateIssuedAt.
-
- server/models/Order.js — payment block replaced by a paymentRef
- pointing at the new
- Payment; items[].kind gains 'resource'; the 6-method enum and
- simulated flag are removed.
-
- New models (server/models/)
-
- Model: ChurchMembership.js
- Purpose: user ↔ church ↔ role, with invite tokens and status
- ────────────────────────────────────────
- Model: MediaAsset.js
- Purpose: { churchSlug, uploadedBy, kind, filename, storageKey,
- mimeType, bytes, width, height, durationSeconds, title, alt,  tags[],
-  folder, visibility: public|private, usage: [{entity,  id}], checksum
-  }
- ────────────────────────────────────────
- Model: Assessment.js
- Purpose: church-authored test: questions, passMark, durationMinutes,
- attemptsAllowed, drawCount, shuffle flags, showAnswers, status
- ────────────────────────────────────────
- Model: AssessmentAttempt.js
- Purpose: { userId, applicationId, assessmentSlug, questionsServed[],
- answers[], autoScore, manualScore, score, passed,  attemptNumber,
- startedAt, submittedAt, gradedBy, gradedAt,  feedback }
- ────────────────────────────────────────
- Model: Application.js
- Purpose: the workflow object above
- ────────────────────────────────────────
- Model: Interview.js
- Purpose: { applicationId, churchSlug, userId, slotId, scheduledFor,
- timezone, durationMinutes, provider, joinUrl, dialIn,  location,
- panel[], status, outcome, score, notes,  remindersSent[],
- rescheduleCount }
- ────────────────────────────────────────
- Model: InterviewSlot.js
- Purpose: church availability: { churchSlug, startsAt, endsAt,
- capacity,
-  bookedCount, panel[], provider, joinUrl, status }
- ────────────────────────────────────────
- Model: Submission.js
- Purpose: assignment submissions with rubric grading
- ────────────────────────────────────────
- Model: Resource.js
- Purpose: books / audio / study guides: { churchSlug, slug, title,
- kind,
-  mediaIds[], previewMediaId, price, cover, status, demo }
- ────────────────────────────────────────
- Model: Payment.js
- Purpose: see Pesapal section
- ────────────────────────────────────────
- Model: LedgerEntry.js
- Purpose: { churchSlug, type: credit|fee|debit|settlement, amount,
- balanceAfter, paymentRef, settlementRef, description, at }
- ────────────────────────────────────────
- Model: Settlement.js
- Purpose: { reference, churchSlug, periodStart, periodEnd,
- paymentRefs[], gross, platformFee, net, status, method,  externalRef,
-  evidenceMediaId, markedBy, paidAt, notes }
- ────────────────────────────────────────
- Model: PlatformSettings.js
- Purpose: singleton: commissionPercent, pesapalIpnId, demoMode,
- homeSlots[], outcomes[], disclosure copy, feature flags
- ────────────────────────────────────────
- Model: AuditLog.js
- Purpose: { actorId, actorRole, churchSlug, action, entity, entityId,
- before, after, ip, at }
- ────────────────────────────────────────
- Model: Notification.js
- Purpose: in-app notifications + email outbox status
-
- Migrations
-
- There is no migration tooling. Add a tiny idempotent runner:
- server/migrations/NNN-*.js files with
- { id, up(db) }, a Migration collection recording applied ids, run via
- npm run migrate and
- automatically on boot in development. First migrations: role rename,
- stable lecture keys,
- credential → application split, derived-field backfill, demo flag
- normalisation.
+ ┌──────────┬─────────────┬──────────────────────────────────────┐
+ │ Section  │    Tone     │            Signature art             │
+ ├──────────┼─────────────┼──────────────────────────────────────┤
+ │ Home     │ --green-700 │ time-of-day rotation across scenes/* │
+ ├──────────┼─────────────┼──────────────────────────────────────┤
+ │ Journey  │ --green-600 │ scenes/seminar-room                  │
+ ├──────────┼─────────────┼──────────────────────────────────────┤
+ │ Passport │ --gold-600  │ church-registration-cross.jpg        │
+ ├──────────┼─────────────┼──────────────────────────────────────┤
+ │ Learning │ --aqua      │ scenes/bible-being-taught            │
+ ├──────────┼─────────────┼──────────────────────────────────────┤
+ │ Library  │ --coral     │ scenes/books-colorful                │
+ ├──────────┼─────────────┼──────────────────────────────────────┤
+ │ Giving   │ --gold-700  │ scenes/congregation-gathering        │
+ └──────────┴─────────────┴──────────────────────────────────────┘
 
  ---
 
- Pesapal integration
+ Architecture
 
- Verified against the API 3.0 docs. Base URLs: sandbox
- https://cybqa.pesapal.com/pesapalv3,
- live https://pay.pesapal.com/v3.
+ New files
 
- server/lib/pesapal/client.js
- - RequestToken → POST /api/Auth/RequestToken {consumer_key,
-   consumer_secret} → {token, expiryDate}.
-   Token is valid 5 minutes — cache in memory, refresh at 4:00, never
-   persist.
- - RegisterIPN → POST /api/URLSetup/RegisterIPN {url,
-   ipn_notification_type:'GET'} → {ipn_id}.
-   Called once on boot if PlatformSettings.pesapalIpnId is empty or the
-   URL changed; the id is stored.
- - SubmitOrderRequest → POST /api/Transactions/SubmitOrderRequest with
-   {id, currency:'USD', amount, description, callback_url,
-   cancellation_url, notification_id, billing_address:{email_address,
-   phone_number, first_name, last_name, country_code}}
-   → {order_tracking_id, merchant_reference, redirect_url}.
-   id = our Payment.reference, ≤50 chars, [A-Za-z0-9-_.:] only.
-   description ≤100 chars.
- - GetTransactionStatus → GET
-   /api/Transactions/GetTransactionStatus?orderTrackingId= →
-   {status_code, payment_status_description, confirmation_code,
-   payment_method, amount, ...}.
-   status_code: 0 INVALID · 1 COMPLETED · 2 FAILED · 3 REVERSED.
- - RefundRequest and CancelOrder for admin-initiated reversals.
+ client/src/styles/me.css                  the area's stylesheet
+ (import in main.jsx AFTER pages.css)
+ client/src/lib/guard.jsx                  one shared auth gate (see
+ note below)
+ client/src/components/me/Shell.jsx        the area shell: rail,
+ chrome, bell, mobile tab bar
+ client/src/components/me/kit.jsx          the vibrant component kit
+ client/src/pages/me/Home.jsx              /me            — first-run +
+ populated variants
+ client/src/pages/me/Journey.jsx           /me/journey    —
+ applications in flight + interviews
+ client/src/pages/me/Passport.jsx          /me/passport   — issued
+ credentials, renewals
+ client/src/pages/me/Learning.jsx          /me/learning   — courses +
+ progress
+ client/src/pages/me/Library.jsx           /me/library    — purchases,
+ downloads, orders
+ client/src/pages/me/Giving.jsx            /me/giving     — gifts +
+ unified statement
+ client/src/pages/me/Inbox.jsx             /me/inbox      —
+ notifications
+ client/src/pages/me/Profile.jsx           /me/profile    — identity +
+ ministry biography
+ client/src/pages/me/Settings.jsx          /me/settings   — password,
+ prefs, email, sessions
 
- Critical: the callback and the IPN carry no payment status — status
- must always be fetched
- with GetTransactionStatus. Both paths converge on one idempotent
- applyPaymentResult(payment, status) guarded by Payment.status so the
- IPN/callback race cannot
- double-issue a credential or double-credit a ledger.
+ kit.jsx — the component vocabulary
 
- Routes (server/routes/payments.js)
- POST /api/payments/intent        create Payment, SubmitOrderRequest,
- return redirect_url
- GET  /api/payments/ipn           Pesapal GET (OrderTrackingId,
- OrderMerchantReference,
-                                  OrderNotificationType) → fetch status
- → apply → respond with the
-                                  JSON echo Pesapal expects:
- {orderNotificationType,
-                                  orderTrackingId,
- orderMerchantReference, status: 200}
- GET  /api/payments/callback      browser return → fetch status → apply
- → redirect into the app
- POST /api/payments/:ref/refresh  manual re-poll (support tool)
+ - AreaHero — full-bleed photo, layered scrim, --tone, oversized
+   display type, gold kicker. The area's signature surface; every
+   section opens with one.
+ - Tile — the area's card primitive. Photographic or gradient variant,
+   inherits --tone, me-rise entrance with stagger, hover lift.
+ - ZeroState — the anti-empty-box primitive: artwork + one orienting
+   sentence + exactly one action. Every list in the area routes through
+   this when empty. Never render a bare .empty.
+ - StatBloom — a large font-variant-numeric: tabular-nums figure over a
+   gradient underlay, with label. Replaces the admin Stat tile.
+ - ProgressRing / ProgressMeter — hand-rolled SVG (no chart library),
+   me-ring stroke draw.
+ - PassportBook — the passport as a physical artifact, stamped or
+   unstamped. Carries the gold sweep rule and me-sheen.
+ - SectionHead, Rail (snap-scroll), Timeline (application step
+   progression).
 
- Payment model
- Payment {
-   reference, kind: application_fee | renewal_fee | course | resource |
- donation,
-   userId?, churchSlug, applicationId?, orderRef?, donation?: {
- causeId, message, anonymous, displayName },
-   amount, currency:'USD', platformFee, netToChurch,
-   status: created|pending|completed|failed|reversed|refunded,
-   pesapal: { orderTrackingId, merchantReference, redirectUrl,
- confirmationCode,
-              paymentMethod, statusCode, statusDescription,
- lastCheckedAt },
-   payer: { name, email, phone, country }, ipnEvents: [{ at, raw }],
- settlementRef
- }
+ Shell.jsx — the immersive shell
 
- Commission and settlement. Pesapal has no marketplace split, so
- everything lands in the platform
- account. On completed, platformFee = round(amount * commissionPercent)
- and netToChurch are
- computed and two LedgerEntry rows written (credit + fee). Churches see
- a running balance. A
- platform admin builds a Settlement for a church over a period, pays
- out off-platform, and marks it
- paid with a reference and an uploaded evidence file; the covered
- payments are stamped and the ledger
- debited. Exactly the manual flow described.
+ - Rail: deep indigo, but gradient-and-photographic rather than flat —
+   a radial-gradient highlight over linear-gradient(180deg, #24204a,
+   #1a1638), generous spacing, an identity block (avatar, name,
+   ministryRole), and large soft nav items whose active state picks up
+   that section's --tone. Deliberately unlike the admin Rail's dense
+   grouped lists.
+ - Nav: primary — Home, Journey, Passport, Learning, Library, Giving.
+   Secondary group — Inbox (unread dot), Profile, Settings. Sign-out
+   pinned to the bottom.
+ - Header: contextual greeting, notification bell driven by unread from
+   GET /me/notifications, avatar menu. No marketing nav, no footer —
+   MeShell renders its own <Outlet/> outside Layout entirely, the way
+   ChurchRegister and Learn already do.
+ - Mobile (max-width: 1000px, matching the existing header-collapse
+   breakpoint): rail becomes a bottom tab bar for the five primary
+   sections plus a "more" drawer. Compact top bar retains greeting +
+   bell.
+ - Guard: three near-duplicate guards exist today (RequireAuth in
+   App.jsx, and inline bodies in ChurchShell at admin/Shell.jsx:65-88
+   and AdminShell at :194-209). Rather than add a fourth, extract one
+   <Gate> into client/src/lib/guard.jsx handling not ready / not signed
+   in / wrong account kind, and use it in MeShell. Migrating the other
+   three onto it is out of scope — noted, not done.
 
- Dev mock. With no credentials configured, server/lib/pesapal/mock.js
- serves a local pay-page
- that mimics the redirect, then calls our own IPN. Local development
- never needs Pesapal keys; the
- old 6-rail simulator UI and server/data/payment-methods.js are
- deleted.
+ Routing — client/src/App.jsx
 
- New env (add to .env.example):
- PESAPAL_ENV=sandbox|live, PESAPAL_CONSUMER_KEY,
- PESAPAL_CONSUMER_SECRET, PUBLIC_BASE_URL,
- UPLOAD_DIR=./server/uploads, PLATFORM_COMMISSION_PERCENT=10,
- DEMO_MODE=true,
- RESEND_API_KEY (optional), MAIL_FROM.
+ Add a /me block wrapping MeShell, alongside the existing /manage and
+ /admin blocks (not inside Layout). Redirect the old personal routes
+ in: /dashboard → /me, /account → /me/profile, /passport →
+ /me/passport, /orders → /me/library, /applications → /me/journey.
+ RequireAuth's existing behaviour of bouncing accountKind === 'church'
+ users to /manage/:churchSlug is preserved by <Gate>.
 
- ---
+ Deep flows keep their current paths and stay working:
+ /applications/:reference, /applications/:reference/assessment,
+ /applications/:reference/interview, /orders/:reference, /learn/:slug.
 
- Server structure
+ The first-run home
 
- server/routes/index.js currently holds every route in 60 lines. Split
- (index.js keeps the mounts):
+ Derived client-side from data already returned — no new endpoint, no
+ new flag:
 
- server/routes/
-   public.js      home, outcomes, search, listings, churches, courses,
- resources, verify, donate
-   account.js     auth, profile, notifications, password reset
-   apply.js       applications, documents, references, assessments,
- interviews (applicant side)
-   commerce.js    cart, orders, checkout (courses + resources only)
-   payments.js    intent, ipn, callback, refresh
-   manage.js      /api/manage/:churchSlug/*   — the church console
-   admin.js       /api/admin/*                — the platform console
+ const isFirstRun = stats.issued === 0 && stats.waiting === 0
+                 && stats.courses === 0 && orders.length === 0;
 
- New libs: server/lib/requirements.js, workflow.js, derive.js, storage/
- (driver interface +
- local.js, seam for s3.js), pesapal/, mailer/ (console.js + resend.js),
- ledger.js,
- ics.js, audit.js, disclosures.js, slugs.js, upload.js (multer + mime
- sniffing + limits).
+ First run (the approved mock): full-bleed photograph + scrim,
+ "Welcome, {name}." and a line naming the emptiness honestly rather
+ than hiding it; three photographic pathway tiles — seek standing (→
+ /search), study a course (→ /courses), complete your profile (→
+ /me/profile, with the real 2-minute cost stated); and below,
+ PassportBook in its unstamped state as an aspirational artifact, not
+ an error.
 
- New controllers: church.controller.js (onboarding + page),
- media.controller.js,
- authoring.controller.js (offerings/courses/assessments/resources),
- application.controller.js, interview.controller.js,
- donation.controller.js,
- finance.controller.js, admin.controller.js,
- notification.controller.js.
+ Populated: the same AreaHero with a time-of-day greeting, then — in
+ priority order, because it mirrors what GET /me/dashboard already
+ decides is important — waiting on you (outstanding steps[] and any
+ unresolved infoRequest), upcoming interviews, learning in progress
+ with ProgressMeter, recent passport stamps, and a giving glance.
+
+ The transition between the two uses the .is-started morph, so a user
+ who completes their first action sees the area become alive rather
+ than swap pages.
+
+ Zero states are designed per section, not generic — each with its own
+ art, sentence and single action. Journey empty ≠ Passport empty ≠
+ Library empty. This is the single most important detail in the build:
+ on a fresh database every surface must still look intentional.
 
  ---
 
- Client structure
+ Server work
 
- The client has no modal, no toast, no data table, no file input, no
- form abstraction — three
- component files plus a layout. Build a small admin kit first, in the
- existing idiom (named exports,
- arrow components, relative imports with extensions, CSS classes over
- props).
+ Three genuinely new endpoints; the rest is client-only against
+ existing routes. Add to server/routes/apply.js (already requireAuth +
+ requirePersonal on the /me prefix — inherit that, do not re-declare).
 
- client/src/components/admin/ — Shell.jsx (sidebar + topbar + church
- switcher),
- DataTable.jsx (sort, filter, paginate, bulk select, empty state),
- Dialog.jsx (native <dialog>,
- focus trap, Escape), Drawer.jsx, Toast.jsx + ToastProvider, Form.jsx
- (Field/Input/Select/Textarea/Checkbox/RadioGroup/DateTime/Money),
- FileDrop.jsx,
- MediaPicker.jsx, ParagraphEditor.jsx, Stepper.jsx, StatusPill.jsx,
- Confirm.jsx,
- RepeatableList.jsx (add/remove/reorder — the workhorse for
- requirements, questions, sections).
+ 1. GET /me/statement → new statement handler. Payment.find({ userId })
+    shaped by kind (application-fee, renewal, course, resource,
+    donation) with amount, church, date, status, and the frozen
+    platform-fee/net split. This is the unified "everything I've paid"
+    view — including gifts, which GET /orders never returns. Powers
+    /me/giving.
+ 2. GET /me/library → enrollments of kind resource/course joined to
+    Resource, returning fileMediaIds to the purchaser only, plus GET
+    /me/resources/:slug/download serving through the existing
+    MediaAsset + server/lib/storage/local.js path (reuse
+    media.controller.js serve's visibility enforcement and resolveKey
+    traversal check — do not write new file-serving logic). Closes a
+    real bug: a user can currently buy a book and have no way
+    whatsoever to retrieve it.
+ 3. GET /me/interviews → Interview.find({ userId }) upcoming-first with
+    church, offering and joinUrl. The ICS export at GET
+    /interviews/:id/calendar.ics already exists — link it, don't
+    rebuild it.
 
- Rich text: all long-form content in this codebase is already string[]
- rendered as <p> in
- .prose. ParagraphEditor (a textarea per paragraph with
- add/remove/reorder) matches that exactly
- and avoids adding a WYSIWYG dependency and an HTML-sanitisation
- surface. No rich-text library.
+ GET /me/notifications, POST /me/notifications/read and PATCH /auth/me
+ need no server work at all — they already support everything Inbox,
+ Profile and Settings require.
 
- client/src/styles/admin.css — a fifth stylesheet using the existing
- tokens. Note the tokens
- named --green-* hold blue values (#3157a4); DESIGN.md and
- .impeccable/design.json both
- describe palettes the code no longer uses. Do not "fix" the names as
- part of this work — match what
- tokens.css actually holds, and add a one-line note to DESIGN.md.
-
- Client libs: lib/api.js gains put and del and an upload() helper
- (multipart, progress).
- New lib/toast.jsx, lib/church.jsx (active-church context for /manage),
- lib/permissions.js.
-
- Routes
-
- /for-churches                     replaces /teach — real CTA into
- onboarding
- /onboarding/*                     the stepwise church onboarding
- wizard (resumable)
-
- /manage/:churchSlug               church console (ChurchShell + role
- gate)
-   /overview        queue, upcoming interviews, revenue, page health
-   /applicants      the table + detail drawer + decision panel
-   /credentials     offerings list + the requirements builder
-   /courses         course list + curriculum builder
-   /assessments     test builder + question bank
-   /resources       books and materials
-   /media           media library
-   /interviews      availability slots, bookings, outcomes
-   /issued          issued credentials, renewals, revocation
-   /page            landing-page builder + preview
-   /donations       causes, incoming gifts, thank-you settings
-   /finance         balance, payments, platform fee, settlements,
- payout details
-   /people          staff invites and roles
-   /settings        profile, verification, documents
-
- /admin                            platform console (AdminShell +
- platform_admin gate)
-   /overview /churches /verification /users /offerings /applications
-   /payments /settlements /donations /merchandising /taxonomy /audit
- /settings
-
- /apply/:offeringSlug              the application flow (replaces
- basket for credentials)
- /applications                     applicant's applications
- /applications/:reference          tracking: timeline, next action,
- documents, interview
- /interviews/:id                   join / reschedule
- /give/:churchSlug                 dedicated donation page
- /churches/:slug                   public church page, now rendered
- from church-managed sections
-
- /cart and /checkout survive for courses and resources only, and now
- redirect to Pesapal.
+ Add server/__tests__ coverage for the three new handlers alongside the
+ existing vitest suites, including the authorization case that
+ matters: one user must not be able to download another's purchased
+ resource.
 
  ---
 
- Church onboarding (stepwise, resumable)
+ Cleanup
 
- Every step saves server-side (PATCH
- /api/manage/:slug/onboarding/:step) so a church can leave and
- come back. A progress rail shows all ten. Steps 6–9 are skippable.
+ Dead code confirmed unreferenced by App.jsx or any import, safe to
+ delete: client/src/pages/Onboarding.jsx (758 lines, superseded by
+ ChurchRegister.jsx), client/src/pages/ChurchBannerConcept.jsx (73
+ lines), the empty client/src/pages/member/ directory, and
+ server/controllers/checkout.controller.js (263 lines, a second unused
+ implementation of order listing that no route points at — confirm
+ before removing).
 
- 1. You and your church — name, email, password, your role. Creates
-    User + draft Church + owner membership.
- 2. Church identity — display name, registered name, short name,
-    denomination/tradition, founded year, languages, tagline.
- 3. Location and contact — country, city, address, timezone, email,
-    phone/WhatsApp, website, socials.
- 4. Leadership — leaders with photo upload, title, bio. One is marked
-    the signatory whose name and signature appear on issued documents.
- 5. Story and imagery — about, story paragraphs, logo, cover image,
-    gallery, service times.
- 6. What you issue — pick outcome types; seeds matching draft offerings
-    to fill in later.
- 7. Donations — enable, causes, suggested amounts, message.
- 8. Payouts — method and account details (required before a settlement
-    can be made).
- 9. Verification — upload registration and fellowship documents →
-    queues for platform review. Skippable; the badge simply stays off.
- 10. Preview and publish — see the public page as visitors will, then
-     publish. Live immediately.
+ Superseded by the area, delete after redirects land: Dashboard.jsx,
+ Account.jsx, Passport.jsx, Orders.jsx. Applications.jsx is only partly
+ superseded — it exports both the list (replaced by /me/journey) and
+ ApplicationDetail (a deep flow that stays). Split it: keep the detail,
+ drop the list.
+
+ Then fix the label chaos in components/Layout.jsx: the marketing
+ header's AccountMenu currently offers five separate links with
+ /dashboard labelled "My account" (:143) next to /account labelled
+ "Account" (:146), and "My learning" on mobile (:191). Replace all of
+ it with a single entry into the area.
 
  ---
 
- The requirements builder (the heart of the church panel)
+ Build sequence
 
- One screen where a church composes what a credential demands. Each
- requirement is a card in a
- reorderable list; the preview pane renders the applicant-facing
- checklist live.
-
- Available requirement types:
- - Coursework — pick courses; groups support all of / any N of / at
-   least N credit units.
- - Prior credentials — pick offerings from any church (search across
-   the marketplace), with the same group modes. This is how "credits
-   toward a degree" works: any 3 of these 6 certificates.
- - Assessment — pick one of the church's own tests; set attempts and
-   pass mark.
- - Interview — toggle on, set duration, panel size, what is assessed,
-   instructions.
- - Documents — a checklist the applicant uploads (ministry record, ID,
-   ordination certificate…).
- - References — named referees who receive an emailed form.
- - Attestations — statements the applicant must agree to (doctrinal
-   statement, code of conduct, safeguarding).
- - Eligibility — free-text conditions, plus structured minimums (years
-   in ministry, age).
- - Church review — final human decision, with turnaround days.
-
- Below that: the award (title, post-nominal, document title and body,
- validity months,
- renewability, continuing-education hours), the fee (amount, label,
- refund policy), intake
- (rolling or windows, seats), and the disclosure — a required,
- church-authored statement of what
- the credential does and does not confer.
-
- Publish validation blocks: a credential-type offering with no review
- and no interview; an
- assessment requirement with no assessment selected; a credential
- requirement that would create a
- cycle; a fee with no refund policy; a missing disclosure; an
- invitation letter without a
- destination.
-
- ---
-
- The application workflow
-
- Applicant — /apply/:offeringSlug: requirements review → application
- form → attestations →
- document uploads → referee details → pay the application fee via
- Pesapal → submitted. The fee is
- labelled "application fee" throughout and the confirmation states
- plainly that payment starts a
- process and confers nothing.
-
- Then /applications/:reference tracks it: an ordered step list with
- live status, the next action as
- a button, a visible timeline, and any "information requested" message
- from the church.
-
- Church — /manage/:slug/applicants: a filterable table (offering,
- status, date, waiting-on) with
- a detail drawer showing the applicant's profile and ministry history,
- every answer, every uploaded
- document (viewable inline), assessment attempts with per-question
- breakdown, reference responses,
- interview record and panel notes, and the full timeline. Actions:
- accept/reject individual
- documents, request more information, waive a requirement (with a
- recorded reason), schedule
- or record an interview, and the decision panel — Approve and issue /
- Decline (reason,
- applicant-visible note) / Defer.
-
- Approval runs workflow.issue(): mints the Credential, renders and
- caches the PDF via the
- existing server/lib/documents.js, stamps the signatory, emits the
- notification, and writes the
- audit entry.
-
- Interviews — the church publishes slots (date, time, duration,
- capacity, panel, and a meeting
- link it pastes: Zoom, Google Meet, Teams, WhatsApp, phone or in-person
- address). The applicant books
- one; both sides get an email with an .ics attachment (generated in
- server/lib/ics.js, no
- dependency). Reminders at T-24h and T-1h from an in-process sweep.
- Afterwards the panel records
- outcome, score and notes, which feeds the workflow.
-
- ---
-
- Church landing page and donations
-
- Church.page.sections is an ordered, toggleable list the church edits
- in /manage/:slug/page, with
- a live preview. Section types: hero, about, story, leadership,
- serviceTimes, gallery,
- video, statementOfFaith, richText, cta, contact, donate, plus
- auto-curated sections
- that pull live data and cannot go stale — whatWeIssue, courses,
- resources, faculty,
- credentialsIssued. The public /churches/:slug renders from this; the
- existing hand-built layout
- becomes the default section set, so nothing regresses for the seeded
- churches.
-
- Donations render as a section on the page and as a dedicated
- /give/:churchSlug. Causes with
- optional goals, suggested amounts, custom amount, optional anonymity,
- a message field, and a
- gift-aid-style note about the platform fee. Anonymous giving is
- allowed (Pesapal needs only an email
- or phone). Receipts are emailed. Churches see every gift and donor
- message in
- /manage/:slug/donations; platform admins see all gifts across all
- churches and settle them.
-
- ---
-
- Ethics pass
-
- Concrete, enforced changes — not copy suggestions:
-
- - No instant credentials. Enforced in derive.js and at publish
-   validation.
- - Language split by type. Credentials: "Apply", "Application fee",
-   "Requirements", "Issued by".
-   Courses/resources keep "Enrol", "Add to basket", price.
-   compareAtPrice, % off, badge and the
-   bestseller flag are removed from credential types entirely
-   (schema-level, not just CSS).
- - Delete the .offer-instant neon variant (pages.css:617-667) and the
-   duplicated
-   isImmediate() predicate in Home.jsx and market.jsx.
- - Required disclosure block on every credential listing and every
-   issued PDF: who issues it, on
-   whose authority, what it does and does not confer, that civil
-   recognition varies by jurisdiction,
-   and — for letters — that an invitation letter is a supporting
-   document and does not guarantee a
-   visa (server/lib/disclosures.js, rendered in both the page and the
-   document).
- - Refund and withdrawal policy shown before payment, stored per
-   offering.
- - Replace the baked-JPG hero.
-   client/src/assets/hero-featured-henry.jpg with two invisible
-   percentage-positioned hotspot buttons is unmaintainable and
-   hard-codes an offer, price and church
-   into a raster image. It becomes real markup driven by admin-managed
-   PlatformSettings.homeSlots.
- - Demo content is labelled. DEMO_MODE + a platform-admin toggle hides
-   all demo: true
-   records; every demo card carries a visible "demonstration content"
-   marker while it is shown. The
-   seven real ministries' fabricated prices and stats stay out of any
-   production view.
-
- ---
-
- Security and operations
-
- - env.jwtSecret currently falls back silently to
-   'change-me-in-production' — fail fast in production. Same for
-   PESAPAL_* when PESAPAL_ENV=live.
- - Rate limiting on /auth/*, /payments/*, reference-response and
-   verification endpoints.
- - Upload validation: extension allowlist, real MIME sniffing (not the
-   client's header), per-kind size caps, filename sanitisation, images
-   re-encoded, no executables. Applicant documents are private — served
-   through an authorised route, never from static.
- - Payout account numbers stored encrypted; only last-4 displayed.
- - helmet currently runs with contentSecurityPolicy: false — turn a
-   real CSP on once upload origins are known.
- - Password reset and email verification flows (missing entirely
-   today).
- - AuditLog on every issuance, revocation, waiver, decision,
-   settlement, role change and verification action.
- - .env/.env.example are byte-identical and the live .env still holds
-   the placeholder secret — call that out during Phase 1.
-
- ---
-
- Phases
-
- Implemented straight through, but in this order, each leaving the app
- runnable.
-
- #: 1
- Phase: Foundations
- Delivers: Migration runner; role/membership model; new middleware;
- route-file split; derive.js, requirements.js, slugs.js; storage
- driver + upload; admin UI kit + admin.css; security hardening; stable
-  lecture keys
- ────────────────────────────────────────
- #: 2
- Phase: Onboarding & church page
- Delivers: The 10-step wizard; media library; page builder; public page
-
- rendered from sections; /for-churches
- ────────────────────────────────────────
- #: 3
- Phase: Authoring
- Delivers: Requirements builder; assessment builder + attempts;
- course/curriculum builder; resources; publish validation
- ────────────────────────────────────────
- #: 4
- Phase: Applications & interviews
- Delivers: Application + workflow.js; /apply flow; applicant tracking;
- church applicant queue and decisions; issuance; interview slots,
- booking, ICS, reminders, outcomes
- ────────────────────────────────────────
- #: 5
- Phase: Payments
- Delivers: Pesapal client, intent/IPN/callback, dev mock; application
- fees; course/resource checkout; donations; ledger; church finance
- screens; settlements
- ────────────────────────────────────────
- #: 6
- Phase: Platform admin
- Delivers: Every /admin surface; verification queue; merchandising
- slots
- + real hero; notifications and email; ethics/copy pass; demo-mode
- split
- ────────────────────────────────────────
- #: 7
- Phase: Verification
- Delivers: Seed rework, end-to-end script, docs
+ 1. Motion tokens in tokens.css; me.css scaffold with keyframes and the
+    --tone contract.
+ 2. guard.jsx, Shell.jsx, kit.jsx — shell renders with stub sections.
+    Verify the shell first: no marketing chrome, rail active states,
+    mobile tab bar, reduced-motion.
+ 3. /me Home — first-run variant first (it's the harder and more
+    important one), then populated.
+ 4. Journey, Passport, Learning — against existing /me/dashboard and
+    /me/passport.
+ 5. Server: the three new endpoints + tests.
+ 6. Library, Giving, Inbox, Profile, Settings.
+ 7. Routes, redirects, deletions, AccountMenu fix.
 
  ---
 
  Verification
 
- No test framework exists in this repo. Add Vitest (already a natural
- fit with Vite) with a
- mongodb-memory-server harness, and cover the parts where a bug is
- expensive:
+ Run the app: npm run dev (concurrently starts nodemon server/index.js
+ + Vite on the client).
 
- - requirements.evaluate() — group modes (all/any/atLeast),
-   cross-church stacking, cycle detection.
- - workflow — every state transition, including waivers and the decline
-   path.
- - applyPaymentResult() — idempotency under the IPN/callback race, and
-   each Pesapal status_code.
- - ledger + settlement arithmetic — fee rounding, no double-credit.
- - derive.js — acquisition mode, course tallies, and the "no instant
-   credential" rule.
- - Slug immutability and dependency checks.
+ Empty state — the priority. Point the server at a database with a
+ fresh user and no seed data, sign up a personal account via /signup,
+ and walk every one of the nine /me routes. Every surface must look
+ composed: art, orientation, one action. Fail the build if any surface
+ renders a bare empty box, a zero-value stat with no context, or a
+ spinner that resolves to nothing.
 
- End-to-end walkthrough (npm run dev, Mongo running, PESAPAL_ENV unset
- so the mock runs):
+ Populated state. npm run seed:all, sign in as a seeded personal
+ account, and walk the same nine routes. Confirm the first-run →
+ populated morph, stats accuracy against GET /me/dashboard,
+ renewalDueInDays surfacing on the passport, and course progress
+ matching Enrollment.progress.
 
- 1. Sign up as a church at /for-churches → complete all ten onboarding
-    steps, uploading a logo, cover, and two leader photos → publish →
-    confirm /churches/:slug renders the managed sections.
- 2. In /manage/:slug: upload media, build a 2-section course, build a
-    15-question assessment, then build an Ordained Minister offering
-    requiring that course, a prior certificate from another church, the
-    assessment, two documents, one reference, an attestation, an
-    interview, and church review. Confirm publish is blocked when
-    review and interview are both off.
- 3. Publish interview availability for next week.
- 4. As a second (applicant) account: open the listing, confirm
-    requirements render with the unmet prior credential linked and
-    priced, apply, upload documents, agree to the attestation, name a
-    referee, and pay the application fee through the mock gateway.
- 5. Confirm the application appears in the church queue; complete the
-    course and pass the assessment as the applicant; watch the steps
-    tick over on /applications/:reference.
- 6. As the church: accept the documents, waive the reference with a
-    reason, book/confirm the interview, record a pass, then Approve and
-    issue.
- 7. As the applicant: see the credential in /passport, download the
-    PDF, and verify the code at /verify/:code in a signed-out browser.
- 8. Make a donation at /give/:churchSlug through the mock gateway;
-    confirm it appears in the church's donations list and the ledger
-    balance.
- 9. As platform admin at /admin: grant the verification badge, build a
-    settlement for the church covering the fee and the donation, mark
-    it paid with a reference and evidence file, and confirm the
-    church's balance drops to zero and the ledger reconciles.
- 10. Run npm run lint and npm test, then npm run build && npm start and
-     repeat steps 4–9 against the production build to confirm SPA
-     fallback, static uploads and immutable asset caching still hold.
+ Account separation. Sign in as a church account and hit /me — <Gate>
+ must bounce to /manage/:churchSlug. Sign out and hit /me — must bounce
+ to /login and return after signing in. Confirm requirePersonal still
+ 403s the three new endpoints for a church account.
 
- Also confirm on a live Pesapal sandbox once credentials exist:
- RegisterIPN runs once and stores
- the id, a real SubmitOrderRequest redirects, the IPN fires, and
- GetTransactionStatus drives the
- final state — never the callback alone.
-╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌
+ Gap closures. Bell shows unread from GET /me/notifications and clears
+ via POST /me/notifications/read. Profile saves timezone and the full
+ ministry{} block; Settings changes a password and toggles all four
+ notificationPrefs. /me/giving shows a donation that GET /orders does
+ not. A purchased resource downloads; a second user gets 403 for the
+ same URL.
+
+ Regression. The deep flows still work end to end: start an
+ application, upload a document, sit an assessment, book an interview,
+ play a course, complete checkout. Old bookmarked URLs redirect
+ correctly.
+
+ Checks. npm test (vitest) and npm run lint (oxlint) clean. Verify at
+ 1440 / 1024 / 768 / 390 widths, and with prefers-reduced-motion:
+ reduce set.

@@ -169,7 +169,16 @@ export const CredentialEditor = () => {
   const save = async () => {
     setBusy(true);
     try {
-      const saved = await api.patch(`/manage/${churchSlug}/offerings/${slug}`, draft);
+      const payload = draft.type === 'ordination'
+        ? {
+            ...draft,
+            requires: {
+              ...draft.requires,
+              interview: { ...draft.requires?.interview, required: true, faceToFace: true },
+            },
+          }
+        : draft;
+      const saved = await api.patch(`/manage/${churchSlug}/offerings/${slug}`, payload);
       setDraft(saved.offering);
       ok('Saved');
       return saved;
@@ -261,7 +270,7 @@ export const CredentialEditor = () => {
               key={t.key}
               type="button"
               className={`btn btn-ghost btn-sm ${tab === t.key ? 'strong' : 'muted'}`}
-              style={tab === t.key ? { borderBottom: '2px solid var(--green-700)', borderRadius: 0 } : { borderRadius: 0 }}
+              style={tab === t.key ? { borderBottom: '2px solid var(--blue-700)', borderRadius: 0 } : { borderRadius: 0 }}
               onClick={() => setTab(t.key)}
             >
               {t.label}
@@ -378,7 +387,7 @@ const WhatYouRequire = ({ draft, set, setRequires, options, churchSlug }) => {
       <div className="stack stack-4">
         <Panel title="Church review">
           <p className="muted small" style={{ marginTop: 0 }}>
-            At least one is required before this credential can be published.
+            Every service requires a church decision. Ordination also requires a live face-to-face interview.
           </p>
           <div className="stack stack-4">
             <Switch
@@ -400,11 +409,14 @@ const WhatYouRequire = ({ draft, set, setRequires, options, churchSlug }) => {
 
             <Switch
               label="Interview the applicant"
-              help="Publish your availability and applicants book a slot. Works with Zoom, Meet, Teams, WhatsApp or phone."
-              checked={r.interview?.required}
+              help={draft.type === 'ordination'
+                ? 'Required for ordination. The meeting must be by live video or in person.'
+                : 'Publish your availability and applicants book a slot. Works with video, phone or an in-person meeting.'}
+              checked={draft.type === 'ordination' || r.interview?.required}
+              disabled={draft.type === 'ordination'}
               onChange={(required) => setRequires({ interview: { ...r.interview, required } })}
             />
-            {r.interview?.required ? (
+            {(draft.type === 'ordination' || r.interview?.required) ? (
               <div style={{ paddingLeft: 52 }} className="stack stack-3">
                 <div className="a-row">
                   <Input label="Duration (minutes)" type="number" value={r.interview?.durationMinutes ?? 30} onChange={(e) => setRequires({ interview: { ...r.interview, durationMinutes: Number(e.target.value) } })} />

@@ -195,7 +195,7 @@ export const Listing = () => {
                   <span className="row xs dim" style={{ gap: 6 }}>
                     <MapPin size={11} />{church.city}, {church.country}
                     {church.foundedYear ? ` · founded ${church.foundedYear}` : ''}
-                    {church.verified && <BadgeCheck size={12} style={{ color: 'var(--green-600)' }} />}
+                    {church.verified && <BadgeCheck size={12} style={{ color: 'var(--blue-600)' }} />}
                   </span>
                 </span>
               </Link>
@@ -220,7 +220,9 @@ export const Listing = () => {
                 <h2 style={{ fontSize: 'var(--text-2xl)' }}>
                   {o.type === 'invitation-letter' ? 'Letter preview' : 'Certificate preview'}
                 </h2>
-                <p className="small muted">Enter your name to preview the certificate.</p>
+                <p className="small muted">
+                  This is a specimen of what the church may issue after you meet every requirement and it approves your application.
+                </p>
               </div>
               <DocumentPreview slug={o.slug} type={o.type} defaultName={user?.name ?? ''} />
             </section>
@@ -276,7 +278,7 @@ export const Listing = () => {
                     {outcome?.name} is offered by several churches. Compare their requirements and fees.
                   </p>
                 </div>
-                <div className="grid grid-4">
+                <div className="grid grid-3">
                   {alternatives.map((a) => <OfferingCard key={a.slug} offering={a} />)}
                 </div>
                 {outcome && (
@@ -316,12 +318,11 @@ export const Listing = () => {
                 ) : null}
 
                 <div className="stack stack-3" style={{ paddingTop: 'var(--s-2)', borderTop: '1px solid var(--line)' }}>
-                  <h5>What's included</h5>
+                  <h5>If the church approves</h5>
                   <ul className="buy-includes">
-                    <li><Download size={15} />{o.award?.documentTitle ?? 'A signed document'} as a PDF</li>
-                    <li><BadgeCheck size={15} />Recorded in your Minister Passport</li>
-                    <li><Check size={15} />A verification code</li>
-                    <li><mode.icon size={15} />{mode.label}</li>
+                    <li><Download size={15} />The church issues {o.award?.documentTitle ?? 'a signed document'} as a PDF</li>
+                    <li><BadgeCheck size={15} />The issued record appears in your Minister Passport</li>
+                    <li><Check size={15} />The issued document receives a verification code</li>
                   </ul>
                 </div>
 
@@ -359,7 +360,7 @@ export const Listing = () => {
               </div>
               <Link to={`/churches/${church?.slug}`} className="link">Church profile <ArrowRight size={15} /></Link>
             </div>
-            <div className="grid grid-4">
+            <div className="grid grid-3">
               {alsoFrom.map((a) => <OfferingCard key={a.slug} offering={a} showOutcome />)}
             </div>
           </div>

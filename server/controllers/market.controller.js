@@ -5,6 +5,7 @@ import { evaluate, summarise } from '../lib/requirements.js';
 import { publicFilter } from '../lib/visibility.js';
 import { Application } from '../models/Application.js';
 import { Church } from '../models/Church.js';
+import { Follow } from '../models/Follow.js';
 import { Course } from '../models/Course.js';
 import { Credential } from '../models/Credential.js';
 import { Enrollment } from '../models/Enrollment.js';
@@ -389,10 +390,17 @@ export const churchDetail = asyncHandler(async (req, res) => {
     faculty: faculty.length,
   });
 
+  const [followers, mine] = await Promise.all([
+    Follow.countDocuments({ churchSlug: church.slug }),
+    req.user ? Follow.exists({ userId: req.user._id, churchSlug: church.slug }) : null,
+  ]);
+
   res.json({
     success: true,
     data: {
       church,
+      followers,
+      following: Boolean(mine),
       sections,
       listings: await withChurch(listings),
       byOutcome: Object.entries(byOutcome).map(([slug, items]) => ({
@@ -427,17 +435,24 @@ export const listChurches = asyncHandler(async (req, res) => {
   }
 
   const base = { status: 'published', ...(await publicFilter()) };
-  const [docs, regions, counts] = await Promise.all([
+  const [docs, regions, counts, follows] = await Promise.all([
     Church.find(filter).sort({ 'stats.credentialsIssued': -1 }),
     Church.aggregate([{ $match: base }, { $group: { _id: '$region', count: { $sum: 1 } } }, { $sort: { _id: 1 } }]),
     Offering.aggregate([{ $match: await live() }, { $group: { _id: '$churchSlug', listings: { $sum: 1 }, from: { $min: '$price' } } }]),
+    Follow.aggregate([{ $group: { _id: '$churchSlug', n: { $sum: 1 } } }]),
   ]);
   const by = Object.fromEntries(counts.map((c) => [c._id, c]));
+  const followerBy = Object.fromEntries(follows.map((f) => [f._id, f.n]));
 
   res.json({
     success: true,
     data: {
-      churches: docs.map((c) => ({ ...c.toObject(), listings: by[c.slug]?.listings ?? 0, fromPrice: by[c.slug]?.from ?? null })),
+      churches: docs.map((c) => ({
+        ...c.toObject(),
+        listings: by[c.slug]?.listings ?? 0,
+        fromPrice: by[c.slug]?.from ?? null,
+        followers: followerBy[c.slug] ?? 0,
+      })),
       regions: regions.map((r) => ({ value: r._id, count: r.count })),
     },
   });

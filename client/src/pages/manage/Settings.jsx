@@ -184,7 +184,7 @@ export const Settings = () => {
         </Panel>
 
         <Panel title="Verification">
-          <div className={`notice ${draft.verification?.state === 'verified' ? 'notice-green' : ''}`}>
+          <div className={`notice ${draft.verification?.state === 'verified' ? 'notice-blue' : ''}`}>
             <strong>
               {draft.verification?.state === 'verified' ? 'Verified' : draft.verification?.state === 'pending' ? 'With us for review' : 'Not verified'}
             </strong>

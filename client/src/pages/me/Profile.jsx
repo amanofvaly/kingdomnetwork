@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowRight, Check, Info, Save } from 'lucide-react';
 
-import { AreaHero, Section, SectionHead } from '../../components/me/kit.jsx';
+import { Section, SectionHead } from '../../components/me/kit.jsx';
 import { Avatar } from '../../components/ui.jsx';
 import { api } from '../../lib/api.js';
 import { useAuth } from '../../lib/auth.jsx';
@@ -91,19 +91,12 @@ export const MeProfile = () => {
 
   return (
     <>
-      <AreaHero
-        art="/media/scenes/handshake.webp"
-        artAlt="Two people shaking hands"
-        kicker="Profile"
-        title="How churches will read you."
-        lede="This is what a church sees alongside an application. Filling it in once saves retyping it into every form."
-      />
 
       <div className="me-wrap me-body">
         <form onSubmit={submit} className="me-split">
           <div className="stack stack-5">
             <Section tone="profile">
-              <SectionHead title="You" />
+              <SectionHead title="About you" />
               <div className="me-card">
                 <div className="me-card-in">
                   <div className="row" style={{ gap: 'var(--s-4)' }}>
@@ -141,8 +134,8 @@ export const MeProfile = () => {
 
             <Section tone="profile">
               <SectionHead
-                title="Your ministry"
-                lede="Churches weigh this when they read an application. None of it is required."
+                title="Ministry"
+                lede="Optional. Churches read this when they consider your application."
               />
               <div className="me-card">
                 <div className="me-card-in">
@@ -177,7 +170,7 @@ export const MeProfile = () => {
             </Section>
 
             <Section tone="profile">
-              <SectionHead title="Where you are" lede="Used for interview times and for churches near you." />
+              <SectionHead title="Location" lede="Used for interview times and to find churches near you." />
               <div className="me-card">
                 <div className="me-card-in">
                   <div className="me-pair">
@@ -202,8 +195,8 @@ export const MeProfile = () => {
             <div className="me-card">
               <div className="me-card-in">
                 <div className="me-card-head">
-                  <h3>Save your changes</h3>
-                  <p>Nothing here is published. Only a church you apply to can read it.</p>
+                  <h3>Save changes</h3>
+                  <p>Not published. Only a church you apply to can read this.</p>
                 </div>
                 <button className="btn btn-primary btn-block" disabled={busy}>
                   {saved ? <><Check size={16} /> Saved</> : <><Save size={16} /> {busy ? 'Saving…' : 'Save profile'}</>}
@@ -214,15 +207,15 @@ export const MeProfile = () => {
             <div className="notice">
               <Info size={15} />
               <span>
-                Your passport documents carry the name on this profile. Change it before applying rather than after.
+                Your credentials are issued in the name on this profile. Change it before you apply, not after.
               </span>
             </div>
 
             <div className="me-card">
               <div className="me-card-in">
                 <div className="me-card-head">
-                  <h3>Sign-in and alerts</h3>
-                  <p>Password, email and what you are notified about.</p>
+                  <h3>Settings</h3>
+                  <p>Password, email and notifications.</p>
                 </div>
                 <Link to="/me/settings" className="btn btn-outline btn-block">
                   Open settings <ArrowRight size={15} />

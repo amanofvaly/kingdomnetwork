@@ -8,7 +8,7 @@
   --bg: #ffffff;
   --bg-warm: #fff9ed;
   --bg-sunken: #f5f2ff;
-  --bg-green: #3157a4;
+  --bg-blue: #073fbd;
   --bg-ink: #24204a;
 
   /* --- text --- */
@@ -24,12 +24,12 @@
   --line-inverse: rgba(255, 255, 255, 0.16);
 
   /* --- brand --- */
-  --green-900: #263f82;
-  --green-700: #3157a4;
-  --green-600: #3f68bd;
-  --green-500: #587bd0;
-  --green-100: #dce6ff;
-  --green-50: #eef3ff;
+  --blue-900: #052c85;
+  --blue-700: #073fbd;
+  --blue-600: #1c4fd6;
+  --blue-500: #2856d9;
+  --blue-100: #e0e8ff;
+  --blue-50: #f0f4ff;
 
   /* credential + verification accents */
   --gold-700: #865900;

@@ -6,12 +6,10 @@ import { acquisitionFor, isCredentialType } from '../lib/derive.js';
  * An Offering is one thing a church issues: a title, a standing, a document.
  *
  * The church writes it — the platform records what it requires and takes no
- * view on what a title should mean. One rule is enforced, and only one: a
- * credential may not be issued on payment alone. Every ordination, licence,
- * certificate and diploma must carry a church decision — a review, an
- * interview, or both. A fee starts an application; it never confers standing.
- * Affiliations and invitation letters are exempt, being relationships and
- * supporting documents rather than titles.
+ * view on what a title should mean. A church service may never be granted on
+ * payment alone: every listing carries a church decision. Ordination has a
+ * stronger floor and always includes a live face-to-face meeting, by video or
+ * in person. A fee starts an application; it never confers standing.
  */
 
 /** `all` of them, `any` one of them, or `atLeast` a count. */
@@ -50,6 +48,7 @@ const requirementSchema = new mongoose.Schema(
 
     interview: {
       required: { type: Boolean, default: false },
+      faceToFace: { type: Boolean, default: false },
       durationMinutes: { type: Number, default: 30 },
       panelSize: { type: Number, default: 1 },
       instructions: String,
@@ -258,6 +257,17 @@ offeringSchema.index({ churchSlug: 1, status: 1 });
 offeringSchema.pre('save', function derive(next) {
   if (this.fee?.amount != null) this.price = this.fee.amount;
   else if (this.price != null) this.set('fee.amount', this.price);
+
+  // These are ethical floors, not defaults a church may switch off. Every
+  // service ends in a church decision; ordination also requires a live visual
+  // meeting so it can never collapse into documents, coursework and payment.
+  if (!this.requires?.review?.required && !this.requires?.interview?.required) {
+    this.set('requires.review.required', true);
+  }
+  if (this.type === 'ordination') {
+    this.set('requires.interview.required', true);
+    this.set('requires.interview.faceToFace', true);
+  }
 
   this.acquisition = acquisitionFor(this.requires, this.type);
   this.published = this.status === 'published';

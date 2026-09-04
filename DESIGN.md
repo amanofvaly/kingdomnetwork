@@ -2,10 +2,12 @@
 
 ## The idea
 
-A network where churches publish what they issue and ministers apply for it.
-It should read as serious and specific: light, photographic, and dense with real
-information. Trust comes from naming the issuing church everywhere and showing
-the people behind it, not from ornament.
+A network where people encounter churches and their ministries first, then may
+apply for the services those churches offer. Services are secondary to the
+relationship and never read as products for sale. It should read as serious and
+specific: light, photographic, and dense with real information. Trust comes
+from naming the responsible church everywhere and showing the people behind it,
+not from ornament.
 
 Two kinds of thing live here and they are not styled alike. **Materials** —
 coursework, books — are bought: they carry a price, a basket and the ordinary

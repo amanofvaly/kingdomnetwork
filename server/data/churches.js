@@ -17,8 +17,8 @@ export const churches = [
     region: 'East Africa',
     website: 'henrybyamukama.com',
     foundedYear: 1998,
-    coverImage: '/media/churches/faith-life-pastor-lectern.jpg',
-    coverAlt: 'The Faith Life Church pastor teaching from a lectern',
+    coverImage: '/media/scenes/church-sanctuary.webp',
+    coverAlt: 'A welcoming church sanctuary with rows of wooden pews',
     portraitImage: '/media/churches/faith-life-pastor-speaking.jpg',
     verified: true,
     about:
@@ -32,13 +32,15 @@ export const churches = [
       {
         name: 'Henry Byamukama',
         title: 'Senior Pastor and Principal',
-        image: '/media/people/p-man-white-vneck.webp',
+        image: '/media/churches/faith-life-pastor-speaking.jpg',
+        instructorSlug: 'henry-byamukama',
         bio: 'Founded the church in 1998 and has led its training work since. Teaches the pastoral theology core and chairs the ordination review board.',
       },
       {
         name: 'Grace Nakato',
         title: 'Dean of Studies',
         image: '/media/people/p-woman-yellow.webp',
+        instructorSlug: 'grace-nakato',
         bio: 'Oversees curriculum and assessment across both tracks. Twelve years in womens ministry and family counselling before joining the faculty.',
       },
     ],

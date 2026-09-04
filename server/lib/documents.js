@@ -1,7 +1,7 @@
 import PDFDocument from 'pdfkit';
 
 /**
- * Renders the documents a church issues. These are the product — the thing the
+ * Renders the documents a church may issue after its requirements and decision. These are the record — the thing the
  * buyer downloads, prints and shows to someone — so they are laid out as
  * documents rather than as receipts.
  *

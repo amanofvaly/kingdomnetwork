@@ -67,7 +67,6 @@ export const InterviewBooking = () => {
     <div className="wrap band">
       <div className="wrap-narrow stack stack-5">
         <div className="stack stack-2">
-          <span className="eyebrow">Your interview</span>
           <h1>{data.booked ? 'You are booked in' : 'Choose a time'}</h1>
         </div>
 

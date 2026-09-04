@@ -6,15 +6,23 @@ import { acquisitionFor } from '../lib/derive.js';
 const nothing = { eligibility: [] };
 
 /**
- * A credential is never issued on payment alone. Any listing that confers
- * standing and names no church decision gets one added here, because a demo
- * catalogue that modelled pay-and-be-ordained would be modelling the wrong
- * product. See `validateOfferingForPublish` in `server/lib/derive.js`.
+ * No church service is granted on payment alone. Every listing names a church
+ * decision, and every ordination also requires a live face-to-face meeting.
+ * See `validateOfferingForPublish` in `server/lib/derive.js`.
  */
 const DEFAULT_REVIEW = {
   required: true,
   turnaroundDays: 7,
   documents: ['Ministry record', 'Reference from a serving leader', 'Identity document'],
+};
+
+const DEFAULT_ORDINATION_INTERVIEW = {
+  required: true,
+  faceToFace: true,
+  durationMinutes: 45,
+  panelSize: 2,
+  whatIsAssessed: ['Calling and character', 'Doctrine', 'Pastoral judgement', 'Relationship with a local church'],
+  instructions: 'A live conversation with the ordination panel, held by video or in person.',
 };
 
 const DISCLOSURE = {
@@ -32,8 +40,12 @@ const CONFERS_STANDING = ['ordination', 'certificate', 'license', 'diploma', 'le
 const make = (o) => {
   const requires = { ...nothing, ...(o.requires ?? {}) };
 
-  if (CONFERS_STANDING.includes(o.type) && !requires.review?.required && !requires.interview?.required) {
+  if (!requires.review?.required && !requires.interview?.required) {
     requires.review = { ...DEFAULT_REVIEW };
+  }
+
+  if (o.type === 'ordination') {
+    requires.interview = { ...DEFAULT_ORDINATION_INTERVIEW, ...(requires.interview ?? {}), required: true, faceToFace: true };
   }
 
   return {
@@ -69,7 +81,7 @@ const review = (turnaroundDays, documents) => ({
 });
 
 const interview = (durationMinutes, whatIsAssessed, instructions) => ({
-  interview: { required: true, durationMinutes, panelSize: 2, whatIsAssessed, instructions },
+  interview: { required: true, faceToFace: true, durationMinutes, panelSize: 2, whatIsAssessed, instructions },
 });
 
 export const offerings = [
@@ -77,10 +89,10 @@ export const offerings = [
   make({
     slug: 'ordained-minister-new-horizon', churchSlug: 'new-horizon-bible-college',
     type: 'ordination', outcome: 'ordination',
-    title: 'Ordained Minister', subtitle: 'No coursework. Your ministry record is reviewed, then the college signs.',
+    title: 'Ordained Minister', subtitle: 'No coursework. Your ministry record and a face-to-face interview go to the college for decision.',
     description: [
       'New Horizon ordains ministers already serving in a congregation who have never held formal credentials. The college takes the view that the work came first and the paper should follow it, so it asks for the record of that work rather than for coursework.',
-      'Submit your ministry record and a reference from a serving leader. The college reviews both, usually within a week, and the certificate lands in your passport when it signs.',
+      'Submit your ministry record and a reference from a serving leader, then meet the college face to face. The college decides after that conversation; a certificate appears in your passport only if it approves.',
     ],
     price: 29, compareAtPrice: 49,
     requires: { eligibility: ['You should be serving in a congregation in some capacity'] },
@@ -91,10 +103,10 @@ export const offerings = [
   make({
     slug: 'ordained-minister-ndw', churchSlug: 'ndw-ministries',
     type: 'ordination', outcome: 'ordination',
-    title: 'Ordained Minister', subtitle: 'A short written assessment, then ordination signed in Accra.',
+    title: 'Ordained Minister', subtitle: 'A written assessment and face-to-face panel interview before the church decides in Accra.',
     description: [
       'NDW Ministries has ordained ministers across West Africa since 1979. Ordination here carries a twenty-question assessment on doctrine, church order and pastoral conduct.',
-      'Pass it and your record goes to the archbishop, who signs it after review. The certificate lands in your passport when he does.',
+      'Passing the paper leads to a face-to-face panel interview and church review. The certificate appears in your passport only after approval and issuance.',
     ],
     price: 38, compareAtPrice: 65,
     requires: { ...assess(20, 30), eligibility: ['Two years serving in a congregation', 'One reference from a serving leader'] },
@@ -105,8 +117,8 @@ export const offerings = [
   make({
     slug: 'ordained-minister-forerunner', churchSlug: 'forerunner-christian-church',
     type: 'ordination', outcome: 'ordination',
-    title: 'Ordained Minister', subtitle: 'Scripture assessment and ordination under an apprenticeship model.',
-    description: ['Forerunner ordains on the strength of scripture knowledge and a stated apprenticeship to a working ministry.'],
+    title: 'Ordained Minister', subtitle: 'Scripture assessment, apprenticeship evidence, and a face-to-face ordination interview.',
+    description: ['Forerunner considers scripture knowledge and a stated apprenticeship to a working ministry, then meets every candidate face to face before deciding whether to ordain.'],
     price: 34, compareAtPrice: 58,
     requires: { ...assess(25, 40), eligibility: ['Attached to a working ministry'] },
     award: { title: 'Ordained Minister', postNominal: 'Rev.', documentTitle: 'Certificate of Ordination' },
@@ -116,9 +128,9 @@ export const offerings = [
   make({
     slug: 'ordained-minister-faith-life', churchSlug: 'faith-life-church',
     type: 'ordination', outcome: 'ordination',
-    title: 'Ordained Minister', subtitle: 'Full pastoral formation, a credential review, and ordination in Kampala.',
+    title: 'Ordained Minister', subtitle: 'Pastoral formation, a face-to-face panel interview, and church review in Kampala.',
     description: [
-      'Faith Life Church has trained and ordained pastors in Uganda since 1998. Ordination requires the pastoral theology core and a review of your ministry record by the ordination board.',
+      'Faith Life Church has trained and ordained pastors in Uganda since 1998. Applying requires the pastoral theology core, a review of your ministry record, and a face-to-face meeting with the ordination panel.',
       'This is the longer route. Ministers who hold it are on the Faith Life register and are subject to its annual review.',
     ],
     price: 45, compareAtPrice: 89,
@@ -128,7 +140,7 @@ export const offerings = [
       eligibility: ['At least two years serving in a congregation', 'No unresolved disciplinary matter'],
     },
     award: { title: 'Ordained Minister', postNominal: 'Rev.', documentTitle: 'Certificate of Ordination', validityMonths: 36, renewable: true },
-    coverImage: '/media/churches/faith-life-pastor-lectern.jpg', coverAlt: 'The Faith Life Church pastor teaching from a lectern',
+    coverImage: '/media/scenes/preacher-and-congregation.jpg', coverAlt: 'A preacher addressing a gathered congregation',
     rating: 4.8, ratingCount: 913, issuedCount: 1160, featured: true, editorsPick: true, badge: "Editors' pick",
   }),
   make({
@@ -366,7 +378,7 @@ export const offerings = [
     price: 30, compareAtPrice: 52,
     requires: assess(15, 25),
     award: { title: 'Licensed Minister', documentTitle: 'Ministry Licence', validityMonths: 24, renewable: true },
-    coverImage: '/media/churches/faith-life-pastor-lectern.jpg', coverAlt: 'The Faith Life Church pastor teaching from a lectern',
+    coverImage: '/media/scenes/minister-supporting-congregant.jpg', coverAlt: 'A minister offering support to a member of the congregation',
     rating: 4.7, ratingCount: 520, issuedCount: 1180, featured: true,
   }),
   make({
@@ -401,7 +413,7 @@ export const offerings = [
     price: 60, compareAtPrice: 98,
     requires: review(14, ['Congregation details', 'Two references']),
     award: { title: 'Affiliated Minister', documentTitle: 'Certificate of Affiliation', validityMonths: 12, renewable: true },
-    coverImage: '/media/churches/faith-life-pastor-lectern.jpg', coverAlt: 'The Faith Life Church pastor teaching from a lectern',
+    coverImage: '/media/scenes/congregation-praying.jpg', coverAlt: 'A congregation gathered together in prayer',
     rating: 4.8, ratingCount: 320, issuedCount: 640, badge: 'Renews annually',
   }),
   make({

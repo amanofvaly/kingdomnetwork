@@ -9,6 +9,8 @@ import { Interview } from '../models/Interview.js';
 import { InterviewSlot } from '../models/InterviewSlot.js';
 import { Offering } from '../models/Offering.js';
 
+const FACE_TO_FACE_PROVIDERS = ['zoom', 'google-meet', 'teams', 'whatsapp', 'in-person'];
+
 /**
  * Booking the conversation.
  *
@@ -37,8 +39,14 @@ export const availableSlots = asyncHandler(async (req, res) => {
   const application = await Application.findOne({ reference: req.params.reference, userId: req.user._id });
   if (!application) return res.status(404).json({ success: false, message: 'That application was not found.' });
 
+  const offering = await Offering.findOne({ slug: application.offeringSlug }, 'requires.interview');
+  const providerFilter = offering?.requires?.interview?.faceToFace
+    ? { provider: { $in: FACE_TO_FACE_PROVIDERS } }
+    : {};
+
   const slots = await InterviewSlot.find({
     churchSlug: application.churchSlug,
+    ...providerFilter,
     status: 'open',
     startsAt: { $gt: new Date() },
     $or: [{ offeringSlug: application.offeringSlug }, { offeringSlug: { $in: [null, ''] } }, { offeringSlug: { $exists: false } }],
@@ -87,11 +95,15 @@ export const book = asyncHandler(async (req, res) => {
     return res.status(400).json({ success: false, message: 'This application does not require an interview.' });
   }
 
+  const providerFilter = offering.requires.interview.faceToFace
+    ? { provider: { $in: FACE_TO_FACE_PROVIDERS } }
+    : {};
+
   // Claim a place atomically. Two applicants clicking the last slot at the same
   // moment must not both get it, and a conditional update is the only thing
   // standing between them without a transaction.
   const slot = await InterviewSlot.findOneAndUpdate(
-    { _id: req.body?.slotId, status: 'open', startsAt: { $gt: new Date() }, $expr: { $lt: ['$bookedCount', '$capacity'] } },
+    { _id: req.body?.slotId, ...providerFilter, status: 'open', startsAt: { $gt: new Date() }, $expr: { $lt: ['$bookedCount', '$capacity'] } },
     { $inc: { bookedCount: 1 } },
     { new: true },
   );

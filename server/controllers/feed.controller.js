@@ -22,7 +22,7 @@ const PAGE = 12;
 const churchIndex = async (slugs) => {
   const churches = await Church.find(
     slugs ? { slug: { $in: slugs } } : {},
-    'slug name shortName monogram logoImage verified city country coverImage',
+    'slug name shortName monogram logoImage verified city country coverImage leaders',
   );
   return Object.fromEntries(churches.map((c) => [c.slug, c]));
 };
@@ -54,7 +54,18 @@ const shape = (post, { churchBy, userBy, offeringBy, credentialBy, mine }) => {
       coverImage: offering.coverImage, fee: offering.fee, price: offering.price,
     },
     credential: credential && {
-      credentialId: credential.credentialId, title: credential.title, kind: credential.kind, issuedAt: credential.issuedAt,
+      credentialId: credential.credentialId,
+      title: credential.title,
+      kind: credential.kind,
+      issuedAt: credential.issuedAt,
+      verifyCode: credential.verifyCode,
+      // The certificate is drawn from these, so it carries the same issuer,
+      // seal and signatory as the document itself.
+      holderName: userBy[String(post.userId)]?.name ?? '',
+      church: church && {
+        name: church.name, city: church.city, country: church.country,
+        monogram: church.monogram, signatory: church.leaders?.[0] ?? null,
+      },
     },
     reactionCounts: post.reactionCounts ?? {},
     reactionTotal: post.reactionTotal ?? 0,
@@ -71,7 +82,7 @@ const hydrate = async (posts, viewerId) => {
     churchIndex([...new Set(posts.map((p) => p.churchSlug).filter(Boolean))]),
     User.find({ _id: { $in: posts.map((p) => p.userId).filter(Boolean) } }, 'name avatar ministryRole'),
     Offering.find({ slug: { $in: posts.map((p) => p.offeringSlug).filter(Boolean) } }, 'slug title type outcome coverImage fee price'),
-    Credential.find({ credentialId: { $in: posts.map((p) => p.credentialId).filter(Boolean) } }, 'credentialId title kind issuedAt'),
+    Credential.find({ credentialId: { $in: posts.map((p) => p.credentialId).filter(Boolean) } }, 'credentialId title kind issuedAt verifyCode'),
     viewerId ? Reaction.find({ userId: viewerId, postId: { $in: posts.map((p) => p._id) } }) : [],
   ]);
 

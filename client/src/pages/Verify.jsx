@@ -18,7 +18,6 @@ export const Verify = () => {
     <div className="wrap band-tight">
       <div className="wrap-narrow stack stack-6" style={{ padding: 0, margin: '0 auto' }}>
         <div className="stack stack-3">
-          <span className="eyebrow">Credential verification</span>
           <h1 style={{ fontSize: 'var(--text-3xl)' }}>Check a credential.</h1>
           <p className="lede">
             Enter the verification code printed on a certificate or shared by its holder. The result shows
@@ -74,8 +73,8 @@ export const Verify = () => {
             <div className="row" style={{ gap: 10 }}>
               {data.state === 'issued' ? (
                 <>
-                  <BadgeCheck size={20} color="var(--green-600)" />
-                  <span className="strong small" style={{ color: 'var(--green-700)' }}>
+                  <BadgeCheck size={20} color="var(--blue-600)" />
+                  <span className="strong small" style={{ color: 'var(--blue-700)' }}>
                     Verified. Issued by this church and currently valid.
                   </span>
                 </>

@@ -50,7 +50,7 @@ ul, ol { margin: 0; padding: 0; list-style: none; }
 
 hr { border: none; border-top: 1px solid var(--line); margin: var(--s-6) 0; }
 
-::selection { background: var(--green-100); }
+::selection { background: var(--blue-100); }
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {

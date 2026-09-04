@@ -106,4 +106,10 @@ describe('the checklist as a whole', () => {
     expect(summary.complete).toBe(1);
     expect(summary.readyForDecision).toBe(true);
   });
+
+  it('names a face-to-face interview as live video or in person', () => {
+    const { steps } = evaluate(offering({ interview: { required: true, faceToFace: true, durationMinutes: 45, panelSize: 2 } }));
+    expect(steps[0].detail).toContain('face-to-face');
+    expect(steps[0].detail).toContain('live video or in person');
+  });
 });

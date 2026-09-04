@@ -46,7 +46,7 @@ export const Avatar = ({ src, name, size = 36 }) =>
       aria-hidden="true"
       style={{
         width: size, height: size, display: 'grid', placeItems: 'center',
-        background: 'var(--green-50)', color: 'var(--green-700)',
+        background: 'var(--blue-50)', color: 'var(--blue-700)',
         fontSize: size * 0.36, fontWeight: 600,
       }}
     >

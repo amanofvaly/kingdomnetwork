@@ -4,6 +4,7 @@ import { Search, X } from 'lucide-react';
 import { ChurchCard } from '../components/cards.jsx';
 import { Empty, ErrorState, SkeletonGrid } from '../components/ui.jsx';
 import { useApi } from '../lib/useAsync.js';
+import { useAuth } from '../lib/auth.jsx';
 import { plural } from '../lib/format.js';
 
 export const Churches = () => {
@@ -15,6 +16,13 @@ export const Churches = () => {
   if (q) sp.set('q', q);
   if (region) sp.set('region', region);
   const { data, error, loading, reload } = useApi(`/churches?${sp}`);
+  const { user } = useAuth();
+
+  // Only a personal account has a feed for a follow to feed into.
+  const canFollow = Boolean(user && user.accountKind !== 'church');
+  const mine = useApi(canFollow ? '/me/following' : null, { skip: !canFollow });
+  const followed = new Set(mine.data?.slugs ?? []);
+  const onFollowChange = () => mine.reload();
 
   const update = (patch) => {
     const next = new URLSearchParams(params);
@@ -64,7 +72,15 @@ export const Churches = () => {
             <>
               <span className="small muted num">{plural(data.churches.length, 'church', 'churches')}</span>
               <div className="grid grid-4 church-directory-grid">
-                {data.churches.map((c) => <ChurchCard key={c.slug} church={c} />)}
+                {data.churches.map((c) => (
+                  <ChurchCard
+                    key={c.slug}
+                    church={c}
+                    canFollow={canFollow}
+                    following={followed.has(c.slug)}
+                    onFollowChange={onFollowChange}
+                  />
+                ))}
               </div>
             </>
           )}

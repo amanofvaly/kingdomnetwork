@@ -4,7 +4,7 @@ import {
   ArrowRight, Award, BadgeCheck, Check, Clock, Copy, Download, Plane, ShieldCheck,
 } from 'lucide-react';
 
-import { AreaHero, PassportBook, Section, SectionHead, ZeroState } from '../../components/me/kit.jsx';
+import { PassportBook, Section, SectionHead, ZeroState } from '../../components/me/kit.jsx';
 import { StatusTag } from '../../components/me/application.jsx';
 import { ErrorState, Spinner } from '../../components/ui.jsx';
 import { dateLong, plural } from '../../lib/format.js';
@@ -73,7 +73,7 @@ const CredentialCard = ({ credential: c, i }) => {
             {isLetter ? <Plane size={12} /> : <Award size={12} />} {KIND[c.kind] ?? c.kind}
           </span>
           {live
-            ? <span className="tag tag-green">Issued</span>
+            ? <span className="tag tag-blue">Issued</span>
             : <span className={`tag ${c.status === 'revoked' ? 'tag-red' : 'tag-gold'}`}>
               {c.status === 'revoked' ? 'Withdrawn' : 'Expired'}
             </span>}
@@ -87,7 +87,7 @@ const CredentialCard = ({ credential: c, i }) => {
               <span className="grow clamp-1">
                 {c.church.name}
                 {c.church.verified ? (
-                  <BadgeCheck size={12} style={{ display: 'inline', marginLeft: 4, verticalAlign: '-2px', color: 'var(--green-600)' }} />
+                  <BadgeCheck size={12} style={{ display: 'inline', marginLeft: 4, verticalAlign: '-2px', color: 'var(--blue-600)' }} />
                 ) : null}
               </span>
             </Link>
@@ -153,16 +153,6 @@ export const MePassport = () => {
 
   return (
     <>
-      <AreaHero
-        art="/media/church-registration-cross.jpg"
-        artAlt="A cross lit in blue, gold and red"
-        kicker="Minister passport"
-        title="Your minister passport."
-        lede={counts.issued
-          ? 'Each of these is downloadable, and anyone you show it to can check it against this network.'
-          : 'Every credential a church issues you lands here — downloadable, and verifiable by anyone you show it to.'}
-        figures={figures}
-      />
 
       <div className="me-wrap me-body">
         <Section tone="passport">
@@ -197,8 +187,8 @@ export const MePassport = () => {
 
         <Section tone="passport">
           <SectionHead
-            title="What you hold"
-            lede={live.length ? 'Current documents, with the code anyone can check them against.' : null}
+            title="Your credentials"
+            lede={live.length ? 'Each one carries a code anyone can check it against.' : null}
           />
           {live.length ? (
             <div className="me-grid me-grid-2 me-stagger">
@@ -207,7 +197,7 @@ export const MePassport = () => {
           ) : (
             <ZeroState
               title="No documents yet"
-              lede="A church issues these once it has read your application and is satisfied. Nothing here is bought — standing is granted."
+              lede="A church issues these after it has read and accepted your application."
               art="/media/scenes/graduation-caps.webp"
               action={<Link to="/ordination" className="btn btn-primary">See what churches issue <ArrowRight size={16} /></Link>}
             />
@@ -217,7 +207,7 @@ export const MePassport = () => {
         {applications.length ? (
           <Section tone="journey">
             <SectionHead
-              title="On its way"
+              title="In progress"
               lede="Applications a church has not finished with."
               action={<Link to="/me/journey" className="link">Open your journey <ArrowRight size={14} /></Link>}
             />
@@ -243,7 +233,7 @@ export const MePassport = () => {
 
         {lapsed.length ? (
           <Section tone="passport">
-            <SectionHead title="No longer current" lede="Kept on the record: someone checking a document needs to be told it lapsed, not that it never existed." />
+            <SectionHead title="Expired and withdrawn" lede="Kept on the record, so anyone checking one is told it lapsed rather than that it never existed." />
             <div className="me-grid me-grid-2 me-stagger">
               {lapsed.map((c, i) => <CredentialCard key={c.credentialId} credential={c} i={i} />)}
             </div>

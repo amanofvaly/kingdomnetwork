@@ -57,7 +57,6 @@ export const Apply = () => {
     return (
       <div className="wrap band">
         <div className="wrap-narrow stack stack-4">
-          <span className="eyebrow">Applying to {church?.name}</span>
           <h1>You need an account first.</h1>
           <p className="lede">
             Applications are linked to your account.

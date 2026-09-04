@@ -90,7 +90,6 @@ export const Assessment = () => {
     <div className="wrap band">
       <div className="wrap-narrow stack stack-5">
         <div className="stack stack-2">
-          <span className="eyebrow">Attempt {data.attemptNumber} of {data.attemptsAllowed}</span>
           <h1>{data.title}</h1>
           <p className="lede">
             {questions.length} question{questions.length === 1 ? '' : 's'} · {data.passMark}% to pass

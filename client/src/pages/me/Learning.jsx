@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom';
 import { ArrowRight, BookOpen, CheckCircle2, Clock, PlayCircle } from 'lucide-react';
 
-import { AreaHero, Meter, Ring, Section, SectionHead, Tile, ZeroState } from '../../components/me/kit.jsx';
+import { Meter, Ring, Section, SectionHead, Tile, ZeroState } from '../../components/me/kit.jsx';
 import { ErrorState, Spinner } from '../../components/ui.jsx';
 import { duration, plural } from '../../lib/format.js';
 import { useApi } from '../../lib/useAsync.js';
@@ -69,22 +69,12 @@ export const MeLearning = () => {
 
   return (
     <>
-      <AreaHero
-        art="/media/scenes/hands-open-bible.webp"
-        artAlt="Open hands holding a Bible"
-        kicker="Learning"
-        title="Your coursework."
-        lede={active.length
-          ? `About ${duration(minutes)} of teaching still open across ${plural(active.length, 'course')}.`
-          : 'Courses unlock here when you buy them, or when a credential you applied for requires study.'}
-        figures={figures}
-      />
 
       <div className="me-wrap me-body">
         <Section tone="learning">
           <SectionHead
             title="In progress"
-            lede={active.length ? 'The lesson you stopped on is where each of these will open.' : null}
+            lede={active.length ? 'Each one opens where you left off.' : null}
             action={<Link to="/courses" className="link">Browse courses <ArrowRight size={14} /></Link>}
           />
           {active.length ? (
@@ -95,8 +85,8 @@ export const MeLearning = () => {
             <ZeroState
               title={done.length ? 'Nothing open right now' : 'No coursework yet'}
               lede={done.length
-                ? 'You have finished everything unlocked to you. New coursework appears here the moment it is.'
-                : 'Some credentials require study before a church will issue them, and that study appears here. Courses you buy outright do too.'}
+                ? 'You have finished everything available to you. New coursework appears here when it unlocks.'
+                : 'Courses you buy appear here, along with any study a credential requires.'}
               art="/media/scenes/open-book-library.webp"
               action={<Link to="/courses" className="btn btn-primary">Browse courses <ArrowRight size={16} /></Link>}
             />
@@ -105,7 +95,7 @@ export const MeLearning = () => {
 
         {done.length ? (
           <Section tone="learning">
-            <SectionHead title="Completed" lede="Still open to you — finishing a course does not close it." />
+            <SectionHead title="Completed" lede="Finished courses stay available." />
             <div className="me-grid me-grid-3 me-stagger">
               {done.map((c, i) => <CourseTile key={c.course.slug} {...c} i={i} done />)}
             </div>
@@ -118,9 +108,9 @@ export const MeLearning = () => {
               <div className="row" style={{ gap: 'var(--s-4)', flexWrap: 'wrap' }}>
                 <BookOpen size={24} strokeWidth={1.6} color="var(--aqua)" />
                 <div className="grow" style={{ minWidth: 240 }}>
-                  <h3 style={{ fontSize: 'var(--text-lg)' }}>Study that counts towards standing</h3>
+                  <h3 style={{ fontSize: 'var(--text-lg)' }}>Coursework required for a credential</h3>
                   <p className="small muted" style={{ margin: '4px 0 0' }}>
-                    Some churches require coursework before they will ordain or licence. Those courses unlock
+                    Some churches require study before they will ordain or licence. Those courses unlock
                     automatically when your application reaches that step.
                   </p>
                 </div>

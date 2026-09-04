@@ -35,11 +35,11 @@ const Quiz = ({ lecture }) => {
                 <button key={oi} type="button" disabled={checked}
                   className={`quiz-option ${picked && !checked ? 'is-picked' : ''} ${right ? 'is-right' : ''} ${wrong ? 'is-wrong' : ''}`}
                   onClick={() => setAnswers({ ...answers, [qi]: oi })}>
-                  <span className="radio-dot" style={{ borderColor: picked || right ? 'var(--green-600)' : undefined }}>
-                    {(picked || right) && <span style={{ width: 9, height: 9, borderRadius: '50%', background: right ? 'var(--green-600)' : wrong ? 'var(--red-600)' : 'var(--green-600)' }} />}
+                  <span className="radio-dot" style={{ borderColor: picked || right ? 'var(--blue-600)' : undefined }}>
+                    {(picked || right) && <span style={{ width: 9, height: 9, borderRadius: '50%', background: right ? 'var(--blue-600)' : wrong ? 'var(--red-600)' : 'var(--blue-600)' }} />}
                   </span>
                   <span className="grow small">{opt}</span>
-                  {right && <Check size={16} color="var(--green-600)" />}
+                  {right && <Check size={16} color="var(--blue-600)" />}
                   {wrong && <X size={16} color="var(--red-600)" />}
                 </button>
               );
@@ -54,7 +54,7 @@ const Quiz = ({ lecture }) => {
       ))}
 
       {checked ? (
-        <div className={`notice ${correct === total ? 'notice-green' : 'notice-gold'}`}>
+        <div className={`notice ${correct === total ? 'notice-blue' : 'notice-gold'}`}>
           <span>You answered {correct} of {total} correctly. {correct === total ? 'Move on to the next lesson.' : 'Read the explanations above before you continue.'}</span>
         </div>
       ) : (
@@ -118,7 +118,7 @@ const Lesson = ({ lecture, course }) => {
               <ul className="stack stack-2">
                 {points.map((p) => (
                   <li key={p} className="row small muted" style={{ gap: 10, alignItems: 'flex-start' }}>
-                    <Check size={15} strokeWidth={2.4} style={{ marginTop: 3, flex: 'none', color: 'var(--green-600)' }} />{p}
+                    <Check size={15} strokeWidth={2.4} style={{ marginTop: 3, flex: 'none', color: 'var(--blue-600)' }} />{p}
                   </li>
                 ))}
               </ul>
@@ -244,7 +244,7 @@ export const Learn = () => {
             <div className="row" style={{ gap: 10 }}>
               {done.has(current?.id) ? (
                 <>
-                  <span className="row small" style={{ gap: 6, color: 'var(--green-600)' }}><CheckCircle2 size={16} /> Completed</span>
+                  <span className="row small" style={{ gap: 6, color: 'var(--blue-600)' }}><CheckCircle2 size={16} /> Completed</span>
                   <button type="button" className="btn btn-ghost btn-sm" onClick={() => mark(current.id, false)} disabled={saving}>Undo</button>
                   {index < flat.length - 1 && (
                     <button type="button" className="btn btn-primary" onClick={() => go(flat[index + 1].id)}>
@@ -262,9 +262,9 @@ export const Learn = () => {
           </div>
 
           {progress === 100 && (
-            <div className="panel" style={{ background: 'var(--green-50)', borderColor: 'var(--green-100)' }}>
+            <div className="panel" style={{ background: 'var(--blue-50)', borderColor: 'var(--blue-100)' }}>
               <div className="row" style={{ gap: 'var(--s-4)', alignItems: 'flex-start' }}>
-                <CheckCircle2 size={22} color="var(--green-600)" style={{ flex: 'none', marginTop: 2 }} />
+                <CheckCircle2 size={22} color="var(--blue-600)" style={{ flex: 'none', marginTop: 2 }} />
                 <div className="stack stack-2">
                   <h4>You have finished this course.</h4>
                   <p className="small muted" style={{ margin: 0 }}>

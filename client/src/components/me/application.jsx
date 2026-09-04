@@ -17,15 +17,15 @@ import { money } from '../../lib/format.js';
 export const STATUS = {
   draft: ['Draft', 'tag'],
   fee_pending: ['Fee due', 'tag tag-gold'],
-  submitted: ['Submitted', 'tag tag-green'],
+  submitted: ['Submitted', 'tag tag-blue'],
   under_review: ['Under review', 'tag'],
   info_requested: ['Needs your reply', 'tag tag-gold'],
   coursework: ['Coursework', 'tag tag-gold'],
   assessment: ['Paper to sit', 'tag tag-gold'],
   interview: ['Interview', 'tag tag-gold'],
   final_review: ['Final review', 'tag'],
-  approved: ['Approved', 'tag tag-green'],
-  issued: ['Issued', 'tag tag-green'],
+  approved: ['Approved', 'tag tag-blue'],
+  issued: ['Issued', 'tag tag-blue'],
   declined: ['Declined', 'tag tag-red'],
   withdrawn: ['Withdrawn', 'tag'],
   expired: ['Expired', 'tag tag-red'],
@@ -162,7 +162,7 @@ export const ApplicationTile = ({ app, limit = 4, i = 0 }) => {
           </div>
         ) : (
           <div className="row small muted" style={{ gap: 8, marginTop: 'var(--s-3)', paddingTop: 'var(--s-4)', borderTop: '1px solid var(--line)' }}>
-            <Check size={15} color="var(--green-600)" />
+            <Check size={15} color="var(--blue-600)" />
             Everything asked of you is done. {app.church?.name} has it from here.
           </div>
         )}

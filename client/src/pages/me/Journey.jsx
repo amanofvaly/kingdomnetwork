@@ -3,7 +3,7 @@ import {
   ArrowRight, CalendarClock, CalendarPlus, ExternalLink, History, Video,
 } from 'lucide-react';
 
-import { AreaHero, Section, SectionHead, ZeroState } from '../../components/me/kit.jsx';
+import { Section, SectionHead, ZeroState } from '../../components/me/kit.jsx';
 import { ApplicationTile, StatusTag } from '../../components/me/application.jsx';
 import { ErrorState, Spinner } from '../../components/ui.jsx';
 import { dateShort, dateTime } from '../../lib/format.js';
@@ -86,22 +86,12 @@ export const MeJourney = () => {
 
   return (
     <>
-      <AreaHero
-        art="/media/scenes/seminar-room.webp"
-        artAlt="An empty seminar room"
-        kicker="Your journey"
-        title="Your applications."
-        lede={pending.length
-          ? 'Every church has told us what it still needs from you. This is that list, in the order it can be done.'
-          : 'When you apply to a church for standing, each step it asks of you appears here.'}
-        figures={figures}
-      />
 
       <div className="me-wrap me-body">
         <Section tone="journey">
           <SectionHead
             title="Waiting on you"
-            lede={pending.length ? 'The first step in each is the one you can do today.' : null}
+            lede={pending.length ? 'The first step in each is the one you can do now.' : null}
           />
           {pending.length ? (
             <div className="me-grid me-stagger">
@@ -110,7 +100,7 @@ export const MeJourney = () => {
           ) : (
             <ZeroState
               title="Nothing is waiting on you"
-              lede="Ordination, licensing, certification and affiliation are all granted by a church on this network. Find one that fits, and the steps will appear here."
+              lede="Apply to a church for ordination, licensing, certification or affiliation, and every step it asks of you appears here."
               art="/media/scenes/church-sanctuary.webp"
               action={<Link to="/ordination" className="btn btn-primary">Find a credential <ArrowRight size={16} /></Link>}
             />
@@ -140,7 +130,7 @@ export const MeJourney = () => {
 
         {history.length ? (
           <Section tone="journey">
-            <SectionHead title="Already decided" lede="Applications that have reached an outcome." />
+            <SectionHead title="Past applications" lede="Applications that have reached an outcome." />
             <div className="me-list me-stagger">
               {history.map((a, i) => (
                 <div key={a.reference} className="me-row" style={{ '--i': i }}>

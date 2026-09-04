@@ -128,7 +128,6 @@ export const PageBuilder = () => {
 
           <div className="builder-preview">
             <div className="row row-between" style={{ padding: 'var(--s-3) var(--s-4)', borderBottom: '1px solid var(--line)' }}>
-              <span className="eyebrow">Preview</span>
               <button type="button" className="a-icon-btn" onClick={() => setNonce((n) => n + 1)} aria-label="Refresh">
                 <RefreshCw size={14} strokeWidth={1.8} />
               </button>

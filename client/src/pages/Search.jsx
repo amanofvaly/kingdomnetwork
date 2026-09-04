@@ -58,7 +58,7 @@ export const Search = () => {
         <div className="catalogue">
           <aside className={`filters ${filtersOpen ? 'is-open' : ''}`} aria-label="Filters">
             <div className="filter-group" style={{ borderTop: 'none', paddingTop: 0 }}>
-              <h5>What's included</h5>
+              <h5>Service or outcome</h5>
               <div className="filter-list">
                 {(data?.facets.outcomes ?? []).map((f) => (
                   <Facet key={f.value} label={f.label} count={f.count}
@@ -98,7 +98,7 @@ export const Search = () => {
                         <span className="small strong clamp-1" style={{ display: 'block' }}>{c.shortName ?? c.name}</span>
                         <span className="xs dim row" style={{ gap: 4 }}>
                           {c.city}, {c.country}
-                          {c.verified && <BadgeCheck size={11} style={{ color: 'var(--green-600)' }} />}
+                          {c.verified && <BadgeCheck size={11} style={{ color: 'var(--blue-600)' }} />}
                         </span>
                       </span>
                     </Link>

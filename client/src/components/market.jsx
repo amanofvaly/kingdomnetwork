@@ -16,7 +16,7 @@ import { compact, money, plural } from '../lib/format.js';
  * and supporting documents rather than titles.
  */
 export const ACQUISITION = {
-  instant: { label: 'Issued on request', icon: FileCheck2, tone: '', help: 'Issued once your details are confirmed.' },
+  instant: { label: 'Church confirmation', icon: FileCheck2, tone: '', help: 'Requires confirmation by the issuing church.' },
   application: { label: 'By application', icon: ScrollText, tone: '', help: 'Apply and the church reviews your application.' },
   assessment: { label: 'Written assessment', icon: ClipboardCheck, tone: '', help: 'Includes a written assessment.' },
   coursework: { label: 'Coursework', icon: BookOpen, tone: '', help: 'Requires completing specific courses.' },
@@ -85,14 +85,13 @@ export const OfferingCard = ({ offering: o, showOutcome = false, held = false })
       <div className="card-body">
         {church && (
           <Link to={`/churches/${church.slug}`} className="row issuer" style={{ gap: 7 }}>
-            <span className="monogram monogram-sm">{church.monogram}</span>
             <span className="grow" style={{ minWidth: 0 }}>
               <span className="small strong clamp-1" style={{ display: 'block', lineHeight: 1.25 }}>
                 {church.shortName ?? church.name}
               </span>
               <span className="xs dim">{church.country}</span>
             </span>
-            {church.verified && <BadgeCheck size={15} style={{ color: 'var(--green-600)', flex: 'none' }} />}
+            {church.verified && <BadgeCheck size={15} style={{ color: 'var(--blue-600)', flex: 'none' }} />}
           </Link>
         )}
 
@@ -109,13 +108,6 @@ export const OfferingCard = ({ offering: o, showOutcome = false, held = false })
           <span className="xs dim num">{compact(o.issuedCount ?? 0)} issued</span>
         </div>
 
-        {held ? (
-          <Link to="/me/passport" className="btn btn-outline btn-sm btn-block card-buy">In your passport</Link>
-        ) : (
-          <Link to={`/listing/${o.slug}`} className="btn btn-outline btn-sm btn-block card-buy">
-            View details
-          </Link>
-        )}
       </div>
     </article>
   );
@@ -173,7 +165,7 @@ export const OfferingRow = ({ offering: o, owned, applied }) => {
           <span className="offer-row-name">
             {church?.shortName ?? church?.name ?? o.churchSlug}
             {church?.verified && (
-              <BadgeCheck size={15} style={{ display: 'inline', marginLeft: 5, verticalAlign: '-3px', color: 'var(--green-600)' }} />
+              <BadgeCheck size={15} style={{ display: 'inline', marginLeft: 5, verticalAlign: '-3px', color: 'var(--blue-600)' }} />
             )}
           </span>
           <span className="xs dim row" style={{ gap: 4 }}>

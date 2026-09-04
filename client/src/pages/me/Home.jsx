@@ -4,7 +4,7 @@ import {
   ArrowRight, Award, BookOpen, Compass, IdCard, Loader2, Route as RouteIcon, Sparkles, UserRoundPen,
 } from 'lucide-react';
 
-import { AreaHero, Pathway, Section, SectionHead, ZeroState } from '../../components/me/kit.jsx';
+import { Pathway, Section, SectionHead, ZeroState } from '../../components/me/kit.jsx';
 import { PostCard, StoryRail, SuggestionRow } from '../../components/me/feed.jsx';
 import { ErrorState, Spinner } from '../../components/ui.jsx';
 import { api } from '../../lib/api.js';
@@ -61,14 +61,6 @@ const storiesFrom = (dash) => {
 
 const FirstRun = ({ user }) => (
   <div className="me-first">
-    <AreaHero
-      tall
-      art="/media/scenes/sunrise-arms-raised.webp"
-      artAlt="Arms raised towards a sunrise"
-      kicker="Welcome"
-      title={`Welcome, ${firstNameOf(user.name)}.`}
-      lede="Your passport is empty, and that is exactly right for today. Everything you study, apply for and are granted will gather here."
-    />
 
     <div className="me-wrap me-body">
       <Section tone="home">
@@ -79,7 +71,7 @@ const FirstRun = ({ user }) => (
         <div className="me-grid me-grid-3 me-stagger">
           <Pathway
             i={0}
-            to="/me/discover"
+            to="/churches"
             art="/media/scenes/church-sanctuary.webp"
             icon={<Compass size={20} strokeWidth={1.7} />}
             title="Follow a church"
@@ -163,11 +155,11 @@ export const MeHome = () => {
         <div className="me-feed">
           <div className="me-feed-col">
             {state.discovery ? (
-              <div className="notice notice-green">
+              <div className="notice notice-blue">
                 <Sparkles size={15} />
                 <span>
                   You are not following any churches yet. These are popular posts to start with.{' '}
-                  <Link className="link" to="/me/discover">Find churches to follow</Link>
+                  <Link className="link" to="/churches">Find churches to follow</Link>
                 </span>
               </div>
             ) : null}
@@ -179,7 +171,7 @@ export const MeHome = () => {
                 title="Nothing in your feed yet"
                 lede="The churches you follow post their gatherings, their teaching and everything new they issue. Follow one and it will all land here."
                 art="/media/scenes/congregation-gathering.webp"
-                action={<Link to="/me/discover" className="btn btn-primary">Find churches <ArrowRight size={16} /></Link>}
+                action={<Link to="/churches" className="btn btn-primary">Find churches <ArrowRight size={16} /></Link>}
               />
             )}
 
@@ -207,7 +199,7 @@ export const MeHome = () => {
                       <SuggestionRow key={c.slug} church={c} onChange={() => suggest.reload()} />
                     ))}
                   </div>
-                  <Link to="/me/discover" className="link small">See all churches <ArrowRight size={13} /></Link>
+                  <Link to="/churches" className="link small">See all churches <ArrowRight size={13} /></Link>
                 </div>
               </div>
             ) : null}
@@ -215,7 +207,7 @@ export const MeHome = () => {
             <div className="me-card">
               <div className="me-card-in">
                 <div className="me-card-head">
-                  <h3>Your passport</h3>
+                  <h3>Your Digital Passport</h3>
                   <p>
                     {stats?.issued
                       ? `${stats.issued} document${stats.issued === 1 ? '' : 's'} in your name.`
@@ -223,7 +215,7 @@ export const MeHome = () => {
                   </p>
                 </div>
                 <Link to="/me/passport" className="btn btn-outline btn-block">
-                  <IdCard size={15} /> Open passport
+                  <IdCard size={15} /> Open Digital Passport
                 </Link>
               </div>
             </div>
