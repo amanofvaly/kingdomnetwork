@@ -898,6 +898,10 @@
   position: relative;
   display: inline-flex;
   align-items: center;
+  /* The underline is pinned to this box, so the box has to be the width of the
+     text. In the mobile menu this sits in a column flex that stretches its
+     children, which drew the rule across the whole menu. */
+  width: fit-content;
   min-height: 36px;
   padding-inline: 4px;
   color: var(--blue-900);
