@@ -48,6 +48,13 @@ const resourceSchema = new mongoose.Schema(
   { timestamps: true },
 );
 
-resourceSchema.index({ title: 'text', subtitle: 'text', tags: 'text' });
+// `language_override` points at a field that does not exist, so Mongo stops
+// reading `language` as a stemmer to use. That field means the language the
+// teaching is in — Luganda, Runyankole, Swahili — and most of those have no
+// stemmer, which would otherwise make the document unsaveable.
+resourceSchema.index(
+  { title: 'text', subtitle: 'text', tags: 'text' },
+  { language_override: 'textLanguage' },
+);
 
 export const Resource = mongoose.model('Resource', resourceSchema);
