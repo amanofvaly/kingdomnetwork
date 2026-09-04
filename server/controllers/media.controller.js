@@ -161,6 +161,35 @@ export const remove = asyncHandler(async (req, res) => {
  * someone who administers the church assessing them, or by a platform
  * administrator, and are never cached by an intermediary.
  */
+/**
+ * A `Range` header, resolved against a known file size. Answers null when the
+ * header is absent or in a form we do not serve; `unsatisfiable` when it asks
+ * for bytes that are not there, which is a 416 rather than a quiet full body.
+ *
+ * Only the single-range `bytes=` form is handled. Multipart ranges are legal
+ * and no browser asks for them.
+ */
+export const parseRange = (header, size) => {
+  if (!header) return null;
+  const match = /^bytes=(\d*)-(\d*)$/.exec(String(header).trim());
+  if (!match) return null;
+
+  const [, rawStart, rawEnd] = match;
+  if (rawStart === '' && rawEnd === '') return null;
+
+  // A suffix range — "the last N bytes".
+  if (rawStart === '') {
+    const length = Number(rawEnd);
+    if (!length) return { unsatisfiable: true };
+    return { start: Math.max(0, size - length), end: size - 1 };
+  }
+
+  const start = Number(rawStart);
+  const end = rawEnd === '' ? size - 1 : Math.min(Number(rawEnd), size - 1);
+  if (start >= size || end < start) return { unsatisfiable: true };
+  return { start, end };
+};
+
 export const serve = asyncHandler(async (req, res) => {
   const storageKey = req.params[0];
   const asset = await MediaAsset.findOne({ storageKey });
@@ -178,11 +207,27 @@ export const serve = asyncHandler(async (req, res) => {
   if (!info) return res.status(404).json({ success: false, message: 'That file is no longer stored.' });
 
   res.setHeader('Content-Type', asset.mimeType);
-  res.setHeader('Content-Length', info.bytes);
   res.setHeader('Content-Disposition', `inline; filename="${asset.filename ?? 'file'}"`);
   // Nothing served from here is ever a page; stop a browser deciding otherwise.
   res.setHeader('X-Content-Type-Options', 'nosniff');
+  // Said even on a full response, so a player knows it may seek later.
+  res.setHeader('Accept-Ranges', 'bytes');
 
+  const range = parseRange(req.get('range'), info.bytes);
+
+  if (range?.unsatisfiable) {
+    res.setHeader('Content-Range', `bytes */${info.bytes}`);
+    return res.status(416).end();
+  }
+
+  if (range) {
+    res.status(206);
+    res.setHeader('Content-Range', `bytes ${range.start}-${range.end}/${info.bytes}`);
+    res.setHeader('Content-Length', range.end - range.start + 1);
+    return storage.stream(storageKey, range).pipe(res);
+  }
+
+  res.setHeader('Content-Length', info.bytes);
   storage.stream(storageKey).pipe(res);
 });
 

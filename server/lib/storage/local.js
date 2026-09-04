@@ -36,7 +36,13 @@ export const put = async (key, buffer) => {
 
 export const get = async (key) => fs.readFile(resolveKey(key));
 
-export const stream = (key) => createReadStream(resolveKey(key));
+/**
+ * Both bounds are inclusive, matching the HTTP Range header rather than the
+ * usual half-open convention — the caller is always translating one to the
+ * other, so it may as well happen once, here.
+ */
+export const stream = (key, { start, end } = {}) =>
+  createReadStream(resolveKey(key), start == null ? undefined : { start, end });
 
 export const stat = async (key) => {
   try {
