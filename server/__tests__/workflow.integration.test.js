@@ -11,7 +11,7 @@ const URI = process.env.TEST_MONGO_URI ?? 'mongodb://127.0.0.1:27017/kingdom-net
 
 let available = true;
 let advance; let decide; let issue;
-let Application; let Church; let Credential; let Enrollment; let Offering; let User;
+let Application; let Church; let Credential; let Enrollment; let Interview; let Offering; let User;
 
 beforeAll(async () => {
   try {
@@ -25,6 +25,7 @@ beforeAll(async () => {
   ({ Church } = await import('../models/Church.js'));
   ({ Credential } = await import('../models/Credential.js'));
   ({ Enrollment } = await import('../models/Enrollment.js'));
+  ({ Interview } = await import('../models/Interview.js'));
   ({ Offering } = await import('../models/Offering.js'));
   ({ User } = await import('../models/User.js'));
 }, 20000);
@@ -42,7 +43,7 @@ beforeEach(async () => {
   if (!available) return;
   await Promise.all([
     Application.deleteMany({}), Credential.deleteMany({}), Enrollment.deleteMany({}),
-    Offering.deleteMany({}), User.deleteMany({}), Church.deleteMany({}),
+    Interview.deleteMany({}), Offering.deleteMany({}), User.deleteMany({}), Church.deleteMany({}),
   ]);
 
   user = await User.create({ name: 'Moses Kirabo', email: `m${Date.now()}@example.test` });
@@ -63,6 +64,26 @@ beforeEach(async () => {
   });
   await offering.save();
 });
+
+/**
+ * Ordination carries a floor the Offering model enforces on save: a live
+ * face-to-face meeting, always. So an ordination application cannot reach the
+ * church's final review on coursework and a fee alone — the interview has to
+ * have happened and passed.
+ */
+const passInterview = async (application) => {
+  const interview = await Interview.create({
+    applicationId: application._id,
+    churchSlug: 'a-church',
+    userId: user._id,
+    scheduledFor: new Date(Date.now() - 86_400_000),
+    status: 'completed',
+    outcome: 'pass',
+  });
+  // The workflow reads the interview through the application's own pointer,
+  // not by searching for one, so booking has to be recorded on both sides.
+  await Application.updateOne({ _id: application._id }, { $set: { interviewId: interview._id } });
+};
 
 const startApplication = async () => {
   const application = await Application.create({
@@ -113,6 +134,10 @@ describe.skipIf(!available)('the application state machine', () => {
     expect(onCoursework.status).toBe('coursework');
 
     await Enrollment.create({ userId: user._id, courseSlug: 'a-course', status: 'completed', progress: 100 });
+    const { application: onInterview } = await advance(await Application.findById(started._id), { offering });
+    expect(onInterview.status).toBe('interview');
+
+    await passInterview(started);
     const { application: awaitingChurch } = await advance(await Application.findById(started._id), { offering });
     expect(awaitingChurch.status).toBe('final_review');
   });
@@ -130,6 +155,7 @@ describe.skipIf(!available)('the application state machine', () => {
     step.waiverReason = 'Twenty years of service.';
     await application.save();
 
+    await passInterview(application);
     const { application: after } = await advance(await Application.findById(application._id), { offering });
     const again = after.steps.find((s) => s.type === 'course');
     expect(again.status).toBe('waived');
@@ -150,6 +176,7 @@ describe.skipIf(!available)('issuing', () => {
       { _id: started._id },
       { $set: { paymentRef: 'PAY-1', submittedAt: new Date() } },
     );
+    await passInterview(started);
     const { application } = await advance(await Application.findById(started._id), { offering });
     return application;
   };
