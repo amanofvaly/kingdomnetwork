@@ -57,11 +57,26 @@ export const Resources = () => {
   const attach = async (file, field) => {
     setUploading(field);
     try {
-      const kind = file.type.startsWith('audio') ? 'audio' : file.type.startsWith('image') ? 'image' : 'document';
-      const asset = await api.upload(`/manage/${churchSlug}/media`, file, { headers: { 'x-media-kind': kind, 'x-media-folder': 'resources' } });
-      setEditing((r) => (field === 'cover'
-        ? { ...r, coverImage: asset.url, coverMediaId: asset.id }
-        : { ...r, fileMediaIds: [...(r.fileMediaIds ?? []), asset.id] }));
+      const kind = file.type.startsWith('audio') ? 'audio'
+        : file.type.startsWith('video') ? 'video'
+        : file.type.startsWith('image') ? 'image'
+        : 'document';
+
+      const asset = await api.upload(`/manage/${churchSlug}/media`, file, {
+        headers: {
+          'x-media-kind': kind,
+          'x-media-folder': 'resources',
+          // What people pay for is private. The cover and the sample are the
+          // parts that sell it, so they stay readable by anyone.
+          ...(field === 'file' ? { 'x-media-visibility': 'private' } : {}),
+        },
+      });
+
+      setEditing((r) => {
+        if (field === 'cover') return { ...r, coverImage: asset.url, coverMediaId: asset.id };
+        if (field === 'sample') return { ...r, previewMediaId: asset.id, previewUrl: asset.url };
+        return { ...r, fileMediaIds: [...(r.fileMediaIds ?? []), asset.id] };
+      });
     } catch (err) { fail(err); } finally { setUploading(null); }
   };
 
@@ -81,7 +96,7 @@ export const Resources = () => {
           <div className="a-empty">
             <h3>Nothing here yet</h3>
             <p className="muted small" style={{ maxWidth: 440 }}>
-              Upload the file once and it is delivered to every buyer.
+              Upload a book, a recording or a video once and it is delivered to every buyer.
             </p>
             <button type="button" className="btn btn-primary" onClick={() => setCreating(true)}>Add the first</button>
           </div>
@@ -128,6 +143,11 @@ export const Resources = () => {
         title={editing?.title ?? ''}
         footer={
           <>
+            {editing?.status === 'published' ? (
+              <a className="btn btn-ghost" href={`/materials/${editing.slug}`} target="_blank" rel="noreferrer">
+                View it
+              </a>
+            ) : null}
             <button type="button" className="btn btn-ghost" onClick={() => setEditing(null)}>Close</button>
             <button type="button" className="btn btn-outline" onClick={() => save()}>Save</button>
             <button type="button" className="btn btn-primary" onClick={() => save(editing?.status === 'published' ? 'draft' : 'published')}>
@@ -159,14 +179,42 @@ export const Resources = () => {
 
             <div className="a-field">
               <label>Files</label>
-              <p className="help">{(editing.fileMediaIds ?? []).length} file(s) attached. Required before publishing.</p>
+              <p className="help">
+                {(editing.fileMediaIds ?? []).length} file(s) attached. Required before publishing.
+                Only someone who has bought this can open them.
+              </p>
               <FileDrop
                 label="Attach the file"
-                accept="application/pdf,audio/*"
-                hint="A PDF or an audio file"
+                accept="application/pdf,audio/*,video/*"
+                hint="A PDF, an audio file or a video"
                 busy={uploading === 'file'}
                 onFile={(f) => attach(f, 'file')}
               />
+            </div>
+
+            <div className="a-field">
+              <label>Sample</label>
+              <p className="help">
+                The part anyone may see before buying — a first chapter, or a few minutes
+                of the recording. Items without one sell badly.
+              </p>
+              {editing.previewMediaId ? (
+                <p className="small muted" style={{ margin: 0 }}>
+                  A sample is attached.{' '}
+                  <button type="button" className="link"
+                    onClick={() => setEditing({ ...editing, previewMediaId: null, previewUrl: undefined })}>
+                    Replace it
+                  </button>
+                </p>
+              ) : (
+                <FileDrop
+                  label="Attach a sample"
+                  accept="application/pdf,audio/*,video/*"
+                  hint="Shown on the public page"
+                  busy={uploading === 'sample'}
+                  onFile={(f) => attach(f, 'sample')}
+                />
+              )}
             </div>
           </>
         ) : null}
