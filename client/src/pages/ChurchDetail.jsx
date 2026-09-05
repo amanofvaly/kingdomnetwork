@@ -118,9 +118,28 @@ export const ChurchDetail = () => {
         <div className="church-profile-cover media">
           <img src={church.coverImage || FALLBACK_COVER} alt={church.coverAlt || `${church.name || 'Church'} cover`} width={1600} height={600} fetchPriority="high"
             onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = FALLBACK_COVER; }} />
+        </div>
           <section className="church-profile-identity" aria-labelledby="church-name">
+            <div className="church-profile-toolbar">
             <div className="church-profile-mark">
               <img src={church.logoImage || CHURCH_PLACEHOLDER} alt="" />
+            </div>
+              <div className="church-profile-social" role="group" aria-label="Connect with this church">
+              {canFollow ? (
+                <FollowButton
+                  slug={church.slug}
+                  following={data.following}
+                  size=""
+                  className="church-profile-util"
+                  variant="icon"
+                  onChange={(_, on) => setFollowers((n) => n + (on ? 1 : -1))}
+                />
+              ) : null}
+              <button type="button" className="church-profile-util"
+                onClick={() => setSharing(true)} aria-label="Share" title="Share">
+                <Share2 size={20} />
+              </button>
+              </div>
             </div>
             <div className="church-profile-name">
               <div className="church-profile-title-row">
@@ -135,33 +154,16 @@ export const ChurchDetail = () => {
               </div>
             </div>
             <div className="church-profile-actions">
-              {canFollow ? (
-                <FollowButton
-                  slug={church.slug}
-                  following={data.following}
-                  size=""
-                  className="btn-vibrant-blue"
-                  inverse
-                  onChange={(_, on) => setFollowers((n) => n + (on ? 1 : -1))}
-                />
-              ) : null}
-              {/* Email and website are reference, not action — they live in the
-                  Church information panel, which already lists both. The banner
-                  keeps only what someone comes here to do. */}
               {/* Giving is an action, not one of the page's content sections —
                   it was previously also gated on `shows('donate')`, so a church
                   that had arranged its sections at all lost the button. */}
               {donations.enabled ? (
-                <Link className="btn btn-give" to={`/give/${church.slug}`}>
+                <Link className="btn btn-give church-profile-give" to={`/give/${church.slug}`}>
                   <HeartHandshake size={16} /> Give
                 </Link>
               ) : null}
-              <button type="button" className="btn btn-inverse-outline church-profile-share" onClick={() => setSharing(true)}>
-                <Share2 size={16} /> Share
-              </button>
             </div>
           </section>
-        </div>
 
         <nav className="church-profile-tabs" aria-label="Church page sections">
           <a href="#about">About</a><a href="#offerings">Credentials and learning</a>

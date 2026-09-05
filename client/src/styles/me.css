@@ -1261,6 +1261,7 @@
 /* --- follow -------------------------------------------------------------- */
 
 .me-follow { min-width: 92px; }
+.me-follow-icon { display: inline-flex; align-items: center; justify-content: center; width: 44px; height: 44px; padding: 0; border: 0; background: none; color: inherit; }
 /* Bright blue, the way every feed marks its follow action. The brand indigo
    is too muted to read as the one thing on the row you are meant to press. */
 .me-follow.btn-primary { background: #1877f2; }

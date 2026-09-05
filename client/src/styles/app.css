@@ -167,7 +167,9 @@
   border-radius: var(--r-lg);
   background: var(--bg-sunken);
 }
-.media img {
+/* Direct child only: the cover on a church profile is a .media that also
+   holds the identity overlay, whose logo must not be stretched over it. */
+.media > img {
   position: absolute;
   inset: 0;
   width: 100%;

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowUpRight, BadgeCheck, Check, Plus, Sparkles } from 'lucide-react';
+import { ArrowUpRight, BadgeCheck, Bell, Check, Plus, Sparkles } from 'lucide-react';
 
 import { Avatar } from '../ui.jsx';
 import { ChurchMark } from './kit.jsx';
@@ -67,6 +67,24 @@ export const FollowButton = ({ slug, following, onChange, size = 'btn-sm', varia
         style={style}
       >
         {on ? 'Following' : 'Follow'}
+      </button>
+    );
+  }
+
+  if (variant === 'icon') {
+    const label = on ? 'Following' : 'Follow';
+    return (
+      <button
+        type="button"
+        className={`me-follow-icon ${on ? 'is-on' : ''} ${className}`}
+        onClick={toggle}
+        disabled={busy}
+        aria-pressed={on}
+        aria-label={label}
+        title={label}
+        style={style}
+      >
+        <Bell size={22} fill={on ? 'currentColor' : 'none'} />
       </button>
     );
   }

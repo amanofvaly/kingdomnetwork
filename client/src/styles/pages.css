@@ -363,36 +363,33 @@
    =========================================================================== */
 .church-profile { background: var(--bg); }
 .church-profile-top { padding-top: var(--s-5); }
-.church-profile-cover { aspect-ratio: 24 / 8; min-height: 300px; border-radius: var(--r-lg); background: var(--bg-sunken); }
+.church-profile-cover { aspect-ratio: 4 / 1; min-height: 220px; max-height: 320px; border-radius: var(--r-lg) var(--r-lg) 0 0; background: var(--bg-sunken); }
 .church-profile-cover > img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: center; }
-.church-profile-cover::after { content: ''; position: absolute; inset: 0; background: linear-gradient(to top, rgba(21, 18, 48, .88) 0%, rgba(21, 18, 48, .42) 42%, transparent 72%); pointer-events: none; }
-.church-profile-identity { position: absolute; z-index: 1; inset: auto 0 0; display: grid; grid-template-columns: 96px minmax(0, 1fr) auto; gap: var(--s-5); align-items: start; padding: var(--s-6); color: #fff; }
-.church-profile-mark { align-self: start; width: 96px; height: 96px; padding: 5px; border-radius: 14px; background: var(--bg); box-shadow: 0 7px 24px rgba(20, 23, 26, .18); }
-.church-profile-actions { align-self: end; display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 8px; }
-.church-profile-mark > img, .church-profile-mark > .monogram { width: 100%; height: 100%; border-radius: 9px; object-fit: cover; font-size: var(--text-2xl); }
-.church-profile-name h1 { color: #fff; font-size: clamp(1.8rem, 3.5vw, 2.7rem); letter-spacing: -.035em; }
-.church-profile-name .verified { color: #fff; }
-.church-profile-title-row { display: flex; align-items: center; gap: var(--s-3); }
-/* A square icon button sized to sit level with Website and Give beside it. */
-.church-profile-mail { flex: none; width: 44px; padding: 0; }
-
-/* Follow defaults to filled blue because it used to be the only thing worth
-   pressing up here. Give is that now, so Follow steps back to an outline —
-   two filled buttons side by side just argue with each other. */
-.church-profile-actions .me-follow.btn-primary {
-  background: transparent;
-  border-color: rgba(255, 255, 255, 0.32);
-  color: #fff;
-}
-.church-profile-actions .me-follow.btn-primary:hover:not(:disabled) {
-  border-color: #fff;
-  background: rgba(255, 255, 255, 0.08);
-}
-.church-profile-name > p { max-width: 62ch; margin: 6px 0 0; color: rgba(255,255,255,.88); }
-.church-profile-meta { display: flex; flex-wrap: wrap; gap: 6px var(--s-4); margin-top: 8px; color: rgba(255,255,255,.72); font-size: var(--text-sm); }
+.church-profile-identity { position: relative; display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 20px 32px; padding: 0 32px 28px; }
+.church-profile-toolbar { grid-column: 1 / -1; display: flex; align-items: flex-end; justify-content: space-between; gap: 24px; }
+.church-profile-mark { flex: none; width: 112px; height: 112px; margin-top: -48px; padding: 5px; border-radius: 20px; background: var(--bg); box-shadow: 0 0 0 1px var(--line); }
+.church-profile-mark > img { width: 100%; height: 100%; border-radius: 15px; object-fit: cover; box-shadow: inset 0 0 0 1px rgba(20, 12, 40, .08); }
+.church-profile-name { min-width: 0; }
+.church-profile-name h1 { color: var(--ink); font-size: clamp(1.75rem, 3vw, 2.5rem); line-height: 1.15; letter-spacing: -.035em; overflow-wrap: anywhere; }
+.church-profile-title-row .row-wrap { flex-wrap: nowrap; align-items: center; }
+.church-profile-name .verified { flex: none; }
+.church-profile-name > p { max-width: 62ch; margin: 10px 0 0; color: var(--ink-2); line-height: 1.6; }
+.church-profile-meta { display: flex; flex-wrap: wrap; gap: 8px 20px; margin-top: 12px; color: var(--ink-2); font-size: var(--text-sm); }
 .church-profile-meta span { display: inline-flex; align-items: center; gap: 5px; }
-.church-profile-tabs { display: flex; gap: var(--s-5); min-height: 52px; padding-inline: var(--s-5); overflow-x: auto; scrollbar-width: none; }
-.church-profile-tabs::-webkit-scrollbar { display: none; }
+.church-profile-meta svg { flex: none; }
+.church-profile-actions { align-self: start; display: flex; align-items: center; gap: 8px; padding-top: 4px; }
+.church-profile-social { display: flex; align-items: center; gap: 12px; padding-top: 12px; }
+.church-profile-social .church-profile-util { position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 5px; width: 64px; min-height: 60px; padding: 6px 4px; border: 0; border-radius: var(--r-md); background: transparent; color: var(--ink-2); cursor: pointer; transition: background var(--dur-1), color var(--dur-1); }
+.church-profile-social .church-profile-util::after { content: attr(aria-label); font-size: var(--text-xs); font-weight: 500; line-height: 1.3; }
+.church-profile-social .church-profile-util svg { width: 20px; height: 20px; }
+.church-profile-social .church-profile-util:hover:not(:disabled) { background: var(--bg-sunken); color: var(--ink); }
+.church-profile-social .church-profile-util[aria-pressed="true"] { color: var(--green-700); }
+.church-profile-social .church-profile-util:active:not(:disabled) { background: var(--line); }
+.church-profile-social .church-profile-util:disabled { opacity: .5; cursor: wait; }
+.church-profile-actions .church-profile-give { min-height: 44px; min-width: 112px; padding: 10px 22px; background: var(--blue-700); border: 1px solid var(--blue-700); color: var(--ink-inverse); }
+.church-profile-actions .church-profile-give:hover { background: var(--blue-900); border-color: var(--blue-900); }
+.church-profile-social :focus-visible, .church-profile-actions :focus-visible, .church-profile-tabs a:focus-visible { outline: 2px solid var(--blue-700); outline-offset: 3px; }
+.church-profile-tabs { display: flex; gap: 28px; min-height: 56px; margin-inline: 32px; border-top: 1px solid var(--line); overflow-x: auto; }
 .church-profile-tabs a { display: grid; place-items: center; flex: none; color: var(--ink-2); font-size: var(--text-sm); font-weight: 500; border-bottom: 2px solid transparent; }
 .church-profile-tabs a:hover { color: var(--blue-700); border-bottom-color: var(--blue-700); }
 
@@ -444,26 +441,36 @@
 @media (max-width: 1080px) {
   .church-profile-rail .grid-3 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
+/* Desktop keeps the social controls and giving action on one shared row.
+   The toolbar retains its existing placement on phones and tablets. */
+@media (min-width: 821px) {
+  .church-profile-identity { grid-template-columns: minmax(0, 1fr) auto auto; column-gap: 16px; }
+  .church-profile-toolbar { display: contents; }
+  .church-profile-mark { grid-column: 1 / -1; grid-row: 1; }
+  .church-profile-name { grid-column: 1; grid-row: 2; }
+  .church-profile-social { grid-column: 2; grid-row: 2; align-self: start; padding-top: 0; }
+  .church-profile-actions { grid-column: 3; grid-row: 2; min-height: 60px; padding-top: 0; }
+}
 @media (max-width: 820px) {
-  .church-profile-cover { aspect-ratio: 16 / 8; min-height: 330px; }
-  .church-profile-identity { grid-template-columns: 76px minmax(0, 1fr); padding: var(--s-4); }
-  .church-profile-mark { width: 76px; height: 76px; }
-  .church-profile-actions { grid-column: 1 / -1; justify-content: flex-start; }
-  .church-profile-tabs { padding-inline: var(--s-3); }
+  .church-profile-cover { aspect-ratio: 3 / 1; min-height: 190px; }
+  .church-profile-identity { grid-template-columns: minmax(0, 1fr); padding-inline: 24px; }
+  .church-profile-actions { padding-top: 0; }
+  .church-profile-tabs { margin-inline: 24px; }
   .church-profile-layout { grid-template-columns: 1fr; }
   .church-profile-aside { position: static; }
 }
 @media (max-width: 560px) {
   .church-profile-top { padding-top: 0; padding-inline: 0; }
-  .church-profile-cover { min-height: 280px; border-radius: 0; aspect-ratio: auto; }
-  .church-profile-identity { grid-template-columns: 62px minmax(0, 1fr); gap: var(--s-3); padding: var(--s-4); }
-  .church-profile-mark { width: 62px; height: 62px; padding: 4px; border-radius: 11px; }
-  .church-profile-name h1 { font-size: 1.65rem; }
-  .church-profile-name > p { font-size: var(--text-sm); }
-  .church-profile-actions .btn { flex: 1; padding-inline: var(--s-3); }
-  /* Contact stays a square icon here. Sharing the row equally with Give made a
-     secondary action look like a second primary one. */
-  .church-profile-actions .church-profile-mail { flex: 0 0 44px; padding-inline: 0; }
+  .church-profile-cover { height: 168px; min-height: 0; border-radius: 0; aspect-ratio: auto; }
+  .church-profile-identity { gap: 16px; padding: 0 20px 24px; }
+  .church-profile-mark { width: 88px; height: 88px; margin-top: -36px; padding: 4px; border-radius: 16px; transform: translateY(-24px); }
+  .church-profile-mark > img { border-radius: 12px; }
+  .church-profile-name h1 { font-size: 1.75rem; }
+  .church-profile-name > p { font-size: var(--text-sm); margin-top: 8px; }
+  .church-profile-meta { gap: 8px 16px; }
+  .church-profile-actions { display: flex; flex-wrap: wrap; width: 100%; }
+  .church-profile-actions .church-profile-give { flex: 1.25; min-width: 88px; padding-inline: 16px; }
+  .church-profile-tabs { margin-inline: 20px; gap: 24px; min-height: 52px; }
   .church-profile-body { padding-block: var(--s-3) var(--s-6); }
   .church-profile-layout { padding-inline: var(--s-3); gap: var(--s-3); }
   .church-profile-panel, .church-profile-section { border-radius: var(--r-md); }
