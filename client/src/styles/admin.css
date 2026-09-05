@@ -542,20 +542,65 @@ dialog.a-dialog.wide { max-width: 880px; }
 .share-card-name { font-family: var(--font-display); font-size: var(--text-lg); font-weight: 600; letter-spacing: -0.02em; }
 .share-card-place { font-size: var(--text-xs); color: rgba(255, 255, 255, .78); }
 
-.share-card-body { display: flex; align-items: flex-start; gap: var(--s-5); padding: var(--s-5); }
-.share-card-body .qr { flex: none; border: 1px solid var(--line); border-radius: var(--r-md); padding: 4px; color: var(--ink); }
-.share-card-detail { display: flex; flex-direction: column; gap: var(--s-3); min-width: 0; }
-.share-card-detail p { margin: 0; }
-.share-card-url {
-  display: block; padding: 9px var(--s-3); border-radius: var(--r-sm);
-  background: var(--bg-sunken); border: 1px solid var(--line);
-  font-family: var(--font-mono); font-size: var(--text-xs); color: var(--ink-2);
-  overflow-wrap: anywhere;
+.share-card-body {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--s-4);
+  padding: var(--s-5);
 }
-.share-card-actions { display: flex; flex-wrap: wrap; gap: var(--s-2); }
+.share-card-qr-block {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--s-2);
+}
+.share-card-qr-block .qr {
+  flex: none;
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+  padding: 6px;
+  color: var(--ink);
+  background: #fff;
+}
+.share-card-caption {
+  margin: 0;
+  font-size: var(--text-sm);
+  font-weight: 500;
+  color: var(--ink-2);
+  text-align: center;
+}
+.share-card-detail {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-3);
+  width: 100%;
+}
+.share-card-url {
+  display: block;
+  padding: 9px var(--s-3);
+  border-radius: var(--r-sm);
+  background: var(--bg-sunken);
+  border: 1px solid var(--line);
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  color: var(--ink-2);
+  overflow-wrap: anywhere;
+  text-align: center;
+}
+.share-card-actions {
+  display: flex;
+  gap: var(--s-2);
+  width: 100%;
+}
+.share-card-actions .btn {
+  flex: 1 1 0;
+  justify-content: center;
+  white-space: nowrap;
+}
 
-@media (max-width: 560px) {
-  .share-card-body { flex-direction: column; align-items: stretch; }
-  .share-card-body .qr { align-self: center; }
-  .share-card-actions .btn { flex: 1 1 140px; }
+@media (max-width: 380px) {
+  .share-card-actions {
+    flex-direction: column;
+  }
 }

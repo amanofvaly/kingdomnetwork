@@ -1493,7 +1493,7 @@
 .share-overlay { position: fixed; inset: 0; z-index: 110; display: grid; place-items: center; padding: var(--gutter); }
 .share-overlay-scrim { position: absolute; inset: 0; border: 0; background: rgba(28, 24, 58, .5); backdrop-filter: blur(3px); animation: share-in var(--dur-2) var(--ease-soft); }
 .share-overlay-panel {
-  position: relative; width: min(520px, 100%); max-height: 86vh; overflow-y: auto;
+  position: relative; width: min(460px, 100%); max-height: 86vh; overflow-y: auto;
   padding: var(--s-5); background: var(--bg);
   border-radius: 16px; box-shadow: var(--shadow-lg);
   animation: share-rise var(--dur-2) var(--ease-expo);

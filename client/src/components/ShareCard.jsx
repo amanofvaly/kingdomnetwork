@@ -192,9 +192,11 @@ export const ShareCard = ({ church, path, caption = 'Scan to open', fileName = '
       </figure>
 
       <div className="share-card-body">
-        <QrCode value={url} size={148} label={`QR code linking to ${url}`} />
+        <div className="share-card-qr-block">
+          <QrCode value={url} size={156} label={`QR code linking to ${url}`} />
+          {caption ? <p className="share-card-caption">{caption}</p> : null}
+        </div>
         <div className="share-card-detail">
-          <p className="small muted">{caption} — point a phone camera at the code, or send the link.</p>
           <code className="share-card-url">{url.replace(/^https?:\/\//, '')}</code>
           <div className="share-card-actions">
             <button type="button" className="btn btn-outline btn-sm" onClick={copy}>
