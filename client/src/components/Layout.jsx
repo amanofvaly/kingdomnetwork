@@ -316,8 +316,7 @@ const Footer = () => (
             <span className="brand-name" style={{ color: '#fff' }}>Kingdom Network</span>
           </Link>
           <p className="small footer-blurb">
-            Churches issue the ordinations, certificates and letters. Kingdom Network lists them, carries the
-            payment, and keeps a record anyone can check.
+            A global network of churches empowering ministers for international service.
           </p>
         </div>
         <div>
@@ -359,7 +358,7 @@ const Footer = () => (
       </div>
       <div className="footer-bottom">
         <span>© {new Date().getFullYear()} Kingdom Network</span>
-        <span>Every credential is issued by the church named on it, under that church's own standards.</span>
+        <span>“To equip the saints for the work of ministry, for building up the body of Christ.” — Ephesians 4:12</span>
       </div>
     </div>
   </footer>

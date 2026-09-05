@@ -188,9 +188,9 @@ export const Home = () => {
           <div className="wrap stack stack-4">
             <div className="rail-head">
               <div>
-                <h2>Who issues on Kingdom Network</h2>
+                <h2>Thought Leaders</h2>
                 <p className="small muted" style={{ margin: '4px 0 0' }}>
-                  Every credential carries the name of the church that granted it.
+                  The churches that shape what it means to serve.
                 </p>
               </div>
               <Link to="/churches" className="link">All churches <ArrowRight size={15} /></Link>
@@ -220,14 +220,12 @@ export const Home = () => {
         <div className="wrap stack stack-6">
           <div className="invites-head">
             <div className="stack stack-3">
-              <h2>A church abroad, expecting you by name.</h2>
+              <h2>Global Opportunities.</h2>
               <p className="invites-lede">
-                A host church writes on its own letterhead: who you are, what you are coming to do, and the
-                dates it will receive you. It is the document a consulate asks for. It is not a visa, and no
-                church on this network will tell you otherwise.
+                Get a chance to connect with communities internationally.
               </p>
             </div>
-            <Link to="/invitation-letter" className="btn btn-inverse">See every invitation</Link>
+            <Link to="/invitation-letter" className="btn btn-inverse">Explore Hosts</Link>
           </div>
 
           {destinations.length > 0 && (
@@ -251,7 +249,7 @@ export const Home = () => {
       {!loading && data.picks.length > 0 && (
         <Rail
           title="Chosen by ministry leaders"
-          sub="Put forward by the pastors and overseers who issue on the network."
+          sub="Put forward by the pastors and overseers on our network."
           items={data.picks} loading={false}
         />
       )}
@@ -259,20 +257,18 @@ export const Home = () => {
       <section className="band-ink">
         <div className="wrap for-churches">
           <div className="stack stack-5">
-            <h2>Your ministry already ordains. Now it can reach further.</h2>
+            <h2>Become A Global Ministry Partner.</h2>
             <p className="lede for-churches-lede">
-              Publish the credentials your church already grants, on your own terms and at your own price.
-              You keep the standards and the decision; we carry the payment, the paperwork and the record.
+              Are you a church leader looking to expand your reach and impact? Join our network of global ministry partners and connect with communities around the world.
             </p>
             <ul className="tick-list">
-              <li><BadgeCheck size={16} /> You set the title, the requirements and the fee</li>
-              <li><BadgeCheck size={16} /> Certificates and letters go out on your letterhead</li>
-              <li><BadgeCheck size={16} /> Mobile money and card, settled to your account</li>
-              <li><BadgeCheck size={16} /> Nothing waits on our approval — you publish, it is live</li>
+              <li><BadgeCheck size={16} /> Offer a placement to a minister from another country</li>
+              <li><BadgeCheck size={16} /> Get the support you need for hosting, accommodation, and local coordination</li>
+              <li><BadgeCheck size={16} /> Support the wider work of the Kingdom</li>
             </ul>
             <div className="for-churches-actions">
               <Link to="/church/register" className="btn btn-inverse">Register your church</Link>
-              <Link to="/churches" className="btn btn-inverse-outline">See who is already here</Link>
+              <Link to="/churches" className="btn btn-inverse-outline">See our network</Link>
             </div>
           </div>
           <figure className="media media-4x3">
