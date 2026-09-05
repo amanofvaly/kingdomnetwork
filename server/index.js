@@ -12,6 +12,7 @@ import { connectDB } from './config/db.js';
 import { assertProductionEnv, env } from './config/env.js';
 import { runMigrations } from './migrations/runner.js';
 import { storage } from './lib/storage/index.js';
+import { metadataMiddleware } from './lib/og/http.js';
 import { ensureIpnRegistered } from './lib/pesapal/index.js';
 import apiRoutes from './routes/index.js';
 import { notFound } from './middleware/notFound.js';
@@ -59,6 +60,8 @@ app.use(express.static(clientDist, {
     );
   },
 }));
+
+app.get(/^\/(?!api\/).*/, metadataMiddleware(path.join(clientDist, 'index.html')));
 
 // Anything that is not /api/* falls through to the SPA entry point so
 // client-side routing works on a hard refresh.

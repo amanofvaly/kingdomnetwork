@@ -3,6 +3,8 @@ import mongoose from 'mongoose';
 
 import { asyncHandler } from '../middleware/asyncHandler.js';
 import { optionalAuth } from '../middleware/auth.js';
+import { imageHandler } from '../lib/og/http.js';
+import { rateLimit } from '../middleware/rateLimit.js';
 import * as media from '../controllers/media.controller.js';
 
 import publicRoutes from './public.js';
@@ -34,6 +36,12 @@ router.get('/health', asyncHandler(async (_req, res) => {
  * applicant's passport scan is checked inside the handler.
  */
 router.get(/^\/media\/file\/(.+)$/, optionalAuth, media.serve);
+
+const og = Router();
+og.use(rateLimit({ max: 90, key: (req) => `og:${req.ip}` }));
+og.get('/default.png', imageHandler());
+og.get('/:type/:slug.png', imageHandler());
+router.use('/og', og);
 
 router.use(publicRoutes);
 router.use(accountRoutes);

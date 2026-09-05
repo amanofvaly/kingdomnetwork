@@ -23,6 +23,7 @@
     "migrate": "node server/scripts/migrate.js"
   },
   "dependencies": {
+    "@fontsource/geist": "^5.3.0",
     "bcryptjs": "^3.0.3",
     "cheerio": "^1.2.0",
     "compression": "^1.8.1",
@@ -31,10 +32,13 @@
     "dotenv": "^17.2.3",
     "express": "^5.1.0",
     "helmet": "^8.1.0",
+    "ipaddr.js": "^2.5.0",
     "jsonwebtoken": "^9.0.3",
     "mongoose": "^8.20.1",
     "morgan": "^1.10.1",
-    "pdfkit": "^0.20.1"
+    "pdfkit": "^0.20.1",
+    "satori": "^0.33.4",
+    "sharp": "^0.35.4"
   },
   "devDependencies": {
     "concurrently": "^9.2.1",
