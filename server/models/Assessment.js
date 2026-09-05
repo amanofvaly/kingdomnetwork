@@ -36,7 +36,7 @@ const questionSchema = new mongoose.Schema(
 
 const assessmentSchema = new mongoose.Schema(
   {
-    slug: { type: String, required: true, unique: true, index: true },
+    slug: { type: String, required: true, unique: true, index: true, immutable: true },
     churchSlug: { type: String, required: true, index: true },
 
     title: { type: String, required: true },

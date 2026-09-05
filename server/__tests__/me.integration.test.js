@@ -191,7 +191,7 @@ describe('interviews', () => {
     const application = await Application.create({
       reference: `APP-${Math.random().toString(36).slice(2, 8)}`,
       userId: reader._id, churchSlug: 'a-church',
-      offeringSlug: 'ordained-minister', offeringTitle: 'Ordained Minister',
+      offeringSlug: `ordained-minister-${when.getTime()}`, offeringTitle: 'Ordained Minister',
     });
     return Interview.create({
       applicationId: application._id, churchSlug: 'a-church', userId: reader._id,

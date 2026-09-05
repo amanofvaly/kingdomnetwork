@@ -1,10 +1,10 @@
+import { offeringForApplication } from '../lib/applicationTerms.js';
 import { asyncHandler } from '../middleware/asyncHandler.js';
 import { forCandidate, grade, servePaper } from '../lib/grading.js';
 import { advance } from '../lib/workflow.js';
 import { Application } from '../models/Application.js';
 import { Assessment } from '../models/Assessment.js';
 import { AssessmentAttempt } from '../models/AssessmentAttempt.js';
-import { Offering } from '../models/Offering.js';
 
 /**
  * Sitting the paper a church wrote.
@@ -19,7 +19,7 @@ const load = async (req) => {
   const application = await Application.findOne({ reference: req.params.reference, userId: req.user._id });
   if (!application) return { error: { status: 404, message: 'That application was not found.' } };
 
-  const offering = await Offering.findOne({ slug: application.offeringSlug });
+  const offering = await offeringForApplication(application);
   if (!offering?.requires?.assessment?.required) {
     return { error: { status: 400, message: 'This application does not carry an assessment.' } };
   }
@@ -45,7 +45,7 @@ export const getPaper = asyncHandler(async (req, res) => {
   const { error, application, offering, assessment } = await load(req);
   if (error) return res.status(error.status).json({ success: false, message: error.message });
 
-  const attempts = await AssessmentAttempt.find({ userId: req.user._id, assessmentSlug: assessment.slug }).sort({ attemptNumber: -1 });
+  const attempts = await AssessmentAttempt.find({ userId: req.user._id, applicationId: application._id, assessmentSlug: assessment.slug }).sort({ attemptNumber: -1 });
   const passed = attempts.find((a) => a.passed);
   const limit = attemptsAllowed(assessment, offering);
 
@@ -124,6 +124,7 @@ export const submitPaper = asyncHandler(async (req, res) => {
 
   const attempt = await AssessmentAttempt.findOne({
     userId: req.user._id,
+    applicationId: application._id,
     assessmentSlug: assessment.slug,
     status: 'in-progress',
   }).sort({ attemptNumber: -1 });

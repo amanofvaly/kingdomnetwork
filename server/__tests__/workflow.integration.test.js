@@ -78,6 +78,7 @@ const passInterview = async (application) => {
     userId: user._id,
     scheduledFor: new Date(Date.now() - 86_400_000),
     status: 'completed',
+    provider: 'zoom',
     outcome: 'pass',
   });
   // The workflow reads the interview through the application's own pointer,

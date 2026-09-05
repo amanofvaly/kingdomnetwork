@@ -11,9 +11,10 @@ export const setToken = (next) => {
 export const getToken = () => token;
 
 export class ApiError extends Error {
-  constructor(message, status) {
+  constructor(message, status, data) {
     super(message);
     this.status = status;
+    this.data = data;
   }
 }
 
@@ -39,7 +40,7 @@ const request = async (path, { method = 'GET', body, signal } = {}) => {
 
   if (!res.ok || payload?.success === false) {
     if (res.status === 401) setToken(null);
-    throw new ApiError(payload?.message ?? 'Something went wrong.', res.status);
+    throw new ApiError(payload?.message ?? 'Something went wrong.', res.status, payload?.data);
   }
 
   return payload.data;

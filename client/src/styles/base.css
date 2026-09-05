@@ -1,9 +1,14 @@
 *, *::before, *::after { box-sizing: border-box; }
 
-html { -webkit-text-size-adjust: 100%; }
+/* `clip` rather than `hidden`: hidden would make this a scroll container and
+   the sticky header would stop sticking. Full-bleed rails and the odd absolute
+   flourish sit a few pixels past the right edge on a phone, and a page that
+   scrolls sideways drags the sticky header off the screen with it. */
+html { -webkit-text-size-adjust: 100%; overflow-x: clip; }
 
 body {
   margin: 0;
+  overflow-x: clip;
   background: var(--bg);
   color: var(--ink);
   font-family: var(--font-body);
@@ -50,7 +55,13 @@ ul, ol { margin: 0; padding: 0; list-style: none; }
 
 hr { border: none; border-top: 1px solid var(--line); margin: var(--s-6) 0; }
 
-::selection { background: var(--blue-100); }
+::selection { background: var(--blue-100); color: var(--ink); }
+
+body { caret-color: var(--blue-700); scrollbar-color: var(--line-strong) transparent; }
+::-webkit-scrollbar { width: 11px; height: 11px; }
+::-webkit-scrollbar-thumb { background: var(--line-strong); border: 3px solid var(--bg); border-radius: var(--r-full); }
+::-webkit-scrollbar-thumb:hover { background: var(--ink-3); }
+::-webkit-scrollbar-track { background: transparent; }
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {

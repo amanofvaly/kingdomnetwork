@@ -3,6 +3,7 @@ import { useParams, useSearchParams } from 'react-router-dom';
 import { Check, SlidersHorizontal, X } from 'lucide-react';
 
 import { ACQUISITION, OfferingRow, OutcomeIcon } from '../components/market.jsx';
+import { FilterSheet } from '../components/FilterSheet.jsx';
 import { Empty, ErrorState, Spinner } from '../components/ui.jsx';
 import { useApi } from '../lib/useAsync.js';
 import { useAuth } from '../lib/auth.jsx';
@@ -91,7 +92,11 @@ export const Outcome = ({ slug: slugProp }) => {
 
       <div className="wrap band-tight">
         <div className="catalogue">
-          <aside className={`filters ${filtersOpen ? 'is-open' : ''}`} aria-label="Filters">
+          <FilterSheet
+            open={filtersOpen}
+            onClose={() => setFiltersOpen(false)}
+            onClear={active.length ? () => setParams({}, { replace: true }) : undefined}
+          >
             {facets.outcomes?.length ? (
               <div className="filter-group" style={{ borderTop: 'none', paddingTop: 0 }}>
                 <h5>Kind of credential</h5>
@@ -147,12 +152,12 @@ export const Outcome = ({ slug: slugProp }) => {
                 </div>
               </div>
             )}
-          </aside>
+          </FilterSheet>
 
           <div>
             <div className="results-bar">
               <button type="button" className="btn btn-outline btn-sm filters-toggle"
-                onClick={() => setFiltersOpen((v) => !v)} aria-expanded={filtersOpen}>
+                onClick={() => setFiltersOpen(true)} aria-expanded={filtersOpen}>
                 <SlidersHorizontal size={15} /> Filters{active.length ? ` (${active.length})` : ''}
               </button>
               <span className="small muted num results-count">{plural(offerings.length, 'listing')}</span>

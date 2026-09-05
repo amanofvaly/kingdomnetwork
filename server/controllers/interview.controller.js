@@ -1,3 +1,4 @@
+import { offeringForApplication } from '../lib/applicationTerms.js';
 import { asyncHandler } from '../middleware/asyncHandler.js';
 import { interviewIcs } from '../lib/ics.js';
 import { link, mailer } from '../lib/mailer/index.js';
@@ -7,7 +8,6 @@ import { Application } from '../models/Application.js';
 import { Church } from '../models/Church.js';
 import { Interview } from '../models/Interview.js';
 import { InterviewSlot } from '../models/InterviewSlot.js';
-import { Offering } from '../models/Offering.js';
 
 const FACE_TO_FACE_PROVIDERS = ['zoom', 'google-meet', 'teams', 'whatsapp', 'in-person'];
 
@@ -39,7 +39,7 @@ export const availableSlots = asyncHandler(async (req, res) => {
   const application = await Application.findOne({ reference: req.params.reference, userId: req.user._id });
   if (!application) return res.status(404).json({ success: false, message: 'That application was not found.' });
 
-  const offering = await Offering.findOne({ slug: application.offeringSlug }, 'requires.interview');
+  const offering = await offeringForApplication(application);
   const providerFilter = offering?.requires?.interview?.faceToFace
     ? { provider: { $in: FACE_TO_FACE_PROVIDERS } }
     : {};
@@ -90,7 +90,7 @@ export const book = asyncHandler(async (req, res) => {
   const application = await Application.findOne({ reference: req.params.reference, userId: req.user._id });
   if (!application) return res.status(404).json({ success: false, message: 'That application was not found.' });
 
-  const offering = await Offering.findOne({ slug: application.offeringSlug });
+  const offering = await offeringForApplication(application);
   if (!offering?.requires?.interview?.required) {
     return res.status(400).json({ success: false, message: 'This application does not require an interview.' });
   }

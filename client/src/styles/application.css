@@ -201,7 +201,7 @@
   height: 100%;
   border-radius: inherit;
   background: linear-gradient(90deg, var(--blue-600), var(--blue-500));
-  transition: width var(--dur-3) var(--ease-expo);
+  transition: transform var(--dur-3) var(--ease-expo);
 }
 
 .ap-progress-count {
@@ -450,3 +450,8 @@
 @media (prefers-reduced-motion: reduce) {
   .ap-progress-bar > span { transition: none; }
 }
+
+.application-inputs { display: grid; gap: var(--s-4); border: 0; padding: 0; margin: 0; min-width: 0; }
+.application-inputs .field { display: grid; gap: var(--s-2); }
+.application-inputs input:not([type="checkbox"]), .application-inputs textarea, .application-inputs select { width: 100%; min-width: 0; font: inherit; font-size: 1rem; padding: var(--s-3); border: 1px solid var(--line); border-radius: var(--r-md); color: var(--ink); background: var(--bg); }
+.application-reference { display: grid; gap: var(--s-3); border: 1px solid var(--line); border-radius: var(--r-md); padding: var(--s-4); min-width: 0; }

@@ -1,3 +1,4 @@
+import { ApplicationInputs } from '../components/ApplicationInputs.jsx';
 import { useRef, useState } from 'react';
 import { Link, useParams, useSearchParams } from 'react-router-dom';
 import {
@@ -64,7 +65,7 @@ const stepAction = (step, { reference, application, onPay, busy }) => {
       return {
         title: step.course ? `Work through ${step.course.title}` : 'Complete the required coursework',
         cta: step.course ? (
-          <Link className="btn btn-primary btn-lg" to={`/learn/${step.course.slug}`}>
+          <Link className="btn btn-primary btn-lg" to={step.progress > 0 ? `/learn/${step.course.slug}` : `/courses/${step.course.slug}`}>
             {step.progress > 0 ? 'Continue the course' : 'Start the course'} <ArrowRight size={16} />
           </Link>
         ) : null,
@@ -111,7 +112,7 @@ const stepAction = (step, { reference, application, onPay, busy }) => {
       return {
         title: step.label ?? 'Finish this step',
         cta: (
-          <Link className="btn btn-primary btn-lg" to={`/apply/${application.offeringSlug}`}>
+          <Link className="btn btn-primary btn-lg" to={`/applications/${reference}#application-details`}>
             Finish this <ArrowRight size={16} />
           </Link>
         ),
@@ -120,11 +121,11 @@ const stepAction = (step, { reference, application, onPay, busy }) => {
 };
 
 /** The same imperative, shrunk to sit beside a step on the path. */
-const stepLink = (step, { reference, application }) => {
+const stepLink = (step, { reference }) => {
   switch (step.type) {
     case 'course':
       return step.course
-        ? <Link className="btn btn-outline btn-sm" to={`/learn/${step.course.slug}`}>{step.progress > 0 ? 'Continue' : 'Start'}</Link>
+        ? <Link className="btn btn-outline btn-sm" to={step.progress > 0 ? `/learn/${step.course.slug}` : `/courses/${step.course.slug}`}>{step.progress > 0 ? 'Continue' : 'Start'}</Link>
         : null;
     case 'assessment':
       return <Link className="btn btn-outline btn-sm" to={`/applications/${reference}/assessment`}>Sit the paper</Link>;
@@ -139,10 +140,11 @@ const stepLink = (step, { reference, application }) => {
         ? <Link className="btn btn-outline btn-sm" to={`/listing/${step.offering.slug}`}>Apply for it</Link>
         : null;
     case 'document':
+      return <a className="btn btn-outline btn-sm" href="#application-documents">Send a document</a>;
     case 'reference':
     case 'form':
     case 'attestation':
-      return <Link className="btn btn-outline btn-sm" to={`/apply/${application.offeringSlug}`}>Finish this</Link>;
+      return <Link className="btn btn-outline btn-sm" to={`/applications/${reference}#application-details`}>Finish this</Link>;
     default:
       return null;
   }
@@ -227,6 +229,7 @@ export const ApplicationDetail = () => {
   if (error) return <div className="wrap band"><ErrorState error={error} onRetry={reload} /></div>;
 
   const a = data;
+  const editable = !['approved', 'issued', 'declined', 'withdrawn', 'expired'].includes(a.status);
   const paidJustNow = params.get('state') === 'paid';
   const [statusLabel, statusTone] = STATUS_TONE[a.status] ?? [a.status, ''];
 
@@ -241,7 +244,7 @@ export const ApplicationDetail = () => {
   const answerInfoRequest = async () => {
     setBusy(true);
     try {
-      await api.patch(`/applications/${reference}`, { resolveInfoRequest: true });
+      await api.patch(`/applications/${reference}`, { resolveInfoRequest: true, reply });
       ok('Sent back to the church');
       setReply('');
       await reload();
@@ -255,6 +258,21 @@ export const ApplicationDetail = () => {
       await reload();
       ok('Sent');
     } catch (err) { fail(err); } finally { setUploading(null); }
+  };
+
+  const submitDraft = async () => {
+    setBusy(true);
+    try {
+      const result = await api.post(`/applications/${reference}/submit`);
+      if (result.requiresPayment) { await payNow(); return; }
+      ok('Application submitted'); reload();
+    } catch (err) { fail(err); } finally { setBusy(false); }
+  };
+  const withdraw = async () => {
+    if (!window.confirm('Withdraw this application? The church will stop reviewing it. This does not automatically refund a paid fee.')) return;
+    setBusy(true);
+    try { await api.post(`/applications/${reference}/withdraw`); ok('Application withdrawn'); reload(); }
+    catch (err) { fail(err); } finally { setBusy(false); }
   };
 
   const next = a.summary.next;
@@ -345,7 +363,7 @@ export const ApplicationDetail = () => {
 
         <div className="ap-progress">
           <div className="ap-progress-bar">
-            <span style={{ width: `${a.summary.percent}%` }} />
+            <span style={{ width: '100%', transform: `scaleX(${a.summary.percent / 100})`, transformOrigin: 'left' }} />
           </div>
           <span className="ap-progress-count">{a.summary.complete} of {a.summary.total} met</span>
         </div>
@@ -362,7 +380,7 @@ export const ApplicationDetail = () => {
                 : s.status === 'waived' ? 'is-waived'
                   : done ? 'is-done'
                     : isNext ? 'is-now' : '';
-              const act = done ? null : stepLink(s, { reference, application: a });
+              const act = done || !editable ? null : stepLink(s, { reference, application: a });
               return (
                 <div key={s.key} className={`ap-step ${state}`}>
                   <span className="ap-node">
@@ -372,6 +390,8 @@ export const ApplicationDetail = () => {
                   </span>
                   <div className="ap-step-body">
                     <span className="ap-step-label">{s.course?.title ?? s.offering?.title ?? s.label}</span>
+                    {s.meta?.required === false ? <span className="ap-step-detail">Optional</span> : null}
+                    {s.options?.length ? <div className="row-wrap" style={{ gap: 8 }}>{s.options.map((o) => <Link key={o.slug} className="link small" to={s.type === 'course' ? `/courses/${o.slug}` : `/listing/${o.slug}`}>{o.title}{s.meta?.satisfied?.includes(o.slug) ? ' · Complete' : ''}</Link>)}</div> : null}
                     {s.detail ? <span className="ap-step-detail">{s.detail}</span> : null}
                     {s.waiverReason ? <span className="ap-step-waiver">Waived by the church — {s.waiverReason}</span> : null}
                     {act ? <div className="ap-step-act">{act}</div> : null}
@@ -382,8 +402,12 @@ export const ApplicationDetail = () => {
           </div>
         </section>
 
+        {a.status === 'draft' ? <section className="ap-note"><strong>Your application is a draft.</strong><p>Save your details, then submit it for the church to review.</p><button type="button" className="btn btn-primary" onClick={submitDraft} disabled={busy}>Submit application</button></section> : null}
+        <ApplicationInputs key={a.reference} application={a} onSaved={() => { ok('Saved'); reload(); }} />
+
+        {editable ? <div><button type="button" className="btn btn-ghost btn-sm" disabled={busy} onClick={withdraw}>Withdraw application</button></div> : null}
         {a.documents?.length ? (
-          <section className="ap-section">
+          <section className="ap-section" id="application-documents">
             <div className="ap-section-head">
               <h3>Your documents</h3>
               <span>Only you and {a.church?.shortName ?? a.church?.name} can open these</span>
@@ -397,14 +421,14 @@ export const ApplicationDetail = () => {
                     {d.note ? <span className="ap-doc-note">{d.note}</span> : null}
                     {d.media?.filename ? <span className="ap-doc-note">{d.media.filename}</span> : null}
                   </div>
-                  {d.status === 'rejected' ? (
+                  {d.status === 'rejected' && editable ? (
                     <FilePick label="Send another" busy={uploading === d.key} onFile={(f) => sendDocument(d.key, f)} />
                   ) : d.mediaId ? (
                     <span className={`ap-doc-state ${d.status === 'accepted' ? 'is-accepted' : ''}`}>
                       {d.status === 'accepted' ? 'Accepted' : 'Sent'}
                     </span>
                   ) : (
-                    <FilePick label="Choose a file" busy={uploading === d.key} onFile={(f) => sendDocument(d.key, f)} />
+                    editable ? <FilePick label="Choose a file" busy={uploading === d.key} onFile={(f) => sendDocument(d.key, f)} /> : <span className="small muted">Not provided</span>
                   )}
                 </div>
               ))}

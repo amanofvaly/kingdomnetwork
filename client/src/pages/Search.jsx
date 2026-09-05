@@ -4,6 +4,7 @@ import { BadgeCheck, Check, SlidersHorizontal, X } from 'lucide-react';
 
 import { ACQUISITION, OfferingCard } from '../components/market.jsx';
 import { MaterialCard } from '../components/cards.jsx';
+import { FilterSheet } from '../components/FilterSheet.jsx';
 import { ChurchMark, Empty, ErrorState, SkeletonGrid } from '../components/ui.jsx';
 import { useApi } from '../lib/useAsync.js';
 import { plural } from '../lib/format.js';
@@ -67,7 +68,11 @@ export const Search = () => {
 
       <div className="wrap band-tight">
         <div className="catalogue">
-          <aside className={`filters ${filtersOpen ? 'is-open' : ''}`} aria-label="Filters">
+          <FilterSheet
+            open={filtersOpen}
+            onClose={() => setFiltersOpen(false)}
+            onClear={() => setParams({}, { replace: true })}
+          >
             <div className="filter-group" style={{ borderTop: 'none', paddingTop: 0 }}>
               <h5>Service or outcome</h5>
               <div className="filter-list">
@@ -95,7 +100,7 @@ export const Search = () => {
                 ))}
               </div>
             </div>
-          </aside>
+          </FilterSheet>
 
           <div className="stack stack-5">
             {data?.churches?.length > 0 && (
@@ -120,7 +125,7 @@ export const Search = () => {
 
             <div className="results-bar">
               <button type="button" className="btn btn-outline btn-sm filters-toggle"
-                onClick={() => setFiltersOpen((v) => !v)} aria-expanded={filtersOpen}>
+                onClick={() => setFiltersOpen(true)} aria-expanded={filtersOpen}>
                 <SlidersHorizontal size={15} /> Filters
               </button>
               <span className="small muted num results-count">
@@ -151,7 +156,7 @@ export const Search = () => {
               ) : (
                 <>
                   <div className="grid grid-3">
-                    {data.offerings.map((o) => <OfferingCard key={o.slug} offering={o} showOutcome />)}
+                    {data.offerings.map((o) => <OfferingCard key={o.slug} offering={o} />)}
                   </div>
                   {data.pages > 1 && (
                     <nav className="pager" aria-label="Pagination">

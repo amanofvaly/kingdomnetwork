@@ -16,6 +16,7 @@ import { acquisitionFor, isCredentialType, resolveOutcome } from '../lib/derive.
 const groupSchema = (field) =>
   new mongoose.Schema(
     {
+      key: String,
       label: String,
       mode: { type: String, enum: ['all', 'any', 'atLeast'], default: 'all' },
       count: { type: Number, default: 1 },
@@ -109,8 +110,8 @@ const requirementSchema = new mongoose.Schema(
 
 const offeringSchema = new mongoose.Schema(
   {
-    slug: { type: String, required: true, unique: true, index: true },
-    slugHistory: [String],
+    slug: { type: String, required: true, unique: true, index: true, immutable: true },
+
     churchSlug: { type: String, required: true, index: true },
 
     type: {
@@ -193,11 +194,12 @@ const offeringSchema = new mongoose.Schema(
       ),
     ],
 
-    capacity: Number,
+    capacity: { type: Number, min: 1 },
+    admissions: { type: [new mongoose.Schema({ applicationId: mongoose.Schema.Types.ObjectId, window: String }, { _id: false })], default: [], select: false },
     intake: {
       mode: { type: String, enum: ['rolling', 'windows'], default: 'rolling' },
       windows: [
-        new mongoose.Schema({ opensAt: Date, closesAt: Date, seats: Number }, { _id: false }),
+        new mongoose.Schema({ key: String, opensAt: Date, closesAt: Date, seats: { type: Number, min: 1 } }, { _id: false }),
       ],
     },
 

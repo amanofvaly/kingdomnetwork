@@ -1,3 +1,6 @@
+import { FACE_TO_FACE_PROVIDERS } from '../lib/offeringReadiness.js';
+import { presentSteps } from '../lib/requirementPresentation.js';
+import { offeringForApplication } from '../lib/applicationTerms.js';
 import { asyncHandler } from '../middleware/asyncHandler.js';
 import { audit } from '../lib/audit.js';
 import { notify } from '../lib/notify.js';
@@ -5,10 +8,8 @@ import { summarise } from '../lib/requirements.js';
 import { advance, decide as decideApplication } from '../lib/workflow.js';
 import { Application } from '../models/Application.js';
 import { AssessmentAttempt } from '../models/AssessmentAttempt.js';
-import { Course } from '../models/Course.js';
 import { Interview } from '../models/Interview.js';
 import { MediaAsset } from '../models/MediaAsset.js';
-import { Offering } from '../models/Offering.js';
 
 /**
  * The church's queue.
@@ -100,19 +101,16 @@ export const detail = asyncHandler(async (req, res) => {
   await advance(application);
   await application.populate('userId', 'name email avatar country city phone ministryRole bio ministry createdAt');
 
-  const [offering, attempts, interview, media, courses] = await Promise.all([
-    Offering.findOne({ slug: application.offeringSlug }),
+  const [offering, attempts, interview, media] = await Promise.all([
+    offeringForApplication(application),
     application.attemptIds?.length ? AssessmentAttempt.find({ _id: { $in: application.attemptIds } }).sort({ attemptNumber: -1 }) : [],
     application.interviewId ? Interview.findById(application.interviewId) : null,
     MediaAsset.find({ _id: { $in: (application.documents ?? []).map((d) => d.mediaId).filter(Boolean) } }, 'storageKey filename mimeType bytes'),
-    Course.find(
-      { slug: { $in: (application.steps ?? []).filter((s) => s.meta?.courseSlug).map((s) => s.meta.courseSlug) } },
-      'slug title lectureCount',
-    ),
+
   ]);
 
   const mediaBy = Object.fromEntries(media.map((m) => [String(m._id), m]));
-  const courseBy = Object.fromEntries(courses.map((c) => [c.slug, c]));
+  const steps = await presentSteps(application.steps);
 
   res.json({
     success: true,
@@ -137,11 +135,8 @@ export const detail = asyncHandler(async (req, res) => {
         void token;
         return rest;
       }),
-      steps: (application.steps ?? []).map((s) => ({
-        ...(s.toObject?.() ?? s),
-        course: s.meta?.courseSlug ? courseBy[s.meta.courseSlug] ?? null : null,
-      })),
-      summary: summarise(application.steps ?? []),
+      steps,
+      summary: summarise(steps),
       attempts,
       interview,
       infoRequest: application.infoRequest,
@@ -233,6 +228,8 @@ export const waiveStep = asyncHandler(async (req, res) => {
 
   const step = application.steps?.find((s) => s.key === req.params.key);
   if (!step) return res.status(404).json({ success: false, message: 'No such requirement on this application.' });
+  const offering = await offeringForApplication(application);
+  if (step.type === 'interview' && offering?.type === 'ordination') return res.status(400).json({ success: false, message: 'Ordination requires a completed face-to-face interview. This requirement cannot be waived.' });
   if (step.type === 'fee') {
     return res.status(400).json({ success: false, message: 'Refund the fee rather than waiving it after the fact.' });
   }
@@ -242,7 +239,8 @@ export const waiveStep = asyncHandler(async (req, res) => {
   step.waiverReason = reason.slice(0, 1000);
   step.completedAt = new Date();
 
-  application.log({ event: 'requirement:waived', note: `${step.label} — ${reason.slice(0, 300)}`, actorId: req.user._id, actorRole: 'church', visibility: 'both' });
+  const [presented] = await presentSteps([step]);
+  application.log({ event: 'requirement:waived', note: `${presented.label} — ${reason.slice(0, 300)}`, actorId: req.user._id, actorRole: 'church', visibility: 'both' });
   await application.save();
   await advance(application);
   await audit(req, { action: 'application:waive', entity: 'Application', entityId: application._id, after: { step: step.key, reason } });
@@ -326,6 +324,8 @@ export const recordInterviewOutcome = asyncHandler(async (req, res) => {
     return res.status(400).json({ success: false, message: 'Record the outcome as pass, fail or defer.' });
   }
 
+  const offering = await offeringForApplication(application);
+  if (outcome === 'pass' && (req.body?.noShow || (offering?.requires?.interview?.faceToFace && !FACE_TO_FACE_PROVIDERS.includes(interview.provider)))) return res.status(400).json({ success: false, message: 'A pass requires an attended video or in-person interview for this credential.' });
   interview.outcome = outcome;
   interview.status = req.body?.noShow ? 'no-show' : 'completed';
   interview.score = Number.isFinite(req.body?.score) ? req.body.score : undefined;
@@ -374,11 +374,11 @@ export const decide = asyncHandler(async (req, res) => {
   if (outcome === 'approved') {
     await advance(application);
     const outstanding = (application.steps ?? []).filter(
-      (s) => s.status !== 'complete' && s.status !== 'waived' && s.type !== 'review',
+      (s) => s.meta?.required !== false && s.status !== 'complete' && s.status !== 'waived' && s.type !== 'review',
     );
     // Approving over an unmet requirement would make the checklist a fiction.
     // The church can waive anything it is willing to waive, on the record.
-    if (outstanding.length && !req.body?.overrideOutstanding) {
+    if (outstanding.length) {
       return res.status(409).json({
         success: false,
         message: `${outstanding.length} requirement${outstanding.length === 1 ? ' is' : 's are'} still outstanding. Waive what you are willing to waive, then approve.`,

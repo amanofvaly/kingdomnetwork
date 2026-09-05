@@ -115,6 +115,9 @@ const applicationSchema = new mongoose.Schema(
     churchSlug: { type: String, required: true, index: true },
     offeringSlug: { type: String, required: true, index: true },
     offeringTitle: String,
+    offeringSnapshot: mongoose.Schema.Types.Mixed,
+    renewalOf: { type: String, index: true },
+    admissionWindow: String,
 
     status: { type: String, enum: APPLICATION_STATUSES, default: 'draft', index: true },
     steps: [stepSchema],
@@ -154,7 +157,7 @@ const applicationSchema = new mongoose.Schema(
     issuedAt: Date,
     expiresAt: Date,
   },
-  { timestamps: true },
+  { timestamps: true, optimisticConcurrency: true },
 );
 
 // The church queue reads by status and by what it is waiting on.
@@ -166,7 +169,7 @@ applicationSchema.index(
   { userId: 1, offeringSlug: 1 },
   {
     unique: true,
-    partialFilterExpression: { status: { $nin: ['withdrawn', 'declined', 'expired'] } },
+    partialFilterExpression: { status: { $in: APPLICATION_STATUSES.filter((s) => !['issued', 'withdrawn', 'declined', 'expired'].includes(s)) } },
   },
 );
 

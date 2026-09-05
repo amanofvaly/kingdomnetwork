@@ -1,3 +1,6 @@
+import { FACE_TO_FACE_PROVIDERS } from './offeringReadiness.js';
+import { offeringForApplication, validCredentialFilter } from './applicationTerms.js';
+import { releaseAdmission } from './admissions.js';
 import { Application } from '../models/Application.js';
 import { AssessmentAttempt } from '../models/AssessmentAttempt.js';
 import { Church } from '../models/Church.js';
@@ -6,7 +9,7 @@ import { Enrollment } from '../models/Enrollment.js';
 import { Interview } from '../models/Interview.js';
 import { Offering } from '../models/Offering.js';
 
-import { evaluate, isSettled, summarise } from './requirements.js';
+import { evaluate, isSettled, isOutstanding, summarise } from './requirements.js';
 import { randomCode } from './ids.js';
 
 /**
@@ -26,7 +29,7 @@ export const contextFor = async (application, offering) => {
   const userId = application.userId;
 
   const [held, enrollments, attempts, interview, creditSources] = await Promise.all([
-    Credential.find({ userId, status: 'issued' }, 'offeringSlug').lean(),
+    Credential.find({ userId, ...validCredentialFilter() }, 'offeringSlug').lean(),
     Enrollment.find({ userId, courseSlug: { $type: 'string' } }, 'courseSlug status progress creditUnitsEarned').lean(),
     application.attemptIds?.length
       ? AssessmentAttempt.find({ _id: { $in: application.attemptIds } }, 'passed').lean()
@@ -47,7 +50,7 @@ export const contextFor = async (application, offering) => {
     courseProgress: new Map(enrollments.map((e) => [e.courseSlug, e.progress ?? 0])),
     creditsFor: (slug) => credits.get(slug) ?? 0,
     assessmentPassed: attempts.some((a) => a.passed),
-    interviewOutcome: interview?.outcome,
+    interviewOutcome: interview?.status === 'completed' && (!offering?.requires?.interview?.faceToFace || FACE_TO_FACE_PROVIDERS.includes(interview.provider)) ? interview.outcome : undefined,
     interviewScheduledFor: interview?.scheduledFor,
     application,
   };
@@ -67,7 +70,7 @@ export const buildSteps = (application, offering, context) => {
 
   return steps.map((fresh) => {
     const prior = recorded.get(fresh.key);
-    if (prior?.status === 'waived') {
+    if (prior?.status === 'waived' && !fresh.meta?.nonWaivable) {
       return { ...fresh, status: 'waived', waivedBy: prior.waivedBy, waiverReason: prior.waiverReason, completedAt: prior.completedAt };
     }
     return {
@@ -91,7 +94,7 @@ const statusFor = (application, steps) => {
   if (application.decision?.outcome === 'approved') return 'approved';
   if (application.infoRequest?.requestedAt && !application.infoRequest?.resolvedAt) return 'info_requested';
 
-  const outstanding = steps.filter((s) => !isSettled(s));
+  const outstanding = steps.filter(isOutstanding);
   if (!outstanding.length) return 'final_review';
 
   const feeStep = steps.find((s) => s.type === 'fee');
@@ -122,7 +125,7 @@ const statusFor = (application, steps) => {
  * summary the interface renders from.
  */
 export const advance = async (application, { offering, actor, event, note } = {}) => {
-  const listing = offering ?? (await Offering.findOne({ slug: application.offeringSlug }));
+  const listing = await offeringForApplication(application, offering);
   if (!listing) return { application, summary: summarise([]) };
 
   const context = await contextFor(application, listing);
@@ -139,6 +142,7 @@ export const advance = async (application, { offering, actor, event, note } = {}
   }
 
   await application.save();
+  if (application.status === 'approved' && application.decision?.outcome === 'approved') await issue(application, { actor: { _id: application.decision.by } });
   return { application, summary: summarise(steps), offering: listing, context };
 };
 
@@ -150,16 +154,31 @@ export const advance = async (application, { offering, actor, event, note } = {}
  * is what makes it checkable by someone outside the church.
  */
 export const issue = async (application, { actor, church, offering } = {}) => {
-  if (application.credentialId) {
-    return Credential.findOne({ credentialId: application.credentialId });
+  const persisted = await Application.findById(application._id);
+  if (!persisted || persisted.decision?.outcome !== 'approved' || !persisted.decision?.by || !['approved', 'issued'].includes(persisted.status)) {
+    throw Object.assign(new Error('A recorded church approval is required before issuing a credential.'), { status: 409 });
   }
-
-  const listing = offering ?? (await Offering.findOne({ slug: application.offeringSlug }));
+  const existing = await Credential.findOne({ applicationId: application._id });
+  if (existing) {
+    application.credentialId = existing.credentialId;
+    application.status = 'issued';
+    application.issuedAt = existing.issuedAt;
+    if (!application.timeline.some((entry) => entry.event === 'credential:issued')) application.log({ event: 'credential:issued', note: existing.title, actorId: persisted.decision.by, actorRole: 'church', visibility: 'both' });
+    await application.save();
+    await Offering.updateOne({ slug: application.offeringSlug }, { $max: { issuedCount: await Credential.countDocuments({ offeringSlug: application.offeringSlug }) } });
+    return existing;
+  }
+  if (application.credentialId) return Credential.findOne({ credentialId: application.credentialId });
+  Object.assign(application, { decision: persisted.decision, status: persisted.status });
+  const listing = await offeringForApplication(application, offering);
+  const context = await contextFor(application, listing);
+  const steps = buildSteps(application, listing, context);
+  if (steps.some((s) => s.type !== 'review' && isOutstanding(s))) throw Object.assign(new Error('Complete the required steps before issuing.'), { status: 409 });
   const issuer = church ?? (await Church.findOne({ slug: application.churchSlug }));
   const holder = await application.populate('userId');
   const user = holder.userId;
 
-  const validityMonths = listing?.award?.validityMonths;
+  const validityMonths = listing?.award?.validityMonths ?? listing?.letter?.validityMonths ?? (listing?.renewal?.required ? listing.renewal.everyMonths : undefined);
   const issuedAt = new Date();
   // Calendar months, not 30-day blocks: a two-year licence should expire on the
   // same date two years later, which is what a renewal reminder has to match.
@@ -167,7 +186,7 @@ export const issue = async (application, { actor, church, offering } = {}) => {
     ? new Date(new Date(issuedAt).setMonth(issuedAt.getMonth() + validityMonths))
     : undefined;
 
-  const credential = await Credential.create({
+  const credentialData = {
     userId: application.userId,
     applicationId: application._id,
     credentialId: `KN-${issuedAt.getFullYear()}-${randomCode(8)}`,
@@ -183,7 +202,7 @@ export const issue = async (application, { actor, church, offering } = {}) => {
     purpose: listing?.letter?.purpose,
     status: 'issued',
     issuedAt,
-    issuedBy: actor?._id,
+    issuedBy: persisted.decision.by,
     signatory: issuer?.signatory
       ? { name: issuer.signatory.name, title: issuer.signatory.title, signatureMediaId: issuer.signatory.signatureMediaId }
       : undefined,
@@ -195,14 +214,24 @@ export const issue = async (application, { actor, church, offering } = {}) => {
             ? new Date(new Date(issuedAt).setMonth(issuedAt.getMonth() + listing.renewal.everyMonths))
             : expiresAt,
           continuingEducationHours: listing.renewal.continuingEducationHours,
+          renewalCount: application.renewalOf ? (await Credential.findOne({ credentialId: application.renewalOf }))?.renewal?.renewalCount + 1 || 1 : 0,
+          lastRenewedAt: application.renewalOf ? issuedAt : undefined,
         }
       : undefined,
     verifyCode: randomCode(10),
-  });
+  };
+  let credential;
+  try {
+    credential = await Credential.findOneAndUpdate({ applicationId: application._id }, { $setOnInsert: credentialData }, { upsert: true, new: true, runValidators: true });
+  } catch (error) {
+    if (error.code !== 11000) throw error;
+    credential = await Credential.findOne({ applicationId: application._id });
+    if (!credential) throw error;
+  }
 
   application.credentialId = credential.credentialId;
   application.status = 'issued';
-  application.issuedAt = issuedAt;
+  application.issuedAt = credential.issuedAt;
   application.log({
     event: 'credential:issued',
     note: credential.title,
@@ -212,7 +241,7 @@ export const issue = async (application, { actor, church, offering } = {}) => {
   });
   await application.save();
 
-  await Offering.updateOne({ slug: application.offeringSlug }, { $inc: { issuedCount: 1 } });
+  await Offering.updateOne({ slug: application.offeringSlug }, { $max: { issuedCount: await Credential.countDocuments({ offeringSlug: application.offeringSlug }) } });
 
   return credential;
 };
@@ -222,6 +251,15 @@ export const issue = async (application, { actor, church, offering } = {}) => {
  * so an approved application cannot sit un-issued.
  */
 export const decide = async (application, { outcome, actor, reason, publicNote, internalNote }) => {
+  if (!['approved', 'declined', 'deferred'].includes(outcome) || !actor?._id) throw Object.assign(new Error('A church decision and its author are required.'), { status: 400 });
+  if (['approved', 'issued', 'declined', 'withdrawn', 'expired'].includes(application.status)) throw Object.assign(new Error('This application is already closed.'), { status: 409 });
+  if (outcome === 'approved') {
+    const { summary } = await advance(application);
+    if (!application.submittedAt || !summary.readyForDecision) throw Object.assign(new Error('Submit the application and complete or explicitly waive its required steps before approving. Ordination interviews cannot be waived.'), { status: 409 });
+  }
+  const claimed = await Application.findOneAndUpdate({ _id: application._id, status: application.status, __v: application.__v }, { $inc: { __v: 1 } }, { new: true });
+  if (!claimed) throw Object.assign(new Error('This application changed. Refresh it before deciding.'), { status: 409 });
+  application.__v = claimed.__v;
   application.decision = { outcome, by: actor?._id, at: new Date(), reason, publicNote, internalNote };
   application.decidedAt = new Date();
 
@@ -232,6 +270,7 @@ export const decide = async (application, { outcome, actor, reason, publicNote, 
       application.log({ event: 'decision:note', note: internalNote, actorId: actor?._id, actorRole: 'church', visibility: 'church' });
     }
     await application.save();
+    await releaseAdmission(application);
     return { application, credential: null };
   }
 

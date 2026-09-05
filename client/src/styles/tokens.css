@@ -40,6 +40,13 @@
   --red-600: #bd3f59;
   --red-50: #fff0f3;
 
+  /* Verification reads as green everywhere a person has met one before, and the
+     badge is small enough that it has to carry white text: --green-700 clears
+     6:1 against #fff, --green-600 clears 5:1. */
+  --green-700: #14713f;
+  --green-600: #1a7f4b;
+  --green-50: #e9f7ef;
+
   --coral: #e86852;
   --coral-soft: #fff0ea;
   --aqua: #1e8d91;

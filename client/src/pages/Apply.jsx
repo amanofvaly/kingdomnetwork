@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link, useNavigate, useParams } from 'react-router-dom';
+import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import {
   ArrowLeft, ArrowRight, BookOpen, CalendarClock, FileCheck2, FileText, IdCard, Lock, Receipt,
   ShieldCheck, UserRoundCheck,
@@ -42,6 +42,8 @@ const ASK_ICON = {
 
 export const Apply = () => {
   const { slug } = useParams();
+  const [params] = useSearchParams();
+  const renewalOf = params.get('renew');
   const navigate = useNavigate();
   const { user, ready, adopt, login } = useAuth();
   const listing = useApi(`/offerings/${slug}`);
@@ -60,13 +62,13 @@ export const Apply = () => {
   }
 
   const { offering, church, requirements, disclosures = [] } = listing.data;
-  const fee = offering.fee?.amount ?? 0;
+  const fee = renewalOf ? offering.fee?.renewalAmount ?? 0 : offering.fee?.amount ?? 0;
   const attestations = offering.requires?.attestations ?? [];
   // The fee is what this screen is for; the rest is what comes after it.
   const asks = (requirements?.steps ?? []).filter((s) => s.type !== 'fee');
 
   const set = (key) => (e) => setAccount((a) => ({ ...a, [key]: e.target.value }));
-  const allAgreed = attestations.every((a) => agreed.includes(a.key));
+  const allAgreed = attestations.every((a) => a.required === false || agreed.includes(a.key));
 
   const submit = async (e) => {
     e.preventDefault();
@@ -87,8 +89,9 @@ export const Apply = () => {
         }
       }
 
-      const application = await api.post('/applications', { offeringSlug: slug });
+      const application = await api.post('/applications', { offeringSlug: slug, ...(renewalOf ? { renewalOf } : {}) });
 
+      if (!['draft', 'fee_pending'].includes(application.status)) { navigate(`/applications/${application.reference}`); return; }
       if (attestations.length) {
         await api.patch(`/applications/${application.reference}`, { attestations: agreed });
       }
@@ -124,7 +127,7 @@ export const Apply = () => {
         </div>
 
         <div>
-          <span className="aw-kicker">Applying for</span>
+          <span className="aw-kicker">{renewalOf ? 'Applying to renew' : 'Applying for'}</span>
           <h1 className="aw-title">{offering.award?.title ?? offering.title}</h1>
         </div>
 
@@ -143,10 +146,12 @@ export const Apply = () => {
 
       <form className="aw-form" onSubmit={submit}>
         <div className="aw-form-in">
+          {renewalOf ? <p className="notice">The church reviews each renewal. Your existing credential stays on record. {offering.renewal?.continuingEducationHours > 0 ? `You will need evidence of ${offering.renewal.continuingEducationHours} hours of continuing education.` : ''}</p> : null}
+          {!renewalOf && listing.data.availability?.open === false ? <p className="notice notice-gold">{listing.data.availability.message}</p> : null}
           {fee > 0 ? (
             <div className="aw-fee">
               <div className="aw-fee-row">
-                <span>{offering.fee?.label ?? 'Application fee'}</span>
+                <span>{renewalOf ? 'Renewal application fee' : offering.fee?.label ?? 'Application fee'}</span>
                 <span className="aw-fee-amount">{money(fee, offering.fee?.currency)}</span>
               </div>
               <p>
@@ -209,7 +214,7 @@ export const Apply = () => {
 
           {error ? <div className="aw-error" role="alert">{error}</div> : null}
 
-          <button className="aw-go" disabled={busy || !allAgreed}>
+          <button className="aw-go" disabled={busy || !allAgreed || (!renewalOf && listing.data.availability?.open === false)}>
             {busy ? 'One moment…' : fee > 0 ? `Pay ${money(fee, offering.fee?.currency)} and apply` : 'Send my application'}
             {busy ? null : <ArrowRight size={17} strokeWidth={2.2} />}
           </button>

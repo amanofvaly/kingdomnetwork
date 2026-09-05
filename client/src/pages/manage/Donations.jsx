@@ -4,6 +4,7 @@ import { ExternalLink } from 'lucide-react';
 
 import { ConsoleHeader } from '../../components/admin/Shell.jsx';
 import { Checkbox, DataTable, Input, Money, Panel, RepeatableList, Stat, Switch, Textarea } from '../../components/admin/kit.jsx';
+import { ShareCard } from '../../components/ShareCard.jsx';
 import { ErrorState, Spinner } from '../../components/ui.jsx';
 import { api } from '../../lib/api.js';
 import { dateShort, money } from '../../lib/format.js';
@@ -55,6 +56,17 @@ export const Donations = () => {
               <Stat key={c._id ?? 'general'} label={c.title ?? 'General fund'} value={money(c.total)} foot={`${c.count} gift${c.count === 1 ? '' : 's'}`} />
             ))}
           </div>
+        ) : null}
+
+        {settings.enabled && profile.data?.church ? (
+          <Panel title="Share your giving page">
+            <ShareCard
+              church={profile.data.church}
+              path={`/give/${churchSlug}`}
+              caption="Scan to give"
+              fileName="giving"
+            />
+          </Panel>
         ) : null}
 
         <Panel title="Settings">

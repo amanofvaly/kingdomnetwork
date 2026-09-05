@@ -4,6 +4,7 @@ import { Layout } from './components/Layout.jsx';
 import { AdminShell, ChurchShell } from './components/admin/Shell.jsx';
 import { Spinner } from './components/ui.jsx';
 import { useAuth } from './lib/auth.jsx';
+import { useScrollTop } from './lib/useScrollTop.js';
 
 import { Home } from './pages/Home.jsx';
 import { Outcome } from './pages/Outcome.jsx';
@@ -90,122 +91,127 @@ const RequireAuth = ({ children }) => {
   return children;
 };
 
-export const App = () => (
-  <Routes>
-    {/* Full-screen, with their own chrome. */}
-    <Route path="/learn/:slug" element={<RequireAuth><Learn /></RequireAuth>} />
-    <Route path="/church/register" element={<ChurchRegister />} />
+export const App = () => {
+  // Above <Routes>, so it also covers the shells mounted outside <Layout>.
+  useScrollTop();
 
-    {/* Giving needs no account — and no site chrome either. Nav and footer are
-        exits standing beside a payment, so the page carries its own mark and
-        nothing else to click. */}
-    <Route path="/give/:slug" element={<Give />} />
-    <Route path="/give/:slug/thanks" element={<GiveThanks />} />
+  return (
+    <Routes>
+      {/* Full-screen, with their own chrome. */}
+      <Route path="/learn/:slug" element={<RequireAuth><Learn /></RequireAuth>} />
+      <Route path="/church/register" element={<ChurchRegister />} />
 
-    {/* The user's own area. Its own chrome, like the consoles — but it is not
-        one: a console exists to make an administrator careful, this exists to
-        give a person somewhere of their own. */}
-    <Route path="/me" element={<MeShell />}>
-      <Route index element={<MeHome />} />
-      <Route path="journey" element={<MeJourney />} />
-      <Route path="passport" element={<MePassport />} />
-      <Route path="learning" element={<MeLearning />} />
-      <Route path="library" element={<MeLibrary />} />
-      <Route path="giving" element={<MeGiving />} />
-      <Route path="inbox" element={<MeInbox />} />
-      <Route path="profile" element={<MeProfile />} />
-      <Route path="settings" element={<MeSettings />} />
-    </Route>
+      {/* Giving needs no account — and no site chrome either. Nav and footer are
+          exits standing beside a payment, so the page carries its own mark and
+          nothing else to click. */}
+      <Route path="/give/:slug" element={<Give />} />
+      <Route path="/give/:slug/thanks" element={<GiveThanks />} />
 
-    {/* The church console. */}
-    <Route path="/manage/:churchSlug" element={<ChurchShell />}>
-      <Route index element={<Overview />} />
-      <Route path="applicants" element={<Applicants />} />
-      <Route path="credentials" element={<Credentials />} />
-      <Route path="credentials/:slug" element={<CredentialEditor />} />
-      <Route path="courses" element={<ManageCourses />} />
-      <Route path="courses/:slug" element={<CourseEditor />} />
-      <Route path="assessments" element={<Assessments />} />
-      <Route path="assessments/:slug" element={<AssessmentEditor />} />
-      <Route path="resources" element={<Resources />} />
-      <Route path="media" element={<Media />} />
-      <Route path="interviews" element={<Interviews />} />
-      <Route path="issued" element={<Issued />} />
-      <Route path="page" element={<PageBuilder />} />
-      <Route path="posts" element={<Posts />} />
-      <Route path="donations" element={<Donations />} />
-      <Route path="finance" element={<Finance />} />
-      <Route path="team" element={<Team />} />
-      <Route path="settings" element={<Settings />} />
-    </Route>
+      {/* The user's own area. Its own chrome, like the consoles — but it is not
+          one: a console exists to make an administrator careful, this exists to
+          give a person somewhere of their own. */}
+      <Route path="/me" element={<MeShell />}>
+        <Route index element={<MeHome />} />
+        <Route path="journey" element={<MeJourney />} />
+        <Route path="passport" element={<MePassport />} />
+        <Route path="learning" element={<MeLearning />} />
+        <Route path="library" element={<MeLibrary />} />
+        <Route path="giving" element={<MeGiving />} />
+        <Route path="inbox" element={<MeInbox />} />
+        <Route path="profile" element={<MeProfile />} />
+        <Route path="settings" element={<MeSettings />} />
+      </Route>
 
-    {/* The platform console. */}
-    <Route path="/admin" element={<AdminShell />}>
-      <Route index element={<AdminOverview />} />
-      <Route path="churches" element={<AdminChurches />} />
-      <Route path="verification" element={<AdminVerification />} />
-      <Route path="users" element={<AdminUsers />} />
-      <Route path="applications" element={<AdminApplications />} />
-      <Route path="payments" element={<AdminPayments />} />
-      <Route path="settlements" element={<AdminSettlements />} />
-      <Route path="merchandising" element={<AdminMerchandising />} />
-      <Route path="settings" element={<AdminSettings />} />
-      <Route path="audit" element={<AdminAudit />} />
-    </Route>
+      {/* The church console. */}
+      <Route path="/manage/:churchSlug" element={<ChurchShell />}>
+        <Route index element={<Overview />} />
+        <Route path="applicants" element={<Applicants />} />
+        <Route path="credentials" element={<Credentials />} />
+        <Route path="credentials/:slug" element={<CredentialEditor />} />
+        <Route path="courses" element={<ManageCourses />} />
+        <Route path="courses/:slug" element={<CourseEditor />} />
+        <Route path="assessments" element={<Assessments />} />
+        <Route path="assessments/:slug" element={<AssessmentEditor />} />
+        <Route path="resources" element={<Resources />} />
+        <Route path="media" element={<Media />} />
+        <Route path="interviews" element={<Interviews />} />
+        <Route path="issued" element={<Issued />} />
+        <Route path="page" element={<PageBuilder />} />
+        <Route path="posts" element={<Posts />} />
+        <Route path="donations" element={<Donations />} />
+        <Route path="finance" element={<Finance />} />
+        <Route path="team" element={<Team />} />
+        <Route path="settings" element={<Settings />} />
+      </Route>
 
-    <Route element={<Layout />}>
-      <Route index element={<Home />} />
+      {/* The platform console. */}
+      <Route path="/admin" element={<AdminShell />}>
+        <Route index element={<AdminOverview />} />
+        <Route path="churches" element={<AdminChurches />} />
+        <Route path="verification" element={<AdminVerification />} />
+        <Route path="users" element={<AdminUsers />} />
+        <Route path="applications" element={<AdminApplications />} />
+        <Route path="payments" element={<AdminPayments />} />
+        <Route path="settlements" element={<AdminSettlements />} />
+        <Route path="merchandising" element={<AdminMerchandising />} />
+        <Route path="settings" element={<AdminSettings />} />
+        <Route path="audit" element={<AdminAudit />} />
+      </Route>
 
-      {/* Static paths, so the slug is passed in rather than read from params. */}
-      {OUTCOMES.map((slug) => (
-        <Route key={slug} path={slug} element={<Outcome slug={slug} />} />
-      ))}
+      <Route element={<Layout />}>
+        <Route index element={<Home />} />
 
-      <Route path="credentials" element={<Outcome slug="all" />} />
-      <Route path="listing/:slug" element={<Listing />} />
-      <Route path="search" element={<Search />} />
-      <Route path="learning" element={<Learning />} />
-      <Route path="courses/:slug" element={<CourseDetail />} />
-      <Route path="materials/:slug" element={<Material />} />
-      <Route path="churches" element={<Churches />} />
-      <Route path="churches/:slug" element={<ChurchDetail />} />
-      <Route path="cart" element={<Cart />} />
-      <Route path="checkout" element={<Checkout />} />
-      <Route path="verify" element={<Verify />} />
-      <Route path="verify/:code" element={<Verify />} />
-      <Route path="for-churches" element={<Teach />} />
-      <Route path="login" element={<Login />} />
-      <Route path="signup" element={<Signup />} />
-      <Route path="forgot-password" element={<ForgotPassword />} />
-      <Route path="reset-password" element={<ResetPassword />} />
-      <Route path="reference/:token" element={<ReferenceForm />} />
+        {/* Static paths, so the slug is passed in rather than read from params. */}
+        {OUTCOMES.map((slug) => (
+          <Route key={slug} path={slug} element={<Outcome slug={slug} />} />
+        ))}
 
-      {/* Onboarding a church. */}
-      <Route path="onboarding" element={<Navigate to="/church/register" replace />} />
-      <Route path="onboarding/:churchSlug/:step" element={<Navigate to="/church/register" replace />} />
-      <Route path="invite/:token" element={<AcceptInvite />} />
+        <Route path="credentials" element={<Outcome slug="all" />} />
+        <Route path="listing/:slug" element={<Listing />} />
+        <Route path="search" element={<Search />} />
+        <Route path="learning" element={<Learning />} />
+        <Route path="courses/:slug" element={<CourseDetail />} />
+        <Route path="materials/:slug" element={<Material />} />
+        <Route path="churches" element={<Churches />} />
+        <Route path="churches/:slug" element={<ChurchDetail />} />
+        <Route path="cart" element={<Cart />} />
+        <Route path="checkout" element={<Checkout />} />
+        <Route path="verify" element={<Verify />} />
+        <Route path="verify/:code" element={<Verify />} />
+        <Route path="for-churches" element={<Teach />} />
+        <Route path="login" element={<Login />} />
+        <Route path="signup" element={<Signup />} />
+        <Route path="forgot-password" element={<ForgotPassword />} />
+        <Route path="reset-password" element={<ResetPassword />} />
+        <Route path="reference/:token" element={<ReferenceForm />} />
 
-      {/* Applying, and following what happens next. */}
-      <Route path="apply/:slug" element={<Apply />} />
-      <Route path="applications/:reference" element={<RequireAuth><ApplicationDetail /></RequireAuth>} />
-      <Route path="applications/:reference/assessment" element={<RequireAuth><Assessment /></RequireAuth>} />
-      <Route path="applications/:reference/interview" element={<RequireAuth><InterviewBooking /></RequireAuth>} />
+        {/* Onboarding a church. */}
+        <Route path="onboarding" element={<Navigate to="/church/register" replace />} />
+        <Route path="onboarding/:churchSlug/:step" element={<Navigate to="/church/register" replace />} />
+        <Route path="invite/:token" element={<AcceptInvite />} />
 
-      <Route path="orders/:reference" element={<RequireAuth><OrderConfirmation /></RequireAuth>} />
+        {/* Applying, and following what happens next. */}
+        <Route path="apply/:slug" element={<Apply />} />
+        <Route path="applications/:reference" element={<RequireAuth><ApplicationDetail /></RequireAuth>} />
+        <Route path="applications/:reference/assessment" element={<RequireAuth><Assessment /></RequireAuth>} />
+        <Route path="applications/:reference/interview" element={<RequireAuth><InterviewBooking /></RequireAuth>} />
 
-      {/* Paths from earlier shapes of the product. The five personal pages
-          that used to live out here are now sections of /me. */}
-      <Route path="dashboard" element={<Navigate to="/me" replace />} />
-      <Route path="account" element={<Navigate to="/me/profile" replace />} />
-      <Route path="passport" element={<Navigate to="/me/passport" replace />} />
-      <Route path="orders" element={<Navigate to="/me/library" replace />} />
-      <Route path="applications" element={<Navigate to="/me/journey" replace />} />
-      <Route path="courses" element={<RedirectWithQuery to="/learning" />} />
-      <Route path="resources/:slug" element={<RedirectResource />} />
-      <Route path="pathways" element={<Navigate to="/ordination" replace />} />
-      <Route path="teach" element={<Navigate to="/for-churches" replace />} />
+        <Route path="orders/:reference" element={<RequireAuth><OrderConfirmation /></RequireAuth>} />
 
-      <Route path="*" element={<NotFound />} />
-    </Route>
-  </Routes>
-);
+        {/* Paths from earlier shapes of the product. The five personal pages
+            that used to live out here are now sections of /me. */}
+        <Route path="dashboard" element={<Navigate to="/me" replace />} />
+        <Route path="account" element={<Navigate to="/me/profile" replace />} />
+        <Route path="passport" element={<Navigate to="/me/passport" replace />} />
+        <Route path="orders" element={<Navigate to="/me/library" replace />} />
+        <Route path="applications" element={<Navigate to="/me/journey" replace />} />
+        <Route path="courses" element={<RedirectWithQuery to="/learning" />} />
+        <Route path="resources/:slug" element={<RedirectResource />} />
+        <Route path="pathways" element={<Navigate to="/ordination" replace />} />
+        <Route path="teach" element={<Navigate to="/for-churches" replace />} />
+
+        <Route path="*" element={<NotFound />} />
+      </Route>
+    </Routes>
+  );
+};

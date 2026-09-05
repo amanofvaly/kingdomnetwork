@@ -75,7 +75,7 @@ const stepFace = (step, reference) => {
               </div>
             ),
             action: (
-              <Link to={`/learn/${step.course.slug}`} className="btn btn-outline btn-sm" style={{ marginTop: 8 }}>
+              <Link to={step.progress > 0 ? `/learn/${step.course.slug}` : `/courses/${step.course.slug}`} className="btn btn-outline btn-sm" style={{ marginTop: 8 }}>
                 <PlayCircle size={14} /> {(step.progress ?? 0) > 0 ? 'Continue' : 'Start'}
               </Link>
             ),
@@ -151,7 +151,7 @@ export const ApplicationTile = ({ app, limit = 4, i = 0 }) => {
                 <div key={step.key ?? n} className="me-step">
                   <span className={`me-step-dot ${state === 'now' ? 'me-step-now' : ''}`}>{face.icon}</span>
                   <div className="me-step-copy">
-                    <b>{step.label}</b>
+                    <b>{step.course?.title ?? step.offering?.title ?? step.label}</b>
                     {face.detail ? <span>{face.detail}</span> : null}
                     {face.below ?? null}
                     {face.action ? <div>{face.action}</div> : null}

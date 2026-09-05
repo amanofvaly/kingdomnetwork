@@ -1,3 +1,6 @@
+import { reserveAdmission } from '../lib/admissions.js';
+import { applicationEditable } from '../lib/applicationTerms.js';
+import { offeringForApplication } from '../lib/applicationTerms.js';
 import { env } from '../config/env.js';
 import { asyncHandler } from '../middleware/asyncHandler.js';
 import { recordPayment, splitFee } from '../lib/ledger.js';
@@ -10,7 +13,6 @@ import { advance } from '../lib/workflow.js';
 import { Application } from '../models/Application.js';
 import { Church } from '../models/Church.js';
 import { Enrollment } from '../models/Enrollment.js';
-import { Offering } from '../models/Offering.js';
 import { Order } from '../models/Order.js';
 import { Payment } from '../models/Payment.js';
 import { PlatformSettings } from '../models/PlatformSettings.js';
@@ -167,7 +169,7 @@ export const applyPaymentResult = async (payment, status) => {
 
 /** What a completed payment entitles. Never issues a credential. */
 const fulfil = async (payment) => {
-  if (payment.kind === 'application_fee') {
+  if (['application_fee', 'renewal_fee'].includes(payment.kind)) {
     const application = await Application.findById(payment.applicationId);
     if (!application || application.paymentRef) return;
 
@@ -175,7 +177,7 @@ const fulfil = async (payment) => {
     application.submittedAt = application.submittedAt ?? new Date();
     application.log({ event: 'fee:paid', note: `$${payment.amount.toFixed(2)}`, actorRole: 'applicant', visibility: 'both' });
 
-    const offering = await Offering.findOne({ slug: application.offeringSlug });
+    const offering = await offeringForApplication(application);
     await advance(application, { offering, event: 'application:submitted' });
     await sendReferenceRequests(application);
 
@@ -276,12 +278,17 @@ export const payApplicationFee = asyncHandler(async (req, res) => {
     }
   }
 
-  const offering = await Offering.findOne({ slug: application.offeringSlug });
+  if (!applicationEditable(application)) return res.status(409).json({ success: false, message: 'This application is closed and cannot accept a payment.' });
+  await reserveAdmission(application);
+  await application.save();
+  const pending = await Payment.findOne({ applicationId: application._id, status: { $in: ['pending', 'created'] } }).sort({ createdAt: -1 });
+  if (pending?.pesapal?.redirectUrl) return res.json({ success: true, data: { reference: pending.reference, redirectUrl: pending.pesapal.redirectUrl, amount: pending.amount } });
+  const offering = await offeringForApplication(application);
   const amount = offering?.fee?.amount ?? 0;
   if (amount <= 0) return res.status(400).json({ success: false, message: 'There is no fee to pay for this.' });
 
   const payment = await createPayment({
-    kind: 'application_fee',
+    kind: application.renewalOf ? 'renewal_fee' : 'application_fee',
     amount,
     description: `${offering.fee?.label ?? 'Application fee'} — ${offering.title}`.slice(0, 100),
     churchSlug: application.churchSlug,

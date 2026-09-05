@@ -9,7 +9,7 @@ import { slugify } from './derive.js';
  * requires it.
  *
  * So: a slug is proposed from the title once, made unique, and frozen at the
- * first publish. Retitling afterwards changes the title only.
+ * creation. Retitling changes the title only.
  */
 
 export const proposeSlug = async (Model, title, { churchSlug, suffix = true } = {}) => {
@@ -18,14 +18,12 @@ export const proposeSlug = async (Model, title, { churchSlug, suffix = true } = 
 
   let candidate = stem;
   for (let n = 2; n < 200; n += 1) {
-    const taken = await Model.exists({ $or: [{ slug: candidate }, { slugHistory: candidate }] });
+    const taken = await Model.exists({ slug: candidate });
     if (!taken) return candidate;
     candidate = `${stem}-${n}`;
   }
   throw new Error(`Could not find a free slug for "${title}".`);
 };
-
-export const isSlugFrozen = (doc) => Boolean(doc?.publishedAt);
 
 /**
  * Everything that would break if this offering went away. Returned so the
@@ -75,10 +73,7 @@ export const dependantsOfCourse = async (Offering, Course, slug) => {
  */
 export const findRequirementCycle = async (Offering, slug, proposedRequirements = []) => {
   const adjacency = new Map([[slug, [...proposedRequirements]]]);
-  const stack = [slug];
-  const path = [];
   const state = new Map();
-
   const requirementsOf = async (current) => {
     if (adjacency.has(current)) return adjacency.get(current);
     const doc = await Offering.findOne({ slug: current }, 'requires.credentials requires.credentialGroups').lean();
@@ -89,22 +84,24 @@ export const findRequirementCycle = async (Offering, slug, proposedRequirements 
     return all;
   };
 
-  // Iterative depth-first search so a deep or wide graph cannot blow the stack.
-  const visit = async (node) => {
-    state.set(node, 'visiting');
-    path.push(node);
-    for (const next of await requirementsOf(node)) {
-      if (state.get(next) === 'visiting') return [...path.slice(path.indexOf(next)), next];
-      if (state.get(next) !== 'done') {
-        const cycle = await visit(next);
-        if (cycle) return cycle;
-      }
+  const frames = [{ node: slug, children: await requirementsOf(slug), index: 0 }];
+  state.set(slug, 'visiting');
+  while (frames.length) {
+    const frame = frames[frames.length - 1];
+    if (frame.index >= frame.children.length) {
+      state.set(frame.node, 'done');
+      frames.pop();
+      continue;
     }
-    path.pop();
-    state.set(node, 'done');
-    return null;
-  };
-
-  void stack;
-  return visit(slug);
+    const next = frame.children[frame.index++];
+    if (state.get(next) === 'visiting') {
+      const path = frames.map((f) => f.node);
+      return [...path.slice(path.indexOf(next)), next];
+    }
+    if (state.get(next) !== 'done') {
+      state.set(next, 'visiting');
+      frames.push({ node: next, children: await requirementsOf(next), index: 0 });
+    }
+  }
+  return null;
 };

@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { ArrowUpRight, BookOpen, Calendar, ExternalLink, Globe2, GraduationCap, HeartHandshake, Images, Mail, MapPin, Phone, Users } from 'lucide-react';
+import { ArrowUpRight, BookOpen, Calendar, ExternalLink, Globe2, GraduationCap, HeartHandshake, Images, Mail, MapPin, Phone, Share2, Users, X } from 'lucide-react';
 
 import { CourseCard, MaterialCard } from '../components/cards.jsx';
 import { OfferingCard } from '../components/market.jsx';
 import { CHURCH_PLACEHOLDER, ErrorState, PERSON_PLACEHOLDER, Spinner, Stars, Verified } from '../components/ui.jsx';
 import { FollowButton } from '../components/me/feed.jsx';
+import { ShareCard } from '../components/ShareCard.jsx';
 import { useApi } from '../lib/useAsync.js';
 import { useAuth } from '../lib/auth.jsx';
 import { compact, plural } from '../lib/format.js';
@@ -29,6 +30,34 @@ const EmptyBlock = ({ icon: Icon, title, copy, action, to }) => (
   </div>
 );
 
+/**
+ * Handing the church's page to someone else.
+ *
+ * A church asked for its banner and a code it could put on a screen, so this
+ * hands back the same image the console produces rather than a bare URL.
+ */
+const SharePanel = ({ church, onClose }) => {
+  useEffect(() => {
+    const onKey = (e) => { if (e.key === 'Escape') onClose(); };
+    document.addEventListener('keydown', onKey);
+    document.body.style.overflow = 'hidden';
+    return () => { document.removeEventListener('keydown', onKey); document.body.style.overflow = ''; };
+  }, [onClose]);
+
+  return (
+    <div className="share-overlay" role="dialog" aria-modal="true" aria-label={`Share ${church.name}`}>
+      <button type="button" className="share-overlay-scrim" aria-label="Close" onClick={onClose} />
+      <div className="share-overlay-panel">
+        <div className="row-between" style={{ marginBottom: 'var(--s-4)' }}>
+          <h2 style={{ fontSize: 'var(--text-xl)' }}>Share {church.shortName ?? church.name}</h2>
+          <button type="button" className="icon-btn" onClick={onClose} aria-label="Close"><X size={19} /></button>
+        </div>
+        <ShareCard church={church} path={`/churches/${church.slug}`} caption="Scan to open" fileName="profile" />
+      </div>
+    </div>
+  );
+};
+
 export const ChurchDetail = () => {
   const { slug } = useParams();
   const { data, error, loading, reload } = useApi(`/churches/${slug}`);
@@ -38,6 +67,7 @@ export const ChurchDetail = () => {
   // with a feed. Signed out, the button would only lead to a sign-in wall.
   const canFollow = Boolean(user && user.accountKind !== 'church');
   const [followers, setFollowers] = useState(0);
+  const [sharing, setSharing] = useState(false);
   useEffect(() => { if (data) setFollowers(data.followers ?? 0); }, [data]);
   if (loading) return <div className="wrap band"><Spinner label="Loading church" /></div>;
   if (error) return <div className="wrap band"><ErrorState error={error} onRetry={reload} /></div>;
@@ -83,6 +113,7 @@ export const ChurchDetail = () => {
 
   return (
     <main className="church-profile">
+      {sharing ? <SharePanel church={church} onClose={() => setSharing(false)} /> : null}
       <div className="wrap church-profile-top">
         <div className="church-profile-cover media">
           <img src={church.coverImage || FALLBACK_COVER} alt={church.coverAlt || `${church.name || 'Church'} cover`} width={1600} height={600} fetchPriority="high"
@@ -125,6 +156,9 @@ export const ChurchDetail = () => {
                   <HeartHandshake size={16} /> Give
                 </Link>
               ) : null}
+              <button type="button" className="btn btn-inverse-outline church-profile-share" onClick={() => setSharing(true)}>
+                <Share2 size={16} /> Share
+              </button>
             </div>
           </section>
         </div>
@@ -160,7 +194,7 @@ export const ChurchDetail = () => {
           <div className="church-profile-feed" id="offerings">
             <section className="church-profile-section">
               <div className="church-profile-section-head"><div><h2>Credentials, courses and resources</h2><p>Published by {shortName}.</p></div>{hasOfferings ? <span>{plural(listings.length + courses.length + resources.length, 'item')}</span> : null}</div>
-              {listings.length && shows('whatWeIssue') ? <div className="church-profile-rail"><h3>Credentials</h3><div className="grid grid-3">{listings.map((offering) => <OfferingCard key={offering.slug} offering={offering} showOutcome />)}</div></div> : null}
+              {listings.length && shows('whatWeIssue') ? <div className="church-profile-rail"><h3>Credentials</h3><div className="grid grid-3">{listings.map((offering) => <OfferingCard key={offering.slug} offering={offering} />)}</div></div> : null}
               {courses.length && shows('courses') ? <div className="church-profile-rail"><h3>Courses</h3><div className="grid grid-3">{courses.map((course) => <CourseCard key={course.slug} course={{ ...course, church }} />)}</div></div> : null}
               {resources.length && shows('resources') ? <div className="church-profile-rail"><h3>Books and materials</h3><div className="grid grid-3">{resources.map((resource) => (
                 <MaterialCard key={resource.slug} item={{ ...resource, church }} />

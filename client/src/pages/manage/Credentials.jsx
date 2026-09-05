@@ -4,7 +4,7 @@ import { AlertTriangle, ExternalLink, Plus } from 'lucide-react';
 
 import { ConsoleHeader } from '../../components/admin/Shell.jsx';
 import {
-  Checkbox, DataTable, Dialog, Input, Money, Panel, ParagraphEditor, Problems, RepeatableList,
+  Checkbox, DataTable, Dialog, Field, Input, Money, Panel, ParagraphEditor, Problems, RepeatableList,
   Select, StatusPill, Switch, Textarea,
 } from '../../components/admin/kit.jsx';
 import { ACQUISITION } from '../../components/market.jsx';
@@ -166,10 +166,11 @@ export const CredentialEditor = () => {
   const { data, error, loading, reload } = useApi(`/manage/${churchSlug}/offerings/${slug}`);
 
   const [draft, setDraft] = useState(null);
+  const [savedProblems, setSavedProblems] = useState(null);
   const [busy, setBusy] = useState(false);
   const [tab, setTab] = useState('what');
 
-  useEffect(() => { if (data?.offering) setDraft(data.offering); }, [data]);
+  useEffect(() => { if (data?.offering) { setDraft(data.offering); setSavedProblems(data.problems ?? []); } }, [data]);
 
   const set = (patch) => setDraft((d) => ({ ...d, ...patch }));
   const setRequires = (patch) => setDraft((d) => ({ ...d, requires: { ...d.requires, ...patch } }));
@@ -191,6 +192,7 @@ export const CredentialEditor = () => {
         : draft;
       const saved = await api.patch(`/manage/${churchSlug}/offerings/${slug}`, payload);
       setDraft(saved.offering);
+      setSavedProblems(saved.problems ?? []);
       ok('Saved');
       return saved;
     } catch (err) {
@@ -209,6 +211,7 @@ export const CredentialEditor = () => {
       ok('Published — people can apply now');
       await reload();
     } catch (err) {
+      if (err.data?.problems) setSavedProblems(err.data.problems);
       fail(err);
     }
   };
@@ -226,7 +229,7 @@ export const CredentialEditor = () => {
   if (loading || !draft) return <div className="console-body"><Spinner /></div>;
   if (error) return <div className="console-body"><ErrorState error={error} onRetry={reload} /></div>;
 
-  const problems = data.problems ?? [];
+  const problems = savedProblems ?? data.problems ?? [];
   const options = data.options ?? {};
 
   const TABS = [
@@ -267,6 +270,7 @@ export const CredentialEditor = () => {
         ) : null}
 
         <Problems problems={problems} />
+        <p className="small muted">Saved changes apply to new applications. Existing applicants keep the requirements and fee they started with.</p>
 
         {data.dependants?.length ? (
           <div className="notice">
@@ -298,80 +302,146 @@ export const CredentialEditor = () => {
   );
 };
 
-const WhatItIs = ({ draft, set }) => (
-  <Panel>
-    <div className="a-form">
-      <div className="a-row">
-        <Input label="Title" value={draft.title ?? ''} onChange={(e) => set({ title: e.target.value })} />
-        <Select label="Kind" value={draft.type} onChange={(e) => set({ type: e.target.value })} options={TYPES} />
-        <Select label="Compared under" value={draft.outcome} onChange={(e) => set({ outcome: e.target.value })} options={OUTCOMES} />
-      </div>
+const WhatItIs = ({ draft, set }) => {
+  // The comparison page follows from the kind, so changing the kind moves the
+  // listing with it. A letter of standing is the one kind that sits in two.
+  const buckets = outcomesForType(draft.type);
+  const setType = (type) => {
+    const allowed = outcomesForType(type);
+    set({ type, outcome: allowed.some((o) => o.value === draft.outcome) ? draft.outcome : allowed[0]?.value });
+  };
 
-      <Input
-        label="Subtitle"
-        value={draft.subtitle ?? ''}
-        onChange={(e) => set({ subtitle: e.target.value })}
-        placeholder="Full pastoral formation, a credential review, and ordination in Kampala."
-      />
+  return (
+    <Panel>
+      <div className="a-form">
+        <div className="a-row">
+          <Input label="Title" value={draft.title ?? ''} onChange={(e) => set({ title: e.target.value })} />
+          <Select
+            label="Kind"
+            help="What it is. Sets what it must satisfy before it can be issued."
+            value={draft.type}
+            onChange={(e) => setType(e.target.value)}
+            options={TYPES}
+          />
+          {buckets.length > 1 ? (
+            <Select
+              label="Compared under"
+              help="Either page fits this kind. Pick where applicants should find it."
+              value={draft.outcome}
+              onChange={(e) => set({ outcome: e.target.value })}
+              options={buckets}
+            />
+          ) : (
+            <Field label="Compared under" help="Follows from the kind. This is the page applicants compare churches on.">
+              <p className="a-static">{outcomeLabel(draft.outcome)}</p>
+            </Field>
+          )}
+        </div>
 
-      <ParagraphEditor
-        label="Description"
-        help="Who it is for and what it involves."
-        value={draft.description ?? []}
-        onChange={(description) => set({ description })}
-      />
-
-      <Textarea
-        label="Important information"
-        help="Required. Shown on the listing and the certificate, alongside our standard notices."
-        rows={4}
-        value={draft.disclosure ?? ''}
-        onChange={(e) => set({ disclosure: e.target.value })}
-        placeholder="Ordination is granted by this church, on its own authority. What civil authority it carries varies by country and you should check locally."
-      />
-
-      <div className="a-row">
-        <Select
-          label="Level"
-          help="Where this sits in your progression."
-          value={draft.tier ?? 'other'}
-          onChange={(e) => set({ tier: e.target.value })}
-          options={TIERS}
-        />
         <Input
-          label="Credit units"
-          type="number"
-          help="Credits earned toward larger awards."
-          value={draft.creditValue ?? ''}
-          onChange={(e) => set({ creditValue: Number(e.target.value) || undefined })}
+          label="Subtitle"
+          value={draft.subtitle ?? ''}
+          onChange={(e) => set({ subtitle: e.target.value })}
+          placeholder="Full pastoral formation, a credential review, and ordination in Kampala."
         />
-      </div>
 
-      {draft.type === 'invitation-letter' ? (
-        <fieldset style={{ border: '1px solid var(--line)', borderRadius: 'var(--r-md)', padding: 'var(--s-4)' }}>
-          <legend className="eyebrow">Travel details</legend>
-          <div className="a-row">
-            <Input label="Country" value={draft.letter?.destinationCountry ?? ''} onChange={(e) => set({ letter: { ...draft.letter, destinationCountry: e.target.value } })} />
-            <Input label="City" value={draft.letter?.destinationCity ?? ''} onChange={(e) => set({ letter: { ...draft.letter, destinationCity: e.target.value } })} />
-            <Input label="Valid for (months)" type="number" value={draft.letter?.validityMonths ?? ''} onChange={(e) => set({ letter: { ...draft.letter, validityMonths: Number(e.target.value) || undefined } })} />
-          </div>
-          <Input label="Purpose of the visit" value={draft.letter?.purpose ?? ''} onChange={(e) => set({ letter: { ...draft.letter, purpose: e.target.value } })} />
-          <Textarea label="What your church commits to as host" rows={2} value={draft.letter?.hostCommitment ?? ''} onChange={(e) => set({ letter: { ...draft.letter, hostCommitment: e.target.value } })} />
-          <p className="muted small" style={{ marginBottom: 0 }}>
-            Kingdom Network states on every letter that it is a supporting document, is not a visa, and does not
-            guarantee one will be granted.
-          </p>
-        </fieldset>
-      ) : null}
+        <ParagraphEditor
+          label="Description"
+          help="Who it is for and what it involves."
+          value={draft.description ?? []}
+          onChange={(description) => set({ description })}
+        />
+
+        <Textarea
+          label="Important information"
+          help="Required. Shown on the listing and the certificate, alongside our standard notices."
+          rows={4}
+          value={draft.disclosure ?? ''}
+          onChange={(e) => set({ disclosure: e.target.value })}
+          placeholder="Ordination is granted by this church, on its own authority. What civil authority it carries varies by country and you should check locally."
+        />
+
+        <div className="a-row">
+          <Select
+            label="Level"
+            help="Where this sits in your progression."
+            value={draft.tier ?? 'other'}
+            onChange={(e) => set({ tier: e.target.value })}
+            options={TIERS}
+          />
+          <Input
+            label="Credit units"
+            type="number"
+            help="Credits earned toward larger awards."
+            value={draft.creditValue ?? ''}
+            onChange={(e) => set({ creditValue: Number(e.target.value) || undefined })}
+          />
+        </div>
+
+        {draft.type === 'invitation-letter' ? (
+          <fieldset style={{ border: '1px solid var(--line)', borderRadius: 'var(--r-md)', padding: 'var(--s-4)' }}>
+            <legend className="eyebrow">Travel details</legend>
+            <div className="a-row">
+              <Input label="Country" value={draft.letter?.destinationCountry ?? ''} onChange={(e) => set({ letter: { ...draft.letter, destinationCountry: e.target.value } })} />
+              <Input label="City" value={draft.letter?.destinationCity ?? ''} onChange={(e) => set({ letter: { ...draft.letter, destinationCity: e.target.value } })} />
+              <Input label="Valid for (months)" type="number" value={draft.letter?.validityMonths ?? ''} onChange={(e) => set({ letter: { ...draft.letter, validityMonths: Number(e.target.value) || undefined } })} />
+            </div>
+            <Input label="Purpose of the visit" value={draft.letter?.purpose ?? ''} onChange={(e) => set({ letter: { ...draft.letter, purpose: e.target.value } })} />
+            <Textarea label="What your church commits to as host" rows={2} value={draft.letter?.hostCommitment ?? ''} onChange={(e) => set({ letter: { ...draft.letter, hostCommitment: e.target.value } })} />
+            <p className="muted small" style={{ marginBottom: 0 }}>
+              Kingdom Network states on every letter that it is a supporting document, is not a visa, and does not
+              guarantee one will be granted.
+            </p>
+          </fieldset>
+        ) : null}
+      </div>
+    </Panel>
+  );
+};
+
+const PrerequisitePicker = ({ value = [], onChange, options = [], exclude }) => {
+  const [term, setTerm] = useState('');
+  const [query, setQuery] = useState('');
+  const [picked, setPicked] = useState({});
+  useEffect(() => {
+    const timer = setTimeout(() => setQuery(term.trim()), 250);
+    return () => clearTimeout(timer);
+  }, [term]);
+  const { data, loading, error, reload } = useApi(`/search?q=${encodeURIComponent(query)}&limit=12`, { skip: query.length < 2 });
+  const by = { ...Object.fromEntries(options.map((o) => [o.slug, o])), ...picked };
+  const found = (data?.offerings ?? []).filter((o) => o.slug !== exclude && !value.includes(o.slug));
+  return (
+    <div className="stack stack-3">
+      {value.map((slug) => (
+        <div key={slug} className="prerequisite-choice">
+          <span className="stack">
+            <strong className="small">{by[slug]?.title ?? 'Unavailable prerequisite'}</strong>
+            <span className="dim xs">{by[slug]?.church?.shortName ?? by[slug]?.churchSlug ?? 'Remove this choice and select a published credential.'}</span>
+          </span>
+          <button type="button" className="btn btn-ghost btn-sm" aria-label={`Remove ${by[slug]?.title ?? 'prerequisite'}`} onClick={() => onChange(value.filter((s) => s !== slug))}>Remove</button>
+        </div>
+      ))}
+      <Input label="Search credentials across churches" value={term} onChange={(e) => setTerm(e.target.value)} placeholder="Preaching certificate, ordination…" help="Type at least two characters, then choose a credential." />
+      <div aria-live="polite">
+        {loading && query.length >= 2 ? <p className="small muted">Searching credentials…</p> : null}
+        {error ? <p className="small">Could not search credentials. <button type="button" className="btn btn-ghost btn-sm" onClick={reload}>Try again</button></p> : null}
+        {!loading && !error && query.length >= 2 && !found.length ? <p className="small muted">No other published credentials match. Try a different name.</p> : null}
+      </div>
+      {query.length >= 2 && !loading ? found.map((o) => (
+        <button key={o.slug} type="button" className="prerequisite-choice prerequisite-result" onClick={() => {
+          setPicked((p) => ({ ...p, [o.slug]: o })); onChange([...value, o.slug]); setTerm(''); setQuery('');
+        }}>
+          <span className="stack"><strong className="small">{o.title}</strong><span className="dim xs">{o.church?.shortName ?? o.churchSlug}</span></span>
+          <Plus size={16} aria-hidden="true" />
+        </button>
+      )) : null}
     </div>
-  </Panel>
-);
+  );
+};
 
 const WhatYouRequire = ({ draft, set, setRequires, options, churchSlug }) => {
   const r = draft.requires ?? {};
   const [preview, setPreview] = useState(null);
-  const [searching, setSearching] = useState('');
-  const [found, setFound] = useState([]);
 
   const runPreview = async () => {
     try {
@@ -382,19 +452,8 @@ const WhatYouRequire = ({ draft, set, setRequires, options, churchSlug }) => {
   };
   useEffect(() => { runPreview(); /* eslint-disable-next-line */ }, [JSON.stringify(draft.requires), draft.type, draft.fee?.amount]);
 
-  const search = async (term) => {
-    setSearching(term);
-    if (term.length < 2) return setFound([]);
-    try {
-      const res = await api.get(`/search?q=${encodeURIComponent(term)}&limit=8`);
-      setFound(res.offerings ?? []);
-    } catch {
-      setFound([]);
-    }
-  };
-
   return (
-    <div className="grid" style={{ gridTemplateColumns: 'minmax(0,1fr) 340px', gap: 'var(--s-5)', alignItems: 'start' }}>
+    <div className="credential-requirements-grid">
       <div className="stack stack-4">
         <Panel title="Church review">
           <p className="muted small" style={{ marginTop: 0 }}>
@@ -466,7 +525,7 @@ const WhatYouRequire = ({ draft, set, setRequires, options, churchSlug }) => {
           <RepeatableList
             items={r.courseGroups ?? []}
             onChange={(courseGroups) => setRequires({ courseGroups })}
-            makeItem={() => ({ label: '', mode: 'atLeast', count: 2, courseSlugs: [] })}
+            makeItem={() => ({ key: crypto.randomUUID(), label: '', mode: 'atLeast', count: 2, courseSlugs: [] })}
             addLabel="Add a group"
             title={(g) => g.label || 'A choice of courses'}
             empty="For example, any two of four courses, or a number of credits."
@@ -507,40 +566,7 @@ const WhatYouRequire = ({ draft, set, setRequires, options, churchSlug }) => {
             From any church, including your own.
           </p>
 
-          <div className="stack stack-2">
-            {(r.credentials ?? []).map((s) => (
-              <div key={s} className="row row-between panel" style={{ padding: '8px 12px' }}>
-                <span className="small">{s}</span>
-                <button type="button" className="btn btn-ghost btn-sm" onClick={() => setRequires({ credentials: r.credentials.filter((x) => x !== s) })}>Remove</button>
-              </div>
-            ))}
-          </div>
-
-          <Input
-            label="Search all churches"
-            value={searching}
-            onChange={(e) => search(e.target.value)}
-            placeholder="Preaching certificate, ordination…"
-          />
-          {found.length ? (
-            <div className="stack stack-2" style={{ marginTop: 8 }}>
-              {found.filter((f) => f.slug !== draft.slug && !(r.credentials ?? []).includes(f.slug)).map((f) => (
-                <button
-                  key={f.slug}
-                  type="button"
-                  className="row row-between panel"
-                  style={{ padding: '8px 12px', textAlign: 'left', cursor: 'pointer', background: 'var(--bg)', border: '1px solid var(--line)' }}
-                  onClick={() => { setRequires({ credentials: [...(r.credentials ?? []), f.slug] }); setSearching(''); setFound([]); }}
-                >
-                  <span className="stack" style={{ gap: 0 }}>
-                    <b className="small">{f.title}</b>
-                    <span className="dim xs">{f.church?.shortName ?? f.churchSlug}</span>
-                  </span>
-                  <Plus size={14} strokeWidth={2} />
-                </button>
-              ))}
-            </div>
-          ) : null}
+          <PrerequisitePicker value={r.credentials ?? []} onChange={(credentials) => setRequires({ credentials })} options={options.prerequisites} exclude={draft.slug} />
 
           <hr style={{ border: 0, borderTop: '1px solid var(--line)', margin: 'var(--s-4) 0' }} />
 
@@ -548,7 +574,7 @@ const WhatYouRequire = ({ draft, set, setRequires, options, churchSlug }) => {
           <RepeatableList
             items={r.credentialGroups ?? []}
             onChange={(credentialGroups) => setRequires({ credentialGroups })}
-            makeItem={() => ({ label: '', mode: 'atLeast', count: 2, offeringSlugs: [] })}
+            makeItem={() => ({ key: crypto.randomUUID(), label: '', mode: 'atLeast', count: 2, offeringSlugs: [] })}
             addLabel="Add a group"
             title={(g) => g.label || 'A choice of credentials'}
             empty="For example, any three of six certificates."
@@ -569,12 +595,7 @@ const WhatYouRequire = ({ draft, set, setRequires, options, churchSlug }) => {
                     </>
                   ) : null}
                 </div>
-                <Textarea
-                  label="Credential IDs, one per line"
-                  rows={3}
-                  value={(group.offeringSlugs ?? []).join('\n')}
-                  onChange={(e) => update({ ...group, offeringSlugs: e.target.value.split('\n').map((s) => s.trim()).filter(Boolean) })}
-                />
+                <PrerequisitePicker value={group.offeringSlugs ?? []} onChange={(offeringSlugs) => update({ ...group, offeringSlugs })} options={options.prerequisites} exclude={draft.slug} />
               </>
             )}
           />
@@ -604,10 +625,11 @@ const WhatYouRequire = ({ draft, set, setRequires, options, churchSlug }) => {
                 }
               />
               <Link className="link small" to={`/manage/${churchSlug}/assessments`}>Write a paper →</Link>
+              <p className="small muted">These settings override the paper for this application. Leave a field empty to use the paper’s setting. Attempts are counted separately for each application.</p>
               <div className="a-row">
-                <Input label="Pass mark (%)" type="number" value={r.assessment?.passMark ?? 70} onChange={(e) => setRequires({ assessment: { ...r.assessment, passMark: Number(e.target.value) } })} />
-                <Input label="Time allowed (minutes)" type="number" value={r.assessment?.minutes ?? 30} onChange={(e) => setRequires({ assessment: { ...r.assessment, minutes: Number(e.target.value) } })} />
-                <Input label="Attempts" type="number" value={r.assessment?.attemptsAllowed ?? 3} onChange={(e) => setRequires({ assessment: { ...r.assessment, attemptsAllowed: Number(e.target.value) } })} />
+                <Input label="Pass mark (%)" type="number" value={r.assessment?.passMark ?? ''} onChange={(e) => setRequires({ assessment: { ...r.assessment, passMark: e.target.value === '' ? null : Number(e.target.value) } })} />
+                <Input label="Time allowed (minutes)" type="number" value={r.assessment?.minutes ?? ''} onChange={(e) => setRequires({ assessment: { ...r.assessment, minutes: e.target.value === '' ? null : Number(e.target.value) } })} />
+                <Input label="Attempts" type="number" value={r.assessment?.attemptsAllowed ?? ''} onChange={(e) => setRequires({ assessment: { ...r.assessment, attemptsAllowed: e.target.value === '' ? null : Number(e.target.value) } })} />
               </div>
             </div>
           ) : null}
@@ -643,7 +665,7 @@ const WhatYouRequire = ({ draft, set, setRequires, options, churchSlug }) => {
             empty="Referees receive an email link. No account required."
             renderItem={(ref, i, update) => (
               <div className="a-row">
-                <Input label="Group name" value={ref.label ?? ''} onChange={(e) => update({ ...ref, label: e.target.value })} placeholder="Reference from your senior leader" />
+                <Input label="Reference name" value={ref.label ?? ''} onChange={(e) => update({ ...ref, label: e.target.value })} placeholder="Reference from your senior leader" />
                 <Input label="Relationship" value={ref.relationship ?? ''} onChange={(e) => update({ ...ref, relationship: e.target.value })} placeholder="senior leader" />
               </div>
             )}
@@ -775,6 +797,7 @@ const TheApplication = ({ draft, set }) => (
     </Panel>
 
     <Panel title="Intake">
+      <Input label="Total places" type="number" min="1" step="1" help="Limits submitted applications across all intakes. Drafts do not take a place. Declined or withdrawn applications release their place. Leave empty for no limit." value={draft.capacity ?? ''} onChange={(e) => set({ capacity: e.target.value === '' ? null : Number(e.target.value) })} />
       <Select
         label="Intake"
         value={draft.intake?.mode ?? 'rolling'}
@@ -785,15 +808,15 @@ const TheApplication = ({ draft, set }) => (
         <RepeatableList
           items={draft.intake?.windows ?? []}
           onChange={(windows) => set({ intake: { ...draft.intake, windows } })}
-          makeItem={() => ({ opensAt: '', closesAt: '', seats: undefined })}
+          makeItem={() => ({ key: crypto.randomUUID(), opensAt: '', closesAt: '', seats: undefined })}
           addLabel="Add a window"
           collapsible={false}
           title={(w) => (w.opensAt ? `${w.opensAt.slice(0, 10)} → ${(w.closesAt ?? '').slice(0, 10)}` : 'New window')}
           renderItem={(w, i, update) => (
             <div className="a-row">
-              <Input label="Opens" type="date" value={(w.opensAt ?? '').slice(0, 10)} onChange={(e) => update({ ...w, opensAt: e.target.value })} />
-              <Input label="Closes" type="date" value={(w.closesAt ?? '').slice(0, 10)} onChange={(e) => update({ ...w, closesAt: e.target.value })} />
-              <Input label="Places" type="number" value={w.seats ?? ''} onChange={(e) => update({ ...w, seats: Number(e.target.value) || undefined })} />
+              <Input label="Opens (UTC)" type="date" required value={(w.opensAt ?? '').slice(0, 10)} onChange={(e) => update({ ...w, opensAt: e.target.value })} />
+              <Input label="Closes (UTC, end of day)" type="date" required value={(w.closesAt ?? '').slice(0, 10)} onChange={(e) => update({ ...w, closesAt: e.target.value ? `${e.target.value}T23:59:59.999Z` : null })} />
+              <Input label="Places in this window" type="number" min="1" step="1" help="Leave empty for no window limit." value={w.seats ?? ''} onChange={(e) => update({ ...w, seats: e.target.value === '' ? null : Number(e.target.value) })} />
             </div>
           )}
         />

@@ -118,7 +118,7 @@ const Requirements = ({ requirements, signedIn }) => {
  * One button, three states: you hold it, you have applied, or you may apply.
  * Declared out here so React keeps it as one component type across renders.
  */
-const Action = ({ offering: o, held, application, size = '' }) => {
+const Action = ({ offering: o, held, application, availability, size = '' }) => {
   const fee = o.fee?.amount ?? o.price ?? 0;
 
   if (held) {
@@ -135,6 +135,7 @@ const Action = ({ offering: o, held, application, size = '' }) => {
       </Link>
     );
   }
+  if (availability?.open === false) return <p className="notice notice-gold" role="status">{availability.message}</p>;
   return (
     <Link to={`/apply/${o.slug}`} className={`btn btn-primary btn-block ${size}`}>
       {fee > 0 ? `Apply — ${money(fee, o.currency)}` : 'Apply'}
@@ -150,7 +151,7 @@ export const Listing = () => {
   if (loading) return <div className="wrap band"><Spinner label="Loading listing" /></div>;
   if (error) return <div className="wrap band"><ErrorState error={error} onRetry={reload} /></div>;
 
-  const { offering: o, church, requirements, alternatives, alsoFrom, held, application, outcome, disclosures } = data;
+  const { offering: o, church, requirements, alternatives, alsoFrom, held, application, outcome, disclosures, availability } = data;
 
   const repeatable = o.type === 'invitation-letter';
   const alreadyHeld = held && !repeatable;
@@ -309,7 +310,7 @@ export const Listing = () => {
                     : 'Held for life'}
                 </span>
 
-                <Action offering={o} held={alreadyHeld} application={application} size="btn-lg" />
+                <Action offering={o} held={alreadyHeld} application={application} availability={availability} size="btn-lg" />
 
                 {repeatable && held ? (
                   <p className="xs dim" style={{ margin: 0 }}>
@@ -347,7 +348,7 @@ export const Listing = () => {
           <span className="price-big">{fee > 0 ? money(fee, o.currency) : 'No fee'}</span>
           <span className="xs dim">{fee > 0 ? 'to apply' : ''}</span>
         </div>
-        <Action offering={o} held={alreadyHeld} application={application} />
+        <Action offering={o} held={alreadyHeld} application={application} availability={availability} />
       </div>
 
       {alsoFrom.length > 0 && (
@@ -361,7 +362,7 @@ export const Listing = () => {
               <Link to={`/churches/${church?.slug}`} className="link">Church profile <ArrowRight size={15} /></Link>
             </div>
             <div className="grid grid-3">
-              {alsoFrom.map((a) => <OfferingCard key={a.slug} offering={a} showOutcome />)}
+              {alsoFrom.map((a) => <OfferingCard key={a.slug} offering={a} />)}
             </div>
           </div>
         </section>

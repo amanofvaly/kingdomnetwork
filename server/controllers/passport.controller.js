@@ -1,12 +1,13 @@
+import { presentSteps } from '../lib/requirementPresentation.js';
 import { asyncHandler } from '../middleware/asyncHandler.js';
 import { disclosuresFor } from '../lib/disclosures.js';
 import { advanceAllFor } from '../lib/workflow.js';
 import { renderDocument } from '../lib/documents.js';
 import { Application } from '../models/Application.js';
 import { Church } from '../models/Church.js';
-import { Course } from '../models/Course.js';
 import { Credential } from '../models/Credential.js';
 import { Offering } from '../models/Offering.js';
+import { User } from '../models/User.js';
 
 /**
  * The Digital Minister Passport: everything a person has been issued, and
@@ -36,11 +37,12 @@ export const passport = asyncHandler(async (req, res) => {
   const slugs = [...new Set([...credentials, ...applications].map((d) => d.offeringSlug).filter(Boolean))];
   const offerings = await Offering.find(
     { slug: { $in: slugs } },
-    'slug title type outcome coverImage award letter price fee demo disclosure',
+    'slug title type outcome coverImage award letter price fee demo disclosure renewal status',
   );
   const offeringBy = Object.fromEntries(offerings.map((o) => [o.slug, o]));
 
   const now = new Date();
+  const renewed = await Application.find({ renewalOf: { $in: credentials.map((c) => c.credentialId) }, status: 'issued' }, 'renewalOf credentialId').lean();
   const shapedCredentials = credentials.map((c) => {
     const offering = offeringBy[c.offeringSlug] ?? null;
     const expiresAt = c.expiresAt ? new Date(c.expiresAt) : null;
@@ -48,22 +50,18 @@ export const passport = asyncHandler(async (req, res) => {
       ...c.toObject(),
       church: churchBy[c.churchSlug] ?? null,
       offering,
+      canRenew: c.status !== 'revoked' && offering?.status === 'published' && Boolean(offering?.award?.renewable || offering?.renewal?.required) && !renewed.some((a) => a.renewalOf === c.credentialId),
       disclosures: offering ? disclosuresFor(offering) : [],
       expired: Boolean(expiresAt && expiresAt < now),
+      renewedAs: renewed.find((a) => a.renewalOf === c.credentialId)?.credentialId,
       // Surfaced so a licence about to lapse is visible before it does.
-      renewalDueInDays: c.renewal?.dueAt
+      renewalDueInDays: !renewed.some((a) => a.renewalOf === c.credentialId) && c.renewal?.dueAt
         ? Math.ceil((new Date(c.renewal.dueAt) - now) / (24 * 60 * 60 * 1000))
         : null,
     };
   });
 
-  const courseSlugs = applications.flatMap((a) =>
-    (a.steps ?? []).filter((s) => s.type === 'course' && s.meta?.courseSlug).map((s) => s.meta.courseSlug),
-  );
-  const courses = await Course.find({ slug: { $in: courseSlugs } }, 'slug title coverImage totalMinutes lectureCount');
-  const courseBy = Object.fromEntries(courses.map((c) => [c.slug, c]));
-
-  const shapedApplications = applications.map((a) => ({
+  const shapedApplications = await Promise.all(applications.map(async (a) => ({
     reference: a.reference,
     status: a.status,
     offeringSlug: a.offeringSlug,
@@ -72,12 +70,8 @@ export const passport = asyncHandler(async (req, res) => {
     church: churchBy[a.churchSlug] ?? null,
     submittedAt: a.submittedAt,
     updatedAt: a.updatedAt,
-    steps: (a.steps ?? []).map((s) => ({
-      ...(s.toObject?.() ?? s),
-      course: s.meta?.courseSlug ? courseBy[s.meta.courseSlug] ?? null : null,
-      offering: s.meta?.offeringSlug ? offeringBy[s.meta.offeringSlug] ?? null : null,
-    })),
-  }));
+    steps: await presentSteps(a.steps),
+  })));
 
   res.json({
     success: true,
@@ -173,10 +167,15 @@ export const verify = asyncHandler(async (req, res) => {
 
   const expired = credential.expiresAt && new Date(credential.expiresAt) < new Date();
 
-  const church = await Church.findOne(
-    { slug: credential.churchSlug },
-    'slug name shortName monogram city country verified website',
-  );
+  const [church, holder] = await Promise.all([
+    Church.findOne(
+      { slug: credential.churchSlug },
+      'slug name shortName monogram city country verified website',
+    ),
+    // Older credentials were written without a denormalised holder name, and a
+    // verification that cannot say who holds the document answers nothing.
+    credential.holderName ? null : User.findById(credential.userId, 'name'),
+  ]);
 
   res.json({
     success: true,
@@ -184,7 +183,7 @@ export const verify = asyncHandler(async (req, res) => {
       state: expired ? 'expired' : 'issued',
       credentialId: credential.credentialId,
       title: credential.title,
-      holderName: credential.holderName,
+      holderName: credential.holderName ?? holder?.name ?? null,
       postNominal: credential.postNominal,
       kind: credential.kind,
       issuedAt: credential.issuedAt,

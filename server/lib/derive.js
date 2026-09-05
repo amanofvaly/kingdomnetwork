@@ -185,9 +185,40 @@ export const validateOfferingForPublish = (offering) => {
   }
 
   const fee = offering.fee?.amount ?? offering.price;
-  if (fee > 0 && !offering.fee?.refundPolicy?.trim()) {
+  if ((fee > 0 || offering.fee?.renewalAmount > 0) && !offering.fee?.refundPolicy?.trim()) {
     problems.push('State the refund policy for the fee.');
   }
+
+  const positiveInteger = (value) => Number.isInteger(value) && value > 0;
+  if (offering.capacity != null && !positiveInteger(offering.capacity)) problems.push('Places must be a whole number of at least 1, or left empty for no limit.');
+  if (offering.intake?.mode === 'windows') {
+    const windows = offering.intake.windows ?? [];
+    if (!windows.length) problems.push('Add an intake window with opening and closing dates.');
+    windows.forEach((w, i) => {
+      const opens = w.opensAt && new Date(w.opensAt).getTime();
+      const closes = w.closesAt && new Date(w.closesAt).getTime();
+      if (!opens || !closes || !Number.isFinite(opens) || !Number.isFinite(closes)) problems.push(`Intake window ${i + 1} needs both opening and closing dates.`);
+      else if (closes <= opens) problems.push(`Intake window ${i + 1} must close after it opens.`);
+      if (w.seats != null && !positiveInteger(w.seats)) problems.push(`Places in intake window ${i + 1} must be a whole number of at least 1.`);
+      if (windows.slice(0, i).some((other) => opens <= new Date(other.closesAt).getTime() && closes >= new Date(other.opensAt).getTime())) problems.push(`Intake window ${i + 1} overlaps another window. Use separate dates.`);
+    });
+  }
+  for (const groups of [requires.credentialGroups, requires.courseGroups]) {
+    for (const [i, group] of (groups ?? []).entries()) {
+      const items = group.offeringSlugs ?? group.courseSlugs ?? [];
+      const name = group.label || `Prerequisite group ${i + 1}`;
+      if (!items.length) problems.push(`“${name}” needs at least one choice.`);
+      if (new Set(items).size !== items.length) problems.push(`“${name}” contains the same prerequisite more than once.`);
+      if (group.creditUnits != null && (!Number.isFinite(group.creditUnits) || group.creditUnits <= 0)) problems.push(`“${name}” needs a positive credit total.`);
+      if (group.mode === 'atLeast' && !group.creditUnits && (!positiveInteger(group.count) || group.count > new Set(items).size)) problems.push(`“${name}” must require between 1 and ${new Set(items).size} choices.`);
+    }
+  }
+  for (const [key, label, maximum] of [['passMark', 'Assessment pass mark', 100], ['attemptsAllowed', 'Assessment attempts', Infinity], ['minutes', 'Assessment minutes', Infinity]]) {
+    const value = requires.assessment?.[key];
+    if (value != null && (!positiveInteger(value) || value > maximum)) problems.push(`${label} must be a whole number from 1${maximum === 100 ? ' to 100' : ' upwards'}.`);
+  }
+  if ((offering.renewal?.required || offering.award?.renewable) && !positiveInteger(offering.renewal?.everyMonths ?? offering.award?.validityMonths)) problems.push('Set a positive renewal interval or certificate validity in months.');
+  if (offering.renewal?.continuingEducationHours != null && offering.renewal.continuingEducationHours < 0) problems.push('Renewal study hours cannot be negative.');
 
   return problems;
 };

@@ -23,7 +23,7 @@ const PENDING = 'pending';
  * credits counting toward a degree.
  */
 const evaluateGroup = (group, held, unitsFor) => {
-  const items = group.offeringSlugs ?? group.courseSlugs ?? [];
+  const items = [...new Set(group.offeringSlugs ?? group.courseSlugs ?? [])];
   const satisfied = items.filter((slug) => held.has(slug));
 
   if (group.creditUnits) {
@@ -50,7 +50,7 @@ const evaluateGroup = (group, held, unitsFor) => {
 
 const groupLabel = (group, noun) => {
   if (group.label) return group.label;
-  const items = group.offeringSlugs ?? group.courseSlugs ?? [];
+  const items = [...new Set(group.offeringSlugs ?? group.courseSlugs ?? [])];
   if (group.creditUnits) return `${group.creditUnits} credits of ${noun}`;
   if (group.mode === 'all') return `All ${items.length} ${noun}`;
   if (group.mode === 'any') return `Any one of ${items.length} ${noun}`;
@@ -95,7 +95,7 @@ export const evaluate = (offering, context = {}) => {
       .filter((f) => f.required)
       .every((f) => {
         const value = application?.answers?.[f.key];
-        return value !== undefined && value !== null && String(value).trim() !== '';
+        return f.type === 'checkbox' ? value === true : Array.isArray(value) ? value.length > 0 : value !== undefined && value !== null && String(value).trim() !== '';
       });
     steps.push(step('form', 'form', 'Application form', answered ? DONE : PENDING, {
       detail: `${offering.applicationForm.length} question${offering.applicationForm.length === 1 ? '' : 's'} from the church.`,
@@ -135,7 +135,7 @@ export const evaluate = (offering, context = {}) => {
 
   (requires.credentialGroups ?? []).forEach((group, i) => {
     const result = evaluateGroup(group, heldCredentials, creditsFor);
-    steps.push(step(`credentialGroup:${i}`, 'credential', groupLabel(group, 'credentials'), result.met ? DONE : PENDING, {
+    steps.push(step(`credentialGroup:${group.key ?? i}`, 'credential', groupLabel(group, 'credentials'), result.met ? DONE : PENDING, {
       detail: result.progress,
       meta: { group: true, mode: group.mode, items: result.items, satisfied: result.satisfied, needed: result.needed },
     }));
@@ -149,7 +149,7 @@ export const evaluate = (offering, context = {}) => {
 
   (requires.courseGroups ?? []).forEach((group, i) => {
     const result = evaluateGroup(group, completedCourses, creditsFor);
-    steps.push(step(`courseGroup:${i}`, 'course', groupLabel(group, 'courses'), result.met ? DONE : PENDING, {
+    steps.push(step(`courseGroup:${group.key ?? i}`, 'course', groupLabel(group, 'courses'), result.met ? DONE : PENDING, {
       detail: result.progress,
       meta: { group: true, mode: group.mode, items: result.items, satisfied: result.satisfied, needed: result.needed },
     }));
@@ -178,6 +178,7 @@ export const evaluate = (offering, context = {}) => {
       meta: {
         durationMinutes: requires.interview.durationMinutes,
         faceToFace: Boolean(requires.interview.faceToFace),
+        nonWaivable: offering?.type === 'ordination',
         whatIsAssessed: requires.interview.whatIsAssessed,
         booked: Boolean(context.interviewScheduledFor),
         scheduledFor: context.interviewScheduledFor,
@@ -210,7 +211,10 @@ export const evaluate = (offering, context = {}) => {
 /** Steps a waiver or a recorded outcome has already settled count as done. */
 export const isSettled = (s) => s.status === DONE || s.status === 'waived';
 
+export const isOutstanding = (s) => s.meta?.required !== false && !isSettled(s);
+
 export const summarise = (steps = []) => {
+  steps = steps.filter((s) => s.meta?.required !== false);
   const outstanding = steps.filter((s) => !isSettled(s));
   const failed = steps.filter((s) => s.status === 'failed');
   const next = outstanding.find((s) => s.type !== 'review') ?? outstanding[0] ?? null;

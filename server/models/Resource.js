@@ -14,7 +14,7 @@ export const RESOURCE_KINDS = ['book', 'audiobook', 'study-guide', 'sermon-serie
 
 const resourceSchema = new mongoose.Schema(
   {
-    slug: { type: String, required: true, unique: true, index: true },
+    slug: { type: String, required: true, unique: true, index: true, immutable: true },
     churchSlug: { type: String, required: true, index: true },
 
     kind: { type: String, enum: RESOURCE_KINDS, default: 'book', index: true },
@@ -42,7 +42,6 @@ const resourceSchema = new mongoose.Schema(
 
     status: { type: String, enum: ['draft', 'published', 'archived'], default: 'draft', index: true },
     publishedAt: Date,
-    slugHistory: [String],
     demo: { type: Boolean, default: false },
   },
   { timestamps: true },

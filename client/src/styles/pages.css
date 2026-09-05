@@ -42,16 +42,72 @@
 .band-ink { background: linear-gradient(135deg, #073fbd 0%, #51419a 100%); color: var(--ink-inverse); padding-block: var(--s-9); }
 .band-ink h2, .band-ink h4 { color: #fff; }
 .for-churches { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 0.86fr); gap: var(--s-8); align-items: center; }
+.for-churches-lede { color: rgba(255,255,255,.78); }
+.for-churches-actions { display: flex; flex-wrap: wrap; gap: var(--s-3); }
 .tick-list { display: flex; flex-direction: column; gap: var(--s-3); }
-.tick-list li { display: flex; align-items: center; gap: var(--s-3); color: rgba(255,255,255,.82); font-size: var(--text-base); }
-.tick-list svg { color: #ffd16a; flex: none; }
+.tick-list li { display: flex; align-items: flex-start; gap: var(--s-3); color: rgba(255,255,255,.82); font-size: var(--text-base); }
+.tick-list svg { color: #ffd16a; flex: none; margin-top: 5px; }
 @media (max-width: 900px) { .for-churches { grid-template-columns: 1fr; } }
+/* On a phone the picture leads — the band is otherwise five paragraphs of white
+   text on blue before anything to look at — and the two actions go full width
+   rather than crowding onto one 360px line. */
+@media (max-width: 620px) {
+  .band-ink { padding-block: var(--s-7); }
+  .for-churches { gap: var(--s-6); }
+  .for-churches > figure { order: -1; }
+  .for-churches h2 { font-size: var(--text-2xl); }
+  .for-churches-lede { font-size: var(--text-base); }
+  .tick-list li { font-size: var(--text-sm); }
+  .for-churches-actions { flex-direction: column; align-items: stretch; }
+}
+
+/* ---------------------------------------------------------------------------
+   Invitation letters
+   A letter is the one thing here that is not a title, and the four-up grid it
+   used to sit in made it read as more of the same shelf. Its own dark ground,
+   with the destinations named first, because that is the only thing that
+   separates one letter from another.
+   --------------------------------------------------------------------------- */
+.invites { background: linear-gradient(150deg, #1b1740 0%, #24204a 46%, #2f2470 100%); color: var(--ink-inverse-2); padding-block: var(--s-8); }
+.invites h2 { color: #fff; font-size: var(--text-3xl); max-width: 17ch; }
+.invites-head { display: flex; align-items: flex-end; justify-content: space-between; gap: var(--s-6); }
+.invites-lede { max-width: 62ch; margin: 0; color: rgba(255,255,255,.74); font-size: var(--text-md); line-height: 1.6; }
+.invites-destinations { display: flex; flex-wrap: wrap; gap: var(--s-2); }
+.invites-destinations a {
+  display: inline-flex; align-items: center; gap: 7px;
+  height: 34px; padding: 0 14px; border-radius: var(--r-full);
+  border: 1px solid rgba(255,255,255,.24); background: rgba(255,255,255,.06);
+  color: rgba(255,255,255,.86); font-size: var(--text-sm); white-space: nowrap;
+  transition: background-color .15s, border-color .15s, color .15s;
+}
+.invites-destinations a:hover { border-color: rgba(255,255,255,.6); background: rgba(255,255,255,.14); color: #fff; }
+.invites-destinations svg { color: #ffd16a; }
+.invites .skeleton { background: linear-gradient(90deg, rgba(255,255,255,.08) 25%, rgba(255,255,255,.16) 37%, rgba(255,255,255,.08) 63%); background-size: 400% 100%; }
+@media (max-width: 780px) {
+  .invites-head { flex-direction: column; align-items: flex-start; gap: var(--s-4); }
+  .invites-head .btn { width: 100%; }
+}
+@media (max-width: 620px) {
+  .invites { padding-block: var(--s-7); }
+  .invites h2 { font-size: var(--text-2xl); max-width: none; }
+  .invites-lede { font-size: var(--text-base); }
+  .invites .grid-4 {
+    display: flex; overflow-x: auto; gap: var(--s-4);
+    margin-right: calc(var(--gutter) * -1); padding-right: var(--gutter);
+    scroll-snap-type: x proximity; scrollbar-width: none;
+  }
+  .invites .grid-4::-webkit-scrollbar { display: none; }
+  .invites .grid-4 > .offer-card { flex: 0 0 78vw; max-width: 300px; scroll-snap-align: start; }
+}
 
 /* ===========================================================================
    Catalogue — filter sidebar + results
    =========================================================================== */
 .catalogue { display: grid; grid-template-columns: 248px minmax(0, 1fr); gap: var(--s-7); align-items: start; }
-.filters { position: sticky; top: calc(var(--header-h) + var(--s-5)); display: flex; flex-direction: column; gap: var(--s-5); }
+.filters { position: sticky; top: calc(var(--header-h) + var(--s-5)); display: flex; flex-direction: column; }
+.filters-scroll { display: flex; flex-direction: column; gap: var(--s-5); }
+/* Sheet furniture: it exists only at the width where the rail becomes a sheet. */
+.filters-head, .filters-foot, .filters-scrim { display: none; }
 .filter-group { border-top: 1px solid var(--line); padding-top: var(--s-4); }
 .filter-group > h5 { margin-bottom: var(--s-3); }
 .filter-list { display: flex; flex-direction: column; gap: 2px; }
@@ -67,15 +123,18 @@
 .filter-item.is-on .box { background: var(--blue-700); border-color: var(--blue-700); color: #fff; }
 .filter-item .n { margin-left: auto; font-size: var(--text-xs); color: var(--ink-3); font-variant-numeric: tabular-nums; }
 
-.results-bar { display: flex; align-items: center; gap: var(--s-3) var(--s-4); flex-wrap: wrap; margin-bottom: var(--s-5); }
-.sort-control { margin-left: auto; }
-/* Filters and sort stay on one line on a phone; the count sits between them
-   and any active filter pills drop to their own row. */
+/* One row: the toggle and the count on the left, sort hard right, and any
+   active pills wrapped onto a row of their own. It was a grid of three fixed
+   columns below 620px, which only lined up on the two pages that happened to
+   have exactly three children — on Learning the sort control landed in the
+   middle column. */
+.results-bar { display: flex; align-items: center; gap: var(--s-3); flex-wrap: wrap; margin-bottom: var(--s-5); }
+.results-count { flex: none; font-variant-numeric: tabular-nums; }
+.sort-control { flex: none; margin-left: auto; }
+.active-filters { flex: 1 0 100%; }
+.active-filters:empty { display: none; }
 @media (max-width: 620px) {
-  .results-bar { display: grid; grid-template-columns: auto 1fr auto; align-items: center; }
-  .sort-control { margin-left: 0; justify-self: end; }
-  .results-count { justify-self: start; }
-  .active-filters { grid-column: 1 / -1; }
+  .sort-control .select-sm { max-width: 46vw; }
 }
 
 /* Marketplace opening: merchandise first, navigation second. */
@@ -184,14 +243,32 @@
 .filters-toggle { display: none; }
 @media (max-width: 900px) {
   .catalogue { grid-template-columns: 1fr; }
-  /* Collapsed by default on a phone — nobody wants to scroll past the whole
-     filter rail to reach the first listing. */
-  .filters { position: static; display: none; padding: var(--s-5); border: 1px solid var(--line); border-radius: var(--r-lg); }
-  .filters.is-open { display: flex; }
-  .filters-toggle { display: inline-flex; }
   .catalogue > div { display: flex; flex-direction: column; }
-  .catalogue > aside { order: 2; }
+  .filters-toggle { display: inline-flex; }
+
+  .filters-scrim {
+    display: block; position: fixed; inset: 0; z-index: 89; border: 0;
+    background: rgba(28, 24, 58, .44); backdrop-filter: blur(2px);
+    animation: filters-scrim-in var(--dur-2) var(--ease-soft);
+  }
+  .filters {
+    position: fixed; inset: auto 0 0; z-index: 90;
+    max-height: min(80vh, 640px); padding: 0;
+    background: var(--bg); border-top: 1px solid var(--line);
+    border-radius: 18px 18px 0 0; box-shadow: 0 -18px 44px rgba(45, 39, 91, .26);
+    transform: translateY(101%); visibility: hidden;
+    transition: transform var(--dur-2) var(--ease-expo), visibility var(--dur-2);
+  }
+  .filters.is-open { transform: none; visibility: visible; }
+  .filters-head { display: flex; align-items: center; justify-content: space-between; padding: var(--s-3) var(--s-3) var(--s-3) var(--s-5); border-bottom: 1px solid var(--line); }
+  .filters-scroll { flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding: var(--s-5); }
+  .filters-foot {
+    display: flex; align-items: center; gap: var(--s-3);
+    padding: var(--s-4) var(--s-5) calc(var(--s-4) + env(safe-area-inset-bottom));
+    border-top: 1px solid var(--line); background: var(--bg);
+  }
 }
+@keyframes filters-scrim-in { from { opacity: 0; } to { opacity: 1; } }
 
 /* ===========================================================================
    Course detail
@@ -862,7 +939,7 @@
   .issuer-layout-3 .issuer-banner-copy, .issuer-layout-4 .issuer-banner-copy { justify-content: flex-end; }
   .issuer-stack-front strong { font-size: 25px; }.issuer-stack-front small { font-size: 9px; }
   .issuer-track { display: none; }
-  .issuer-swipe-cue { position: absolute; z-index: 8; right: -9px; top: 50%; display: grid; place-items: center; width: 42px; height: 42px; border-radius: 50%; background: #fff; color: #151515; box-shadow: 0 5px 18px rgba(0,0,0,.2); pointer-events: none; }
+  .issuer-swipe-cue { position: absolute; z-index: 8; right: 6px; top: 50%; display: grid; place-items: center; width: 42px; height: 42px; border-radius: 50%; background: #fff; color: #151515; box-shadow: 0 5px 18px rgba(0,0,0,.2); pointer-events: none; }
 }
 
 
@@ -1180,6 +1257,11 @@
   .church-directory-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--s-3); }
   .church-directory-grid .card-body { padding: var(--s-3); gap: var(--s-3); }
   .church-directory-grid .church-card .media { border-radius: 0; }
+  /* Two cards across a phone is about 165px each. The location gets the whole
+     strip; the course count is already a line further down the card. */
+  .church-directory-grid .cover-meta { padding: 26px 9px 7px; }
+  .church-directory-grid .cover-meta-end { display: none; }
+  .church-directory-grid .tag { max-width: 100%; overflow: hidden; text-overflow: ellipsis; display: block; }
   .outcome-rail { display: flex; overflow-x: auto; padding-right: var(--gutter); scroll-snap-type: x proximity; scrollbar-width: none; }
   .outcome-rail::-webkit-scrollbar { display: none; }
   .outcome-card { width: 185px; flex: 0 0 185px; scroll-snap-align: start; }
@@ -1396,3 +1478,18 @@
     max-width: 180px;
   }
 }
+
+
+/* ===========================================================================
+   Share overlay — the church's page, handed to someone else
+   =========================================================================== */
+.share-overlay { position: fixed; inset: 0; z-index: 110; display: grid; place-items: center; padding: var(--gutter); }
+.share-overlay-scrim { position: absolute; inset: 0; border: 0; background: rgba(28, 24, 58, .5); backdrop-filter: blur(3px); animation: share-in var(--dur-2) var(--ease-soft); }
+.share-overlay-panel {
+  position: relative; width: min(520px, 100%); max-height: 86vh; overflow-y: auto;
+  padding: var(--s-5); background: var(--bg);
+  border-radius: 16px; box-shadow: var(--shadow-lg);
+  animation: share-rise var(--dur-2) var(--ease-expo);
+}
+@keyframes share-in { from { opacity: 0; } to { opacity: 1; } }
+@keyframes share-rise { from { opacity: 0; transform: translateY(14px) scale(.98); } to { opacity: 1; transform: none; } }

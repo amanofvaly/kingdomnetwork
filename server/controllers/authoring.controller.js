@@ -1,11 +1,14 @@
+import { offeringProblems, referenceProblems } from '../lib/offeringReadiness.js';
+import { snapshotOffering } from '../lib/applicationTerms.js';
+import { Application } from '../models/Application.js';
+import { presentSteps } from '../lib/requirementPresentation.js';
 import { asyncHandler } from '../middleware/asyncHandler.js';
 import { audit } from '../lib/audit.js';
 import {
-  acquisitionFor, assignCurriculumKeys, defaultOutcomeForType, isCredentialType, isOfferingType, slugify,
-  validateOfferingForPublish,
+  acquisitionFor, assignCurriculumKeys, defaultOutcomeForType, isCredentialType, isOfferingType, slugify, tallyCurriculum,
 } from '../lib/derive.js';
 import { shortId } from '../lib/ids.js';
-import { dependantsOfCourse, dependantsOfOffering, findRequirementCycle, proposeSlug } from '../lib/slugs.js';
+import { dependantsOfCourse, dependantsOfOffering, proposeSlug } from '../lib/slugs.js';
 import { Assessment } from '../models/Assessment.js';
 import { Course } from '../models/Course.js';
 import { Interview } from '../models/Interview.js';
@@ -37,7 +40,7 @@ export const listOfferings = asyncHandler(async (req, res) => {
 
   res.json({
     success: true,
-    data: offerings.map((o) => ({
+    data: await Promise.all(offerings.map(async (o) => ({
       slug: o.slug,
       title: o.title,
       type: o.type,
@@ -50,8 +53,8 @@ export const listOfferings = asyncHandler(async (req, res) => {
       applicationCount: o.applicationCount,
       publishedAt: o.publishedAt,
       updatedAt: o.updatedAt,
-      problems: validateOfferingForPublish(o),
-    })),
+      problems: await offeringProblems(o),
+    }))),
   });
 });
 
@@ -59,22 +62,24 @@ export const getOffering = asyncHandler(async (req, res) => {
   const offering = await Offering.findOne({ slug: req.params.slug, churchSlug: req.church.slug });
   if (!offering) return res.status(404).json({ success: false, message: 'That listing was not found.' });
 
-  const [assessments, courses, dependants] = await Promise.all([
-    Assessment.find({ churchSlug: req.church.slug }, 'slug title status questions passMark').lean(),
+  const [assessments, courses, dependants, prerequisites] = await Promise.all([
+    Assessment.find({ churchSlug: req.church.slug }, 'slug title status questions passMark durationMinutes attemptsAllowed').lean(),
     Course.find({ churchSlug: req.church.slug }, 'slug title status creditUnits').lean(),
     dependantsOfOffering(Offering, offering.slug),
+    Offering.find({ slug: { $in: [...(offering.requires?.credentials ?? []), ...(offering.requires?.credentialGroups ?? []).flatMap((g) => g.offeringSlugs ?? [])] } }, 'slug title churchSlug').lean(),
   ]);
 
   res.json({
     success: true,
     data: {
       offering: offering.toObject(),
-      problems: validateOfferingForPublish(offering),
+      problems: await offeringProblems(offering),
       // Everything at other churches that would break if this went away.
       dependants,
       options: {
         assessments: assessments.map((a) => ({ ...a, questionCount: a.questions?.length ?? 0, questions: undefined })),
         courses,
+        prerequisites,
       },
     },
   });
@@ -118,6 +123,8 @@ export const updateOffering = asyncHandler(async (req, res) => {
   const offering = await Offering.findOne({ slug: req.params.slug, churchSlug: req.church.slug });
   if (!offering) return res.status(404).json({ success: false, message: 'That listing was not found.' });
 
+  await Application.updateMany({ offeringSlug: offering.slug, offeringSnapshot: { $exists: false } }, { $set: { offeringSnapshot: snapshotOffering(offering) } });
+  const previousWindows = (offering.intake?.windows ?? []).map((w) => w.toObject?.() ?? w);
   const before = { title: offering.title, fee: offering.fee?.amount, status: offering.status };
 
   if (req.body?.type !== undefined && !isOfferingType(req.body.type)) {
@@ -128,6 +135,20 @@ export const updateOffering = asyncHandler(async (req, res) => {
     if (req.body?.[field] !== undefined) offering[field] = req.body[field];
   }
 
+  for (const field of ['credentialGroups', 'courseGroups']) {
+    for (const group of offering.requires?.[field] ?? []) if (!group.key) group.key = shortId();
+  }
+  for (const [i, window] of (offering.intake?.windows ?? []).entries()) {
+    const old = previousWindows[i];
+    if (!window.key) window.key = old?.key ?? (old?.opensAt && old?.closesAt ? `${new Date(old.opensAt).toISOString()}/${new Date(old.closesAt).toISOString()}` : shortId());
+  }
+  const invalidReferences = await referenceProblems(offering);
+  if (invalidReferences.length) return res.status(400).json({ success: false, message: invalidReferences[0], data: { problems: invalidReferences } });
+  if (offering.status === 'published') {
+    const problems = await offeringProblems(offering, { availability: false });
+    if (problems.length) return res.status(400).json({ success: false, message: problems[0], data: { problems } });
+  }
+
   // Changing the kind can strand the bucket it was competing in; the model's
   // pre-save hook corrects that rather than failing the write.
 
@@ -135,21 +156,6 @@ export const updateOffering = asyncHandler(async (req, res) => {
   // to something that confers standing.
   if (!isCredentialType(offering.type) && req.body?.compareAtPrice !== undefined) {
     offering.compareAtPrice = req.body.compareAtPrice;
-  }
-
-  const requested = [
-    ...(offering.requires?.credentials ?? []),
-    ...(offering.requires?.credentialGroups ?? []).flatMap((g) => g.offeringSlugs ?? []),
-  ];
-
-  if (requested.length) {
-    const cycle = await findRequirementCycle(Offering, offering.slug, requested);
-    if (cycle) {
-      return res.status(400).json({
-        success: false,
-        message: `That would create a loop: ${cycle.join(' → ')}. A credential cannot end up requiring itself.`,
-      });
-    }
   }
 
   await offering.save();
@@ -163,7 +169,7 @@ export const updateOffering = asyncHandler(async (req, res) => {
 
   res.json({
     success: true,
-    data: { offering: offering.toObject(), problems: validateOfferingForPublish(offering) },
+    data: { offering: offering.toObject(), problems: await offeringProblems(offering) },
   });
 });
 
@@ -172,12 +178,14 @@ export const publishOffering = asyncHandler(async (req, res) => {
   if (!offering) return res.status(404).json({ success: false, message: 'That listing was not found.' });
 
   if (req.body?.status === 'draft' || req.body?.status === 'archived') {
-    if (req.body.status === 'archived') {
+    if (['draft', 'archived'].includes(req.body.status)) {
       const dependants = await dependantsOfOffering(Offering, offering.slug);
-      if (dependants.length && !req.body.force) {
+      const active = await Application.exists({ status: { $nin: ['issued', 'declined', 'withdrawn', 'expired'] }, $or: [{ 'offeringSnapshot.requires.credentials': offering.slug }, { 'offeringSnapshot.requires.credentialGroups.offeringSlugs': offering.slug }] });
+      if (active) return res.status(409).json({ success: false, message: 'An open application still requires this credential. Keep it published until that application is settled.' });
+      if (dependants.length) {
         return res.status(409).json({
           success: false,
-          message: `${dependants.length} listing${dependants.length === 1 ? '' : 's'} at other churches require this. Archiving it will block those applications.`,
+          message: `${dependants.length} listing${dependants.length === 1 ? '' : 's'} require this. Remove those dependencies before taking it offline.`,
           data: { dependants },
         });
       }
@@ -187,7 +195,7 @@ export const publishOffering = asyncHandler(async (req, res) => {
     return res.json({ success: true, data: { status: offering.status } });
   }
 
-  const problems = validateOfferingForPublish(offering);
+  const problems = await offeringProblems(offering);
   if (problems.length) {
     return res.status(400).json({ success: false, message: problems[0], data: { problems } });
   }
@@ -209,7 +217,7 @@ export const publishOffering = asyncHandler(async (req, res) => {
       authorKind: 'church',
       churchSlug: offering.churchSlug,
       offeringSlug: offering.slug,
-      body: offering.summary ?? '',
+      body: offering.subtitle ?? '',
       images: offering.coverImage ? [{ url: offering.coverImage, alt: offering.coverAlt ?? '' }] : [],
     });
   }
@@ -229,33 +237,15 @@ export const previewRequirements = asyncHandler(async (req, res) => {
   const draft = { ...req.body, requires: req.body?.requires ?? {} };
   const { steps, eligibility } = evaluate(draft, {});
 
-  const courseSlugs = steps.filter((s) => s.meta?.courseSlug).map((s) => s.meta.courseSlug);
-  const offeringSlugs = steps.flatMap((s) =>
-    s.meta?.group ? s.meta.items ?? [] : s.meta?.offeringSlug ? [s.meta.offeringSlug] : [],
-  );
-
-  const [courses, offerings] = await Promise.all([
-    Course.find({ slug: { $in: courseSlugs } }, 'slug title').lean(),
-    Offering.find({ slug: { $in: offeringSlugs } }, 'slug title churchSlug').lean(),
-  ]);
-  const courseBy = Object.fromEntries(courses.map((c) => [c.slug, c]));
-  const offeringBy = Object.fromEntries(offerings.map((o) => [o.slug, o]));
 
   res.json({
     success: true,
     data: {
-      steps: steps.map((s) => ({
-        ...s,
-        label: courseBy[s.meta?.courseSlug]?.title ?? offeringBy[s.meta?.offeringSlug]?.title ?? s.label,
-        detail: s.meta?.group
-          ? [s.detail, (s.meta.items ?? []).map((slug) => offeringBy[slug]?.title ?? courseBy[slug]?.title ?? slug).join(' · ')]
-              .filter(Boolean).join(' — ')
-          : s.detail,
-      })),
+      steps: await presentSteps(steps),
       eligibility,
       summary: summarise(steps),
       acquisition: acquisitionFor(draft.requires, draft.type),
-      problems: validateOfferingForPublish(draft),
+      problems: await offeringProblems(draft),
     },
   });
 });
@@ -324,6 +314,7 @@ export const updateCourse = asyncHandler(async (req, res) => {
     course.markModified('curriculum');
   }
 
+  if (course.status === 'published' && (!course.curriculum?.length || !tallyCurriculum(course.curriculum).lectureCount)) return res.status(400).json({ success: false, message: 'A published course must keep at least one section and lesson.' });
   await course.save();
   res.json({ success: true, data: course.toObject() });
 });
@@ -333,9 +324,11 @@ export const publishCourse = asyncHandler(async (req, res) => {
   if (!course) return res.status(404).json({ success: false, message: 'That course was not found.' });
 
   if (req.body?.status === 'draft' || req.body?.status === 'archived') {
-    if (req.body.status === 'archived') {
+    if (['draft', 'archived'].includes(req.body.status)) {
       const dependants = await dependantsOfCourse(Offering, Course, course.slug);
-      if (dependants.length && !req.body.force) {
+      const active = await Application.exists({ status: { $nin: ['issued', 'declined', 'withdrawn', 'expired'] }, $or: [{ 'offeringSnapshot.requires.courses': course.slug }, { 'offeringSnapshot.requires.courseGroups.courseSlugs': course.slug }] });
+      if (active) return res.status(409).json({ success: false, message: 'An open application still requires this course. Keep it published until that application is settled.' });
+      if (dependants.length) {
         return res.status(409).json({
           success: false,
           message: `${dependants.length} listing${dependants.length === 1 ? '' : 's'} require this course.`,
@@ -433,6 +426,8 @@ export const updateAssessment = asyncHandler(async (req, res) => {
     }));
   }
 
+  const problems = assessmentProblems(assessment);
+  if (assessment.status === 'published' && problems.length) return res.status(400).json({ success: false, message: problems[0], data: { problems } });
   await assessment.save();
   res.json({ success: true, data: { assessment: assessment.toObject(), problems: assessmentProblems(assessment) } });
 });
@@ -472,6 +467,9 @@ export const publishAssessment = asyncHandler(async (req, res) => {
   if (!assessment) return res.status(404).json({ success: false, message: 'That assessment was not found.' });
 
   if (req.body?.status === 'draft' || req.body?.status === 'archived') {
+    const dependants = await Offering.find({ assessmentSlug: assessment.slug, status: 'published' }, 'slug title').lean();
+    const applications = await Application.exists({ 'offeringSnapshot.assessmentSlug': assessment.slug, status: { $nin: ['issued', 'declined', 'withdrawn', 'expired'] } });
+    if (dependants.length || applications) return res.status(409).json({ success: false, message: 'This paper is required by published listings or open applications. Keep it published until they no longer need it.', data: { dependants } });
     assessment.status = req.body.status;
     await assessment.save();
     return res.json({ success: true, data: { status: assessment.status } });

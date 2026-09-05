@@ -1,15 +1,16 @@
 import { describe, expect, it } from 'vitest';
 
 import {
-  acquisitionFor, assignCurriculumKeys, isCredentialType, lectureKeys, slugify,
-  tallyCurriculum, validateOfferingForPublish,
+  acquisitionFor, assignCurriculumKeys, defaultOutcomeForType, isCredentialType, lectureKeys,
+  outcomeFitsType, outcomesForType, resolveOutcome, slugify, tallyCurriculum, validateOfferingForPublish,
 } from '../lib/derive.js';
+import { outcomeBySlug } from '../data/outcomes.js';
 import { offerings } from '../data/offerings.js';
 
 describe('the rule that a church service is never granted on payment alone', () => {
   it('refuses to publish any service with no church decision behind it', () => {
     const problems = validateOfferingForPublish({
-      type: 'affiliation', title: 'Affiliation', churchSlug: 'x', outcome: 'affiliation',
+      type: 'affiliation', title: 'Affiliation', churchSlug: 'x', outcome: 'church-affiliation',
       disclosure: 'A statement.', requires: {}, fee: { amount: 0 },
     });
     expect(problems).toContain(
@@ -68,6 +69,54 @@ describe('the rule that a church service is never granted on payment alone', () 
         expect(offering.requires?.interview?.required, offering.slug).toBe(true);
         expect(offering.requires?.interview?.faceToFace, offering.slug).toBe(true);
       }
+    }
+  });
+});
+
+describe('the comparison bucket a listing competes in', () => {
+  it('follows from the kind rather than being chosen alongside it', () => {
+    expect(defaultOutcomeForType('ordination')).toBe('ordination');
+    expect(defaultOutcomeForType('certificate')).toBe('certification');
+    expect(defaultOutcomeForType('diploma')).toBe('certification');
+    expect(defaultOutcomeForType('license')).toBe('ministry-license');
+    expect(defaultOutcomeForType('affiliation')).toBe('church-affiliation');
+    expect(defaultOutcomeForType('invitation-letter')).toBe('invitation-letter');
+  });
+
+  it('leaves exactly one kind with a genuine choice of page', () => {
+    const placeable = ['ordination', 'license', 'certificate', 'diploma', 'letter-of-standing', 'affiliation', 'invitation-letter']
+      .filter((type) => outcomesForType(type).length > 1);
+    expect(placeable).toEqual(['letter-of-standing']);
+    expect(outcomesForType('letter-of-standing')).toEqual(['ministry-license', 'church-affiliation']);
+  });
+
+  it('only ever names a bucket the marketplace actually has a page for', () => {
+    for (const type of ['ordination', 'license', 'certificate', 'diploma', 'letter-of-standing', 'affiliation', 'invitation-letter']) {
+      for (const outcome of outcomesForType(type)) {
+        expect(outcomeBySlug[outcome], `${type} → ${outcome}`).toBeTruthy();
+      }
+    }
+  });
+
+  it('corrects a bucket the kind cannot compete in rather than arguing with it', () => {
+    expect(resolveOutcome('ordination', 'certificate')).toBe('certification');
+    expect(resolveOutcome(undefined, 'affiliation')).toBe('church-affiliation');
+    // A kind that can sit in two keeps the one it was given.
+    expect(resolveOutcome('church-affiliation', 'letter-of-standing')).toBe('church-affiliation');
+    expect(resolveOutcome(null, 'letter-of-standing')).toBe('ministry-license');
+  });
+
+  it('blocks publishing anything filed where its kind cannot be compared', () => {
+    const problems = validateOfferingForPublish({
+      type: 'certificate', title: 'A certificate', churchSlug: 'x', outcome: 'ordination',
+      disclosure: 'A statement.', requires: { review: { required: true } }, fee: { amount: 0 },
+    });
+    expect(problems).toContain('This listing is filed under an outcome its kind cannot be compared under.');
+  });
+
+  it('files every seeded listing where its kind belongs', () => {
+    for (const offering of offerings) {
+      expect(outcomeFitsType(offering.outcome, offering.type), offering.slug).toBe(true);
     }
   });
 });

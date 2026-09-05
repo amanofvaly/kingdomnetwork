@@ -8,6 +8,7 @@ const resolveStatus = (err, res) => {
   // Controllers may signal intent with res.status(...) before throwing.
   if (res.statusCode && res.statusCode !== 200) return res.statusCode;
   if (err instanceof mongoose.Error.ValidationError) return 400;
+  if (err instanceof mongoose.Error.VersionError) return 409;
   if (err instanceof mongoose.Error.CastError) return 400;
   if (err.code === 11000) return 409;
   return 500;
@@ -23,7 +24,7 @@ export const errorHandler = (err, req, res, next) => {
 
   res.status(status).json({
     success: false,
-    message: err.message || 'Internal server error',
+    message: err instanceof mongoose.Error.VersionError ? 'This application changed in another request. Refresh it and try again.' : err.message || 'Internal server error',
     ...(env.isProduction ? {} : { stack: err.stack }),
   });
 };

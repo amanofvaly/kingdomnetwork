@@ -1,3 +1,6 @@
+import { OPEN_APPLICATIONS, validCredentialFilter } from '../lib/applicationTerms.js';
+import { admissionAvailability } from '../lib/admissions.js';
+import { presentSteps } from '../lib/requirementPresentation.js';
 import { asyncHandler } from '../middleware/asyncHandler.js';
 import { visibleSections } from '../lib/churchPage.js';
 import { disclosuresFor } from '../lib/disclosures.js';
@@ -136,10 +139,14 @@ const requirementsFor = async (offering, user) => {
   const context = { application: null };
 
   if (user) {
-    const [held, enrollments] = await Promise.all([
-      Credential.find({ userId: user._id, status: 'issued' }, 'offeringSlug').lean(),
+    const [held, enrollments, credits] = await Promise.all([
+      Credential.find({ userId: user._id, ...validCredentialFilter() }, 'offeringSlug').lean(),
       Enrollment.find({ userId: user._id, courseSlug: { $type: 'string' } }, 'courseSlug status progress creditUnitsEarned').lean(),
+      Offering.find({ slug: { $in: (offering.requires?.credentialGroups ?? []).flatMap((g) => g.offeringSlugs ?? []) } }, 'slug creditValue').lean(),
     ]);
+    const units = new Map(credits.map((o) => [o.slug, o.creditValue ?? 0]));
+    for (const enrollment of enrollments) if (enrollment.creditUnitsEarned) units.set(enrollment.courseSlug, enrollment.creditUnitsEarned);
+    context.creditsFor = (slug) => units.get(slug) ?? 0;
     context.heldCredentials = new Set(held.map((c) => c.offeringSlug).filter(Boolean));
     context.completedCourses = new Set(enrollments.filter((e) => e.status === 'completed').map((e) => e.courseSlug));
     context.courseProgress = new Map(enrollments.map((e) => [e.courseSlug, e.progress ?? 0]));
@@ -147,34 +154,16 @@ const requirementsFor = async (offering, user) => {
 
   const { steps, eligibility } = evaluate(offering, context);
 
-  const courseSlugs = steps.filter((s) => s.meta?.courseSlug).map((s) => s.meta.courseSlug);
-  const credentialSlugs = steps.flatMap((s) =>
-    s.meta?.group ? s.meta.items ?? [] : s.meta?.offeringSlug ? [s.meta.offeringSlug] : [],
-  );
-
-  const [courses, required] = await Promise.all([
-    Course.find({ slug: { $in: courseSlugs } }, 'slug title totalMinutes lectureCount coverImage price'),
-    Offering.find({ slug: { $in: credentialSlugs } }, 'slug title price fee churchSlug type award.title coverImage'),
-  ]);
-  const courseBy = Object.fromEntries(courses.map((c) => [c.slug, c]));
-  const requiredBy = Object.fromEntries(required.map((o) => [o.slug, o]));
-
+  const presented = await presentSteps(steps);
   return {
-    steps: steps.map((s) => ({
-      ...s,
-      course: s.meta?.courseSlug ? courseBy[s.meta.courseSlug] ?? null : null,
-      offering: s.meta?.offeringSlug ? requiredBy[s.meta.offeringSlug] ?? null : null,
-      options: s.meta?.group
-        ? (s.meta.items ?? []).map((slug) => requiredBy[slug] ?? courseBy[slug] ?? { slug })
-        : undefined,
-    })),
+    steps: presented,
     eligibility,
-    summary: summarise(steps),
+    summary: summarise(presented),
   };
 };
 
 export const offeringDetail = asyncHandler(async (req, res) => {
-  const offering = await Offering.findOne({ slug: req.params.slug });
+  const offering = await Offering.findOne({ slug: req.params.slug }).select('+admissions');
   if (!offering || offering.status !== 'published') {
     return res.status(404).json({ success: false, message: 'That listing does not exist.' });
   }
@@ -186,10 +175,10 @@ export const offeringDetail = asyncHandler(async (req, res) => {
     // The same outcome from other churches. This is the comparison that matters.
     Offering.find({ ...visible, outcome: offering.outcome, slug: { $ne: offering.slug } }, CARD).sort(RANK).limit(4),
     Offering.find({ ...visible, churchSlug: offering.churchSlug, slug: { $ne: offering.slug } }, CARD).limit(4),
-    req.user ? Credential.findOne({ userId: req.user._id, offeringSlug: offering.slug, status: 'issued' }) : null,
+    req.user ? Credential.findOne({ userId: req.user._id, offeringSlug: offering.slug, ...validCredentialFilter() }) : null,
     req.user
       ? Application.findOne(
-          { userId: req.user._id, offeringSlug: offering.slug, status: { $nin: ['withdrawn', 'declined', 'expired'] } },
+          { userId: req.user._id, offeringSlug: offering.slug, status: { $in: OPEN_APPLICATIONS } },
           'reference status',
         )
       : null,
@@ -198,7 +187,8 @@ export const offeringDetail = asyncHandler(async (req, res) => {
   res.json({
     success: true,
     data: {
-      offering,
+      offering: { ...offering.toObject(), admissions: undefined },
+      availability: admissionAvailability(offering),
       church,
       requirements,
       // Stated in the place the claim is made, every time.

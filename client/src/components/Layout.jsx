@@ -204,21 +204,14 @@ const MobileNav = ({ onClose }) => {
           <SearchField />
           <nav className="stack stack-1">
             {NAV.map((item) => (
-              <NavLink key={item.to} to={item.to} onClick={onClose}
-                style={{ padding: '14px 0', fontSize: 'var(--text-xl)', fontFamily: 'var(--font-display)', fontWeight: 600, letterSpacing: '-0.02em', borderBottom: '1px solid var(--line)' }}>
-                {item.label}
-              </NavLink>
+              <NavLink key={item.to} to={item.to} onClick={onClose} className="sheet-link">{item.label}</NavLink>
             ))}
-            {user && user.accountKind !== 'church' && (
-              <>
-                <NavLink to="/me" onClick={onClose} style={{ padding: '14px 0', fontSize: 'var(--text-xl)', fontFamily: 'var(--font-display)', fontWeight: 600, letterSpacing: '-0.02em', borderBottom: '1px solid var(--line)' }}>Your area</NavLink>
-              </>
-            )}
+            <NavLink to="/verify" onClick={onClose} className="sheet-link">Verify a credential</NavLink>
+            {user && user.accountKind !== 'church' ? (
+              <NavLink to="/me" onClick={onClose} className="sheet-link">Your area</NavLink>
+            ) : null}
             {user?.accountKind === 'church' && memberships[0] ? (
-              <NavLink to={`/manage/${memberships[0].churchSlug}`} onClick={onClose}
-                style={{ padding: '14px 0', fontSize: 'var(--text-xl)', fontFamily: 'var(--font-display)', fontWeight: 600, letterSpacing: '-0.02em', borderBottom: '1px solid var(--line)' }}>
-                Church dashboard
-              </NavLink>
+              <NavLink to={`/manage/${memberships[0].churchSlug}`} onClick={onClose} className="sheet-link">Church dashboard</NavLink>
             ) : null}
           </nav>
           {user ? (
@@ -322,8 +315,9 @@ const Footer = () => (
             <img className="brand-mark" src="/brand-mark-white.png" alt="" width="26" height="32" />
             <span className="brand-name" style={{ color: '#fff' }}>Kingdom Network</span>
           </Link>
-          <p className="small" style={{ maxWidth: '34ch', color: 'var(--ink-inverse-2)' }}>
-            Ordination, credentials and invitation letters issued by churches. Each church sets its own requirements and fees.
+          <p className="small footer-blurb">
+            Churches issue the ordinations, certificates and letters. Kingdom Network lists them, carries the
+            payment, and keeps a record anyone can check.
           </p>
         </div>
         <div>
@@ -365,21 +359,16 @@ const Footer = () => (
       </div>
       <div className="footer-bottom">
         <span>© {new Date().getFullYear()} Kingdom Network</span>
-        <span>Nairobi · Kampala · Accra · Houston</span>
+        <span>Every credential is issued by the church named on it, under that church's own standards.</span>
       </div>
     </div>
   </footer>
 );
 
-export const Layout = () => {
-  const { pathname } = useLocation();
-  useEffect(() => { window.scrollTo(0, 0); }, [pathname]);
-
-  return (
-    <div className="shell">
-      <Header />
-      <main><Outlet /></main>
-      <Footer />
-    </div>
-  );
-};
+export const Layout = () => (
+  <div className="shell">
+    <Header />
+    <main><Outlet /></main>
+    <Footer />
+  </div>
+);

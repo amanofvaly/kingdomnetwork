@@ -14,15 +14,20 @@ import { compact, money, plural } from '../lib/format.js';
  * standing: a credential cannot be published without a church decision behind
  * it. The mode survives for affiliations and letters, which are relationships
  * and supporting documents rather than titles.
+ *
+ * Each label says what the credential asks of the applicant, in the applicant's
+ * words. "Builds on others" was written from the catalogue's point of view —
+ * true of the listing, and meaningless to the person reading it, who wanted to
+ * know whether they already qualify.
  */
 export const ACQUISITION = {
-  instant: { label: 'Church confirmation', icon: FileCheck2, tone: '', help: 'Requires confirmation by the issuing church.' },
-  application: { label: 'By application', icon: ScrollText, tone: '', help: 'Apply and the church reviews your application.' },
-  assessment: { label: 'Written assessment', icon: ClipboardCheck, tone: '', help: 'Includes a written assessment.' },
-  coursework: { label: 'Coursework', icon: BookOpen, tone: '', help: 'Requires completing specific courses.' },
-  credentials: { label: 'Builds on others', icon: Layers, tone: 'gold', help: 'Requires credentials you already hold.' },
-  interview: { label: 'Interview', icon: CalendarClock, tone: '', help: 'Includes an interview with the church.' },
-  review: { label: 'Church review', icon: FileCheck2, tone: '', help: 'Reviewed by the church before issue.' },
+  instant: { label: 'Church confirmation', icon: FileCheck2, tone: '', help: 'The issuing church confirms it before it is granted.' },
+  application: { label: 'By application', icon: ScrollText, tone: '', help: 'You apply, and the church decides.' },
+  assessment: { label: 'Assessment required', icon: ClipboardCheck, tone: '', help: 'You sit a written assessment as part of applying.' },
+  coursework: { label: 'Courses required', icon: BookOpen, tone: '', help: 'You complete specific courses before it is granted.' },
+  credentials: { label: 'Other credentials required', icon: Layers, tone: 'gold', help: 'You must already hold the credentials this one builds on.' },
+  interview: { label: 'Interview required', icon: CalendarClock, tone: '', help: 'You speak with the church before it decides.' },
+  review: { label: 'Church review', icon: FileCheck2, tone: '', help: 'The church reviews your application before issuing.' },
 };
 
 /** Types that confer standing. Never merchandised, never discounted. */
@@ -65,23 +70,32 @@ const Fee = ({ offering: o }) => {
  * grants it. The action is "apply", not "add to basket" — a title is not a
  * thing you put in a bag.
  */
-export const OfferingCard = ({ offering: o, showOutcome = false, held = false }) => {
+export const OfferingCard = ({ offering: o }) => {
   const church = o.church;
   const badge = !confersStanding(o.type) && o.badge && o.badge !== ACQUISITION[o.acquisition]?.label ? o.badge : null;
 
   return (
     <article className="card offer-card">
       {badge && <span className="flag badge-bestseller">{badge}</span>}
-      <Link to={`/listing/${o.slug}`} className="media media-3x2" tabIndex={-1} aria-hidden="true">
-        <img
-          src={o.coverImage}
-          alt=""
-          loading="lazy"
-          width={800}
-          height={534}
-          onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = '/media/scenes/books-colorful.webp'; }}
-        />
-      </Link>
+      <div className="card-cover">
+        <Link to={`/listing/${o.slug}`} className="media media-3x2" tabIndex={-1} aria-hidden="true">
+          <img
+            src={o.coverImage}
+            alt=""
+            loading="lazy"
+            width={800}
+            height={534}
+            onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = '/media/scenes/books-colorful.webp'; }}
+          />
+        </Link>
+        <div className="cover-meta">
+          <span>
+            {o.letter?.destinationCity ? <Plane size={11} /> : null}
+            {o.outcome ?? o.award?.kind}
+          </span>
+          <span className="cover-meta-end num">{compact(o.issuedCount ?? 0)} issued</span>
+        </div>
+      </div>
       <div className="card-body">
         {church && (
           <Link to={`/churches/${church.slug}`} className="row issuer" style={{ gap: 7 }}>
@@ -96,18 +110,14 @@ export const OfferingCard = ({ offering: o, showOutcome = false, held = false })
         )}
 
         <Link to={`/listing/${o.slug}`} className="offer-title clamp-2">{o.title}</Link>
-        {showOutcome ? <span className="xs dim">{o.outcome}</span> : null}
 
         <div className="row-wrap" style={{ gap: 6 }}>
           <AcquisitionTag mode={o.acquisition} />
-          {o.letter?.destinationCity && <span className="tag"><Plane size={12} />{o.letter.destinationCity}</span>}
         </div>
 
         <div className="offer-foot">
           <Fee offering={o} />
-          <span className="xs dim num">{compact(o.issuedCount ?? 0)} issued</span>
         </div>
-
       </div>
     </article>
   );

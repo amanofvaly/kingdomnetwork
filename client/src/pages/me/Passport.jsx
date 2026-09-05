@@ -101,7 +101,7 @@ const CredentialCard = ({ credential: c, i }) => {
               {c.renewalDueInDays > 0
                 ? `Renewal is due in ${plural(c.renewalDueInDays, 'day')}.`
                 : 'Renewal is overdue.'}{' '}
-              {c.church ? <Link className="link" to={`/churches/${c.church.slug}`}>Speak to {c.church.shortName ?? c.church.name}</Link> : null}
+              {c.church ? <Link className="link" to={`/churches/${c.church.slug}`}>Contact {c.church.shortName ?? c.church.name}</Link> : null}
             </span>
           </div>
         ) : null}
@@ -112,6 +112,9 @@ const CredentialCard = ({ credential: c, i }) => {
           {c.expiresAt ? <div className="row-between xs"><span className="dim">Valid until</span><span>{dateLong(c.expiresAt)}</span></div> : null}
           <div className="row-between xs"><span className="dim">Verify code</span><span className="me-cred-code">{c.verifyCode}</span></div>
         </div>
+
+        {c.renewedAs ? <p className="small muted">Renewed. Your latest credential is {c.renewedAs}.</p> : null}
+        {c.canRenew ? <Link className="btn btn-outline btn-sm" to={`/apply/${c.offeringSlug}?renew=${encodeURIComponent(c.credentialId)}`}>Apply for renewal <ArrowRight size={14} /></Link> : null}
 
         {live ? (
           <div className="row-wrap" style={{ gap: 8 }}>

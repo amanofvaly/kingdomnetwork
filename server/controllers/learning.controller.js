@@ -1,3 +1,5 @@
+import { presentSteps } from '../lib/requirementPresentation.js';
+import { isOutstanding } from '../lib/requirements.js';
 import { asyncHandler } from '../middleware/asyncHandler.js';
 import { lectureKeys } from '../lib/derive.js';
 import { advanceAllFor } from '../lib/workflow.js';
@@ -36,7 +38,6 @@ export const dashboard = asyncHandler(async (req, res) => {
   const courseBy = Object.fromEntries(courses.map((c) => [c.slug, c]));
   const churchBy = Object.fromEntries(churches.map((c) => [c.slug, c]));
   const offeringBy = Object.fromEntries(offerings.map((o) => [o.slug, o]));
-  const progressBy = Object.fromEntries(enrollments.filter((e) => e.courseSlug).map((e) => [e.courseSlug, e]));
 
   const inProgress = enrollments
     .filter((e) => e.courseSlug && courseBy[e.courseSlug])
@@ -44,8 +45,8 @@ export const dashboard = asyncHandler(async (req, res) => {
 
   // What the applicant is actually waiting on. This leads the dashboard,
   // because the outstanding step is the only thing they can act on today.
-  const pending = applications.map((a) => {
-    const outstanding = (a.steps ?? []).filter((s) => s.status !== 'complete' && s.status !== 'waived');
+  const pending = await Promise.all(applications.map(async (a) => {
+    const outstanding = (a.steps ?? []).filter(isOutstanding);
     return {
       reference: a.reference,
       status: a.status,
@@ -58,19 +59,9 @@ export const dashboard = asyncHandler(async (req, res) => {
       // field alone renders an empty "they asked you for something" callout.
       // Only an unresolved request that actually says something counts.
       infoRequest: a.infoRequest?.message && !a.infoRequest.resolvedAt ? a.infoRequest : null,
-      steps: outstanding.map((s) => ({
-        key: s.key,
-        type: s.type,
-        label: s.label,
-        detail: s.detail,
-        status: s.status,
-        course: s.meta?.courseSlug ? courseBy[s.meta.courseSlug] ?? null : null,
-        progress: s.meta?.courseSlug ? progressBy[s.meta.courseSlug]?.progress ?? 0 : undefined,
-        offering: s.meta?.offeringSlug ? offeringBy[s.meta.offeringSlug] ?? null : null,
-        meta: s.meta,
-      })),
+      steps: await presentSteps(outstanding),
     };
-  });
+  }));
 
   res.json({
     success: true,
@@ -156,7 +147,7 @@ export const setProgress = asyncHandler(async (req, res) => {
         reference: a.reference,
         title: a.offeringTitle,
         status: a.status,
-        outstanding: (a.steps ?? []).filter((s) => s.status !== 'complete' && s.status !== 'waived').length,
+        outstanding: (a.steps ?? []).filter(isOutstanding).length,
       })),
     },
   });

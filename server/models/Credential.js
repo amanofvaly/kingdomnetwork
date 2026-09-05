@@ -12,7 +12,7 @@ const credentialSchema = new mongoose.Schema(
   {
     userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true, index: true },
     credentialId: { type: String, required: true, unique: true, index: true },
-    applicationId: { type: mongoose.Schema.Types.ObjectId, ref: 'Application', index: true },
+    applicationId: { type: mongoose.Schema.Types.ObjectId, ref: 'Application' },
 
     kind: {
       type: String,
@@ -68,6 +68,8 @@ const credentialSchema = new mongoose.Schema(
   },
   { timestamps: true },
 );
+
+credentialSchema.index({ applicationId: 1 }, { unique: true, partialFilterExpression: { applicationId: { $type: 'objectId' } } });
 
 credentialSchema.index({ userId: 1, status: 1, issuedAt: -1 });
 credentialSchema.index({ churchSlug: 1, issuedAt: -1 });

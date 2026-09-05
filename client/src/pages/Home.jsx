@@ -41,7 +41,7 @@ const Hero = ({ data }) => {
           >
             <Search size={19} strokeWidth={1.8} color="var(--ink-3)" />
             <input value={term} onChange={(e) => setTerm(e.target.value)} type="search"
-              placeholder="What are you looking for?" aria-label="Search credentials and churches" />
+              placeholder="Ordination, certificates, churches…" aria-label="Search credentials and churches" />
             <button type="submit" className="btn btn-primary hero-search-btn" aria-label="Search">
               <Search size={17} strokeWidth={2} />
               <span className="btn-label">Search</span>
@@ -116,7 +116,7 @@ const Rail = ({ title, sub, to, toLabel, items, loading, cols = 'grid-4' }) => (
       </div>
       {loading ? <SkeletonGrid count={4} cols={cols} /> : (
         <div className={`grid ${cols}`}>
-          {items.map((o) => <OfferingCard key={o.slug} offering={o} showOutcome />)}
+          {items.map((o) => <OfferingCard key={o.slug} offering={o} />)}
         </div>
       )}
     </div>
@@ -177,6 +177,8 @@ export const Home = () => {
   const { data, error, loading, reload } = useApi('/home');
   if (error) return <div className="wrap band"><ErrorState error={error} onRetry={reload} /></div>;
 
+  const destinations = [...new Set((data?.letters ?? []).map((o) => o.letter?.destinationCity).filter(Boolean))];
+
   return (
     <>
       <Hero data={data} />
@@ -186,9 +188,9 @@ export const Home = () => {
           <div className="wrap stack stack-4">
             <div className="rail-head">
               <div>
-                <h2>Churches on the network</h2>
+                <h2>Who issues on Kingdom Network</h2>
                 <p className="small muted" style={{ margin: '4px 0 0' }}>
-                  Every credential names the church that issued it.
+                  Every credential carries the name of the church that granted it.
                 </p>
               </div>
               <Link to="/churches" className="link">All churches <ArrowRight size={15} /></Link>
@@ -206,25 +208,38 @@ export const Home = () => {
       )}
 
       <Rail
-        title="Popular right now"
-        sub="Start with the pathways people are choosing most."
+        title="Most applied for"
+        sub="The credentials ministers are seeking most this month."
         to="/search" toLabel="Browse everything"
         items={data?.featured ?? []} loading={loading}
       />
 
       {data && <OutcomeRail outcomes={data.outcomes} />}
 
-      <section className="band band-tight">
-        <div className="wrap">
-          <div className="rail-head">
-            <div>
-              <h2 className="row" style={{ gap: 10 }}><Plane size={24} strokeWidth={1.7} /> Invitations abroad</h2>
-              <p className="small muted" style={{ margin: '4px 0 0' }}>
-                Invitation letters from host churches, on their own letterhead.
+      <section className="invites">
+        <div className="wrap stack stack-6">
+          <div className="invites-head">
+            <div className="stack stack-3">
+              <h2>A church abroad, expecting you by name.</h2>
+              <p className="invites-lede">
+                A host church writes on its own letterhead: who you are, what you are coming to do, and the
+                dates it will receive you. It is the document a consulate asks for. It is not a visa, and no
+                church on this network will tell you otherwise.
               </p>
             </div>
-            <Link to="/invitation-letter" className="link">All invitations <ArrowRight size={15} /></Link>
+            <Link to="/invitation-letter" className="btn btn-inverse">See every invitation</Link>
           </div>
+
+          {destinations.length > 0 && (
+            <nav className="invites-destinations" aria-label="Destinations">
+              {destinations.map((city) => (
+                <Link key={city} to={`/invitation-letter?q=${encodeURIComponent(city)}`}>
+                  <Plane size={13} strokeWidth={2} />{city}
+                </Link>
+              ))}
+            </nav>
+          )}
+
           {loading ? <SkeletonGrid count={4} /> : (
             <div className="grid grid-4">
               {data.letters.map((o) => <OfferingCard key={o.slug} offering={o} />)}
@@ -235,8 +250,8 @@ export const Home = () => {
 
       {!loading && data.picks.length > 0 && (
         <Rail
-          title="Our picks"
-          sub="Selected by our team."
+          title="Chosen by ministry leaders"
+          sub="Put forward by the pastors and overseers who issue on the network."
           items={data.picks} loading={false}
         />
       )}
@@ -244,19 +259,20 @@ export const Home = () => {
       <section className="band-ink">
         <div className="wrap for-churches">
           <div className="stack stack-5">
-            <h2>List what you already issue.</h2>
-            <p className="lede" style={{ color: 'rgba(255,255,255,.74)' }}>
-              Set your own titles, your own requirements and your own prices. Take payment in mobile money and
-              card, sign the documents, and reach ministers who will never walk through your door.
+            <h2>Your ministry already ordains. Now it can reach further.</h2>
+            <p className="lede for-churches-lede">
+              Publish the credentials your church already grants, on your own terms and at your own price.
+              You keep the standards and the decision; we carry the payment, the paperwork and the record.
             </p>
             <ul className="tick-list">
-              <li><BadgeCheck size={16} /> Define your credentials and what each one requires</li>
-              <li><BadgeCheck size={16} /> Issue certificates and letters on your own letterhead</li>
-              <li><BadgeCheck size={16} /> No approval needed. Listings go live when you publish them</li>
+              <li><BadgeCheck size={16} /> You set the title, the requirements and the fee</li>
+              <li><BadgeCheck size={16} /> Certificates and letters go out on your letterhead</li>
+              <li><BadgeCheck size={16} /> Mobile money and card, settled to your account</li>
+              <li><BadgeCheck size={16} /> Nothing waits on our approval — you publish, it is live</li>
             </ul>
-            <div className="row-wrap" style={{ gap: 12 }}>
+            <div className="for-churches-actions">
               <Link to="/church/register" className="btn btn-inverse">Register your church</Link>
-              <Link to="/churches" className="btn btn-inverse-outline">See who is here</Link>
+              <Link to="/churches" className="btn btn-inverse-outline">See who is already here</Link>
             </div>
           </div>
           <figure className="media media-4x3">

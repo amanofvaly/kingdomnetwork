@@ -121,7 +121,7 @@ const seedFeed = async (passwordHash) => {
     const reactions = { amen: 9 + i * 4, pray: 3, love: 7 + i * 2, celebrate: 5 + i };
     rows.push({
       kind: 'offering', authorKind: 'church', churchSlug: o.churchSlug, offeringSlug: o.slug,
-      body: o.summary ?? '',
+      body: o.subtitle ?? '',
       images: o.coverImage ? [{ url: o.coverImage, alt: o.coverAlt ?? '' }] : [],
       demoReactions: reactions, reactionCounts: reactions, reactionTotal: total(reactions),
       publishedAt: ago(9 + i * 3), demo: true,

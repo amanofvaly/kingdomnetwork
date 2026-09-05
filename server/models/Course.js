@@ -76,8 +76,7 @@ const sectionSchema = new mongoose.Schema(
 
 const courseSchema = new mongoose.Schema(
   {
-    slug: { type: String, required: true, unique: true, index: true },
-    slugHistory: [String],
+    slug: { type: String, required: true, unique: true, index: true, immutable: true },
     title: { type: String, required: true },
     subtitle: String,
     description: [String],

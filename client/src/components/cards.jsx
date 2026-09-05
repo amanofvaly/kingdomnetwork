@@ -1,27 +1,45 @@
 import { Fragment } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowRight, Award, Clock, Layers, MapPin, ShoppingBag } from 'lucide-react';
+import { ArrowRight, Award, BadgeCheck, Clock, Layers, MapPin, ShoppingBag } from 'lucide-react';
 
 import { duration, plural } from '../lib/format.js';
 import { useCart } from '../lib/cart.jsx';
 import { Price, Stars, Verified } from './ui.jsx';
 import { FollowButton } from './me/feed.jsx';
 
+/**
+ * A designed jacket already says what it is.
+ *
+ * The material covers are authored SVGs that carry the church, the kind and the
+ * extent in their own composition. Laying the card's fact strip over one of
+ * those repeats every word of it and reads as UI chrome pasted onto a poster —
+ * so the strip is for photographs, and a jacket keeps its facts in the body.
+ */
+const isDesignedJacket = (src) => /\.svg(\?|$)/i.test(src ?? '');
+
 export const CourseCard = ({ course }) => {
   const { add, has } = useCart();
   const church = course.church;
   const inCart = has('course', course.slug);
+  const jacket = isDesignedJacket(course.coverImage);
   return (
     <article className="card course-card">
       {course.bestseller && <span className="flag badge-bestseller">Bestseller</span>}
       {course.certificate?.kind && (
         <span className="flag-right tag tag-gold"><Award size={12} />{course.certificate.kind}</span>
       )}
-      <Link to={`/courses/${course.slug}`} className="media media-3x2" tabIndex={-1} aria-hidden="true">
-        <img src={course.coverImage} alt="" loading="lazy" width={800} height={534} />
-      </Link>
+      <div className="card-cover">
+        <Link to={`/courses/${course.slug}`} className="media media-3x2" tabIndex={-1} aria-hidden="true">
+          <img src={course.coverImage} alt="" loading="lazy" width={800} height={534} />
+        </Link>
+        {jacket ? null : (
+          <div className="cover-meta">
+            <span>{course.category}</span>
+            <span className="cover-meta-end"><Clock size={11} />{duration(course.totalMinutes)}</span>
+          </div>
+        )}
+      </div>
       <div className="card-body">
-        <span className="xs dim">{course.category}</span>
         <h3 className="course-title clamp-2">
           <Link to={`/courses/${course.slug}`}>{course.title}</Link>
         </h3>
@@ -35,8 +53,7 @@ export const CourseCard = ({ course }) => {
           <Stars rating={course.rating} count={course.ratingCount} size={13} />
         </div>
         <div className="course-meta">
-          <span className="row" style={{ gap: 4 }}><Clock size={12} />{duration(course.totalMinutes)}</span>
-          <span className="dot" />
+          {jacket ? <><span>{course.category}</span><span className="dot" /></> : null}
           <span>{plural(course.lectureCount ?? 0, 'lesson')}</span>
           <span className="dot" />
           <span>{course.level}</span>
@@ -75,25 +92,36 @@ export const CourseRow = ({ course, action }) => (
   </article>
 );
 
+/**
+ * A church in the directory.
+ *
+ * Where a church is has no bearing on whether you want to read the rest of the
+ * card, so it sits on the cover and the name gets the two lines it needs — a
+ * ministry called "Rock Word of Instruction International" was being cut off
+ * mid-word at the exact width most people hold a phone at.
+ */
 export const ChurchCard = ({ church, canFollow = false, following = false, onFollowChange }) => (
   <article className="card church-card">
-    <Link to={`/churches/${church.slug}`} className="media media-3x2" tabIndex={-1} aria-hidden="true">
-      <img src={church.coverImage} alt="" loading="lazy" width={800} height={534} />
-      {church.verified && <span className="church-card-verified"><Verified label="Verified" size={13} /></span>}
-    </Link>
-    <div className="card-body">
-      <div className="grow">
-        <h3 className="course-title clamp-1"><Link to={`/churches/${church.slug}`}>{church.shortName ?? church.name}</Link></h3>
-        <span className="row xs dim church-card-location" style={{ gap: 4 }}><MapPin size={11} />{church.city}, {church.country}</span>
+    <div className="card-cover">
+      <Link to={`/churches/${church.slug}`} className="media media-3x2" tabIndex={-1} aria-hidden="true">
+        <img src={church.coverImage} alt="" loading="lazy" width={800} height={534} />
+      </Link>
+      {church.verified ? (
+        <span className="verified-badge"><BadgeCheck size={11} strokeWidth={2.6} />Verified</span>
+      ) : null}
+      <div className="cover-meta">
+        <span><MapPin size={11} />{church.city || church.country}</span>
+        <span className="cover-meta-end num">{plural(church.stats?.courses ?? 0, 'course')}</span>
       </div>
+    </div>
+    <div className="card-body">
+      <h3 className="course-title clamp-2"><Link to={`/churches/${church.slug}`}>{church.shortName ?? church.name}</Link></h3>
       <p className="small muted clamp-2" style={{ margin: 0 }}>{church.tagline}</p>
       <div className="row-wrap" style={{ gap: 6 }}>
         {(church.specialties ?? []).slice(0, 2).map((s) => <span key={s} className="tag">{s}</span>)}
       </div>
       <div className="course-foot">
-        <span className="small muted num">
-          {plural(church.stats?.courses ?? 0, 'course')} · {plural(church.followers ?? 0, 'follower')}
-        </span>
+        <span className="small muted num">{plural(church.followers ?? 0, 'follower')}</span>
         {canFollow ? (
           <FollowButton variant="text" slug={church.slug} following={following} onChange={onFollowChange} />
         ) : null}
@@ -154,21 +182,33 @@ export const MaterialCard = ({ item }) => {
   const church = item.church;
   const minutes = item.minutes ?? item.durationMinutes ?? item.totalMinutes;
 
+  // What it is and how long it takes ride on the cover; what is left describes
+  // the thing itself and stays with the title.
+  const extent = minutes ? duration(minutes) : (!isCourse && item.pages ? plural(item.pages, 'page') : null);
+  const jacket = isDesignedJacket(item.coverImage);
+  const kind = MATERIAL_KIND_LABEL[item.kind] ?? item.kind;
   const facts = [
-    minutes ? duration(minutes) : null,
+    jacket ? kind : null,
+    jacket ? extent : null,
     isCourse && item.lectureCount ? plural(item.lectureCount, 'lesson') : null,
-    !isCourse && item.pages ? plural(item.pages, 'page') : null,
     isCourse ? item.level : item.authorName,
   ].filter(Boolean);
 
   return (
     <article className="card course-card">
       {item.bestseller && <span className="flag badge-bestseller">Bestseller</span>}
-      <Link to={to} className="media media-3x2" tabIndex={-1} aria-hidden="true">
-        <img src={item.coverImage} alt="" loading="lazy" width={800} height={534} />
-      </Link>
+      <div className="card-cover">
+        <Link to={to} className="media media-3x2" tabIndex={-1} aria-hidden="true">
+          <img src={item.coverImage} alt="" loading="lazy" width={800} height={534} />
+        </Link>
+        {jacket ? null : (
+          <div className="cover-meta">
+            <span>{kind}</span>
+            {extent ? <span className="cover-meta-end"><Clock size={11} />{extent}</span> : null}
+          </div>
+        )}
+      </div>
       <div className="card-body">
-        <span className="xs dim">{MATERIAL_KIND_LABEL[item.kind] ?? item.kind}</span>
         <h3 className="course-title clamp-2"><Link to={to}>{item.title}</Link></h3>
         {church && (
           <Link to={`/churches/${church.slug}`} className="row small muted" style={{ gap: 6 }}>

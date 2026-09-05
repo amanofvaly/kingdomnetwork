@@ -3,6 +3,7 @@ import { useSearchParams } from 'react-router-dom';
 import { Check, SlidersHorizontal, X } from 'lucide-react';
 
 import { MaterialCard } from '../components/cards.jsx';
+import { FilterSheet } from '../components/FilterSheet.jsx';
 import { Empty, ErrorState, SkeletonGrid } from '../components/ui.jsx';
 import { useApi } from '../lib/useAsync.js';
 
@@ -135,7 +136,11 @@ export const Learning = () => {
 
       <div className="wrap band-tight">
         <div className="catalogue">
-          <aside className={`filters ${filtersOpen ? 'is-open' : ''}`} aria-label="Filters">
+          <FilterSheet
+            open={filtersOpen}
+            onClose={() => setFiltersOpen(false)}
+            onClear={active.length ? () => setParams({}, { replace: true }) : undefined}
+          >
             <FilterGroup
               first
               title="Cost"
@@ -172,32 +177,30 @@ export const Learning = () => {
               label={(f) => f.label}
               onToggle={(v) => toggle('church', v)}
             />
-          </aside>
+          </FilterSheet>
 
           <div>
             <div className="results-bar">
-              <div className="row-wrap" style={{ gap: 10 }}>
-                <button type="button" className="btn btn-outline btn-sm filters-toggle" onClick={() => setFiltersOpen((v) => !v)}>
-                  <SlidersHorizontal size={15} /> Filters
-                </button>
-                <span className="small muted num">
-                  {loading ? 'Loading…' : `${total} ${total === 1 ? 'item' : 'items'}`}
-                </span>
-                <div className="active-filters">
-                  {active.map((a) => (
-                    <button key={a.key} type="button" className="pill-clear" onClick={() => update({ [a.key]: '' })}>
-                      {a.label} <X size={12} />
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              <label className="row small muted" style={{ gap: 8 }}>
-                Sort
+              <button type="button" className="btn btn-outline btn-sm filters-toggle"
+                onClick={() => setFiltersOpen(true)} aria-expanded={filtersOpen}>
+                <SlidersHorizontal size={15} /> Filters{active.length ? ` (${active.length})` : ''}
+              </button>
+              <span className="small muted results-count">
+                {loading ? 'Loading…' : `${total} ${total === 1 ? 'item' : 'items'}`}
+              </span>
+              <label className="row small muted sort-control" style={{ gap: 8 }}>
+                <span className="wide-only">Sort</span>
                 <select className="select select-sm" value={sort} onChange={(e) => update({ sort: e.target.value })}>
                   {SORTS.map((s) => <option key={s.value} value={s.value}>{s.label}</option>)}
                 </select>
               </label>
+              <div className="active-filters">
+                {active.map((a) => (
+                  <button key={a.key} type="button" className="pill-clear" onClick={() => update({ [a.key]: '' })}>
+                    {a.label} <X size={12} />
+                  </button>
+                ))}
+              </div>
             </div>
 
             {error ? <ErrorState error={error} onRetry={reload} />

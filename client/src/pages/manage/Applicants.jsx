@@ -218,11 +218,13 @@ const ApplicantDrawer = ({ churchSlug, reference, onClose, onChanged }) => {
                 <div key={s.key} className={`check-step ${s.status === 'complete' ? 'is-complete' : s.status === 'waived' ? 'is-waived' : s.status === 'failed' ? 'is-failed' : ''}`}>
                   <span className="mark">{s.status === 'complete' || s.status === 'waived' ? <Check size={12} strokeWidth={3} /> : s.status === 'failed' ? <X size={12} strokeWidth={3} /> : null}</span>
                   <span className="body">
-                    <span className="label">{s.label}</span>
+                    <span className="label">{s.course?.title ?? s.offering?.title ?? s.label}</span>
+                    {s.meta?.required === false ? <span className="detail">Optional</span> : null}
+                    {s.meta?.nonWaivable ? <span className="detail">Required for ordination · cannot be waived</span> : null}
                     {s.detail ? <span className="detail">{s.detail}</span> : null}
                     {s.waiverReason ? <span className="waiver">Waived — {s.waiverReason}</span> : null}
                   </span>
-                  {s.status !== 'complete' && s.status !== 'waived' && s.type !== 'fee' && s.type !== 'review' ? (
+                  {s.status !== 'complete' && s.status !== 'waived' && s.type !== 'fee' && s.type !== 'review' && !s.meta?.nonWaivable ? (
                     <button type="button" className="btn btn-ghost btn-sm" onClick={() => setDialog({ waive: s })}>
                       Waive
                     </button>
@@ -476,7 +478,7 @@ const ActionDialogs = ({ dialog, setDialog, busy, act, churchSlug, reference, ap
   }
 
   if (dialog === 'approve') {
-    const outstanding = (application?.steps ?? []).filter((s) => s.status !== 'complete' && s.status !== 'waived' && s.type !== 'review');
+    const outstanding = (application?.steps ?? []).filter((s) => s.meta?.required !== false && s.status !== 'complete' && s.status !== 'waived' && s.type !== 'review');
     return (
       <Dialog
         open
@@ -500,9 +502,9 @@ const ActionDialogs = ({ dialog, setDialog, busy, act, churchSlug, reference, ap
           <div className="notice notice-gold">
             <strong>{outstanding.length} requirement{outstanding.length === 1 ? ' is' : 's are'} still outstanding.</strong>
             <p style={{ margin: '4px 0 0' }}>
-              Waive any you accept, then approve.
+              Complete outstanding requirements or record a waiver where permitted. Ordination interviews must be completed.
             </p>
-            <ul className="a-problems">{outstanding.map((s) => <li key={s.key}>{s.label}</li>)}</ul>
+            <ul className="a-problems">{outstanding.map((s) => <li key={s.key}>{s.course?.title ?? s.offering?.title ?? s.label}</li>)}</ul>
           </div>
         ) : (
           <p className="muted small" style={{ marginTop: 0 }}>
@@ -547,7 +549,7 @@ const ActionDialogs = ({ dialog, setDialog, busy, act, churchSlug, reference, ap
       <Dialog
         open
         onClose={() => setDialog(null)}
-        title={`Waive: ${dialog.waive.label}`}
+        title={`Waive: ${dialog.waive.course?.title ?? dialog.waive.offering?.title ?? dialog.waive.label}`}
         footer={
           <>
             <button type="button" className="btn btn-ghost" onClick={() => setDialog(null)}>Cancel</button>

@@ -1,3 +1,7 @@
+import { applicationEditable, snapshotOffering, OPEN_APPLICATIONS, validCredentialFilter } from '../lib/applicationTerms.js';
+import { reserveAdmission, releaseAdmission } from '../lib/admissions.js';
+import { presentSteps } from '../lib/requirementPresentation.js';
+import { offeringForApplication } from '../lib/applicationTerms.js';
 import { asyncHandler } from '../middleware/asyncHandler.js';
 import { disclosuresFor } from '../lib/disclosures.js';
 import { reference as makeReference, token as makeToken } from '../lib/ids.js';
@@ -8,7 +12,6 @@ import { storeUpload, MAX_BYTES, readBody } from '../lib/upload.js';
 import { advance } from '../lib/workflow.js';
 import { Application } from '../models/Application.js';
 import { Church } from '../models/Church.js';
-import { Course } from '../models/Course.js';
 import { Credential } from '../models/Credential.js';
 import { MediaAsset } from '../models/MediaAsset.js';
 import { Offering } from '../models/Offering.js';
@@ -23,26 +26,14 @@ import { Offering } from '../models/Offering.js';
 
 const shape = async (application, { forChurch = false } = {}) => {
   const [offering, church] = await Promise.all([
-    Offering.findOne({ slug: application.offeringSlug }),
+    offeringForApplication(application),
     Church.findOne({ slug: application.churchSlug }, 'slug name shortName monogram verified city country'),
   ]);
 
-  const courseSlugs = (application.steps ?? [])
-    .filter((s) => s.meta?.courseSlug)
-    .map((s) => s.meta.courseSlug);
-  const offeringSlugs = (application.steps ?? [])
-    .flatMap((s) => (s.meta?.group ? s.meta.items ?? [] : s.meta?.offeringSlug ? [s.meta.offeringSlug] : []));
-
-  const [courses, required, mediaAssets] = await Promise.all([
-    Course.find({ slug: { $in: courseSlugs } }, 'slug title coverImage totalMinutes lectureCount churchSlug'),
-    Offering.find({ slug: { $in: offeringSlugs } }, 'slug title price fee churchSlug coverImage type'),
-    MediaAsset.find({ _id: { $in: (application.documents ?? []).map((d) => d.mediaId).filter(Boolean) } }, 'filename mimeType bytes'),
-  ]);
-
-  const courseBy = Object.fromEntries(courses.map((c) => [c.slug, c]));
-  const requiredBy = Object.fromEntries(required.map((o) => [o.slug, o]));
+  const mediaAssets = await MediaAsset.find({ _id: { $in: (application.documents ?? []).map((d) => d.mediaId).filter(Boolean) } }, 'filename mimeType bytes');
   const mediaBy = Object.fromEntries(mediaAssets.map((m) => [String(m._id), m]));
 
+  const steps = await presentSteps(application.steps);
   return {
     reference: application.reference,
     status: application.status,
@@ -63,13 +54,9 @@ const shape = async (application, { forChurch = false } = {}) => {
       void token;
       return rest;
     }),
-    steps: (application.steps ?? []).map((s) => ({
-      ...(s.toObject?.() ?? s),
-      course: s.meta?.courseSlug ? courseBy[s.meta.courseSlug] ?? null : null,
-      offering: s.meta?.offeringSlug ? requiredBy[s.meta.offeringSlug] ?? null : null,
-      options: s.meta?.group ? (s.meta.items ?? []).map((slug) => requiredBy[slug] ?? courseBy[slug] ?? { slug }) : undefined,
-    })),
-    summary: summarise(application.steps ?? []),
+    steps,
+    renewalOf: application.renewalOf,
+    summary: summarise(steps),
     infoRequest: application.infoRequest?.requestedAt && !application.infoRequest?.resolvedAt ? application.infoRequest : null,
     decision: application.decision?.outcome
       ? {
@@ -93,12 +80,11 @@ const shape = async (application, { forChurch = false } = {}) => {
 };
 
 const mine = async (req) => {
-  const application = await Application.findOne({ reference: req.params.reference, userId: req.user._id });
+  const application = await Application.findOne({ reference: req.params.reference, userId: req.user._id }).select('+references.token');
   return application;
 };
 
-const editable = (application) =>
-  ['draft', 'fee_pending', 'info_requested', 'submitted', 'under_review'].includes(application.status);
+const editable = applicationEditable;
 
 export const list = asyncHandler(async (req, res) => {
   const applications = await Application.find({ userId: req.user._id }).sort({ updatedAt: -1 });
@@ -112,18 +98,18 @@ export const list = asyncHandler(async (req, res) => {
 
   res.json({
     success: true,
-    data: applications.map((a) => ({
+    data: await Promise.all(applications.map(async (a) => ({
       reference: a.reference,
       status: a.status,
       offeringSlug: a.offeringSlug,
       offeringTitle: a.offeringTitle,
       offering: offeringBy[a.offeringSlug] ?? null,
       church: churchBy[a.churchSlug] ?? null,
-      summary: summarise(a.steps ?? []),
+      summary: summarise(await presentSteps(a.steps)),
       submittedAt: a.submittedAt,
       updatedAt: a.updatedAt,
       credentialId: a.credentialId,
-    })),
+    }))),
   });
 });
 
@@ -146,22 +132,38 @@ export const start = asyncHandler(async (req, res) => {
   const live = await Application.findOne({
     userId: req.user._id,
     offeringSlug: offering.slug,
-    status: { $nin: ['withdrawn', 'declined', 'expired'] },
+    status: { $in: OPEN_APPLICATIONS },
   });
   if (live) {
     return res.json({ success: true, data: await shape(live), message: 'You already have an application for this.' });
   }
 
+  let renewal = null;
+  let terms = snapshotOffering(offering);
+  if (req.body?.renewalOf) {
+    renewal = await Credential.findOne({ credentialId: req.body.renewalOf, userId: req.user._id, offeringSlug: offering.slug, status: { $in: ['issued', 'expired'] } });
+    if (!renewal || !(offering.award?.renewable || offering.renewal?.required)) return res.status(409).json({ success: false, message: 'This credential is not eligible for renewal.' });
+    const renewed = await Application.findOne({ renewalOf: renewal.credentialId, status: 'issued' });
+    if (renewed) return res.status(409).json({ success: false, message: 'This credential has already been renewed. Open the latest credential in your passport.' });
+    terms.fee = { ...terms.fee, amount: terms.fee?.renewalAmount ?? 0, label: 'Renewal application fee' };
+    terms.price = terms.fee.amount;
+    terms.requires = { ...terms.requires, review: { ...terms.requires?.review, required: true } };
+    if (terms.renewal?.continuingEducationHours > 0) {
+      terms.requires.documents = [...(terms.requires.documents ?? []), { key: 'renewal-study', label: `Evidence of ${terms.renewal.continuingEducationHours} hours of continuing education`, required: true, description: 'Upload a study record or certificates for the church to review.' }];
+    }
+    terms.award = { ...terms.award, validityMonths: terms.renewal?.everyMonths ?? terms.award?.validityMonths };
+  }
+
   // Invitation letters are the one thing bought repeatedly — a minister needs a
   // new one for each trip — so holding one never blocks applying for another.
-  if (offering.type !== 'invitation-letter') {
-    const held = await Credential.findOne({ userId: req.user._id, offeringSlug: offering.slug, status: 'issued' });
+  if (!renewal && offering.type !== 'invitation-letter') {
+    const held = await Credential.findOne({ userId: req.user._id, offeringSlug: offering.slug, ...validCredentialFilter() });
     if (held) {
       return res.status(409).json({ success: false, message: 'You already hold this credential.' });
     }
   }
 
-  if (offering.intake?.mode === 'windows') {
+  if (!renewal && offering.intake?.mode === 'windows') {
     const now = new Date();
     const open = (offering.intake.windows ?? []).some((w) => w.opensAt <= now && w.closesAt >= now);
     if (!open) {
@@ -175,10 +177,12 @@ export const start = asyncHandler(async (req, res) => {
     churchSlug: offering.churchSlug,
     offeringSlug: offering.slug,
     offeringTitle: offering.title,
+    offeringSnapshot: terms,
+    renewalOf: renewal?.credentialId,
     status: 'draft',
-    attestations: (offering.requires?.attestations ?? []).map((a) => ({ key: a.key, statement: a.statement })),
-    documents: (offering.requires?.documents ?? []).map((d) => ({ key: d.key, label: d.label })),
-    references: (offering.requires?.references ?? []).map((r) => ({ key: r.key })),
+    attestations: (terms.requires?.attestations ?? []).map((a) => ({ key: a.key, statement: a.statement })),
+    documents: (terms.requires?.documents ?? []).map((d) => ({ key: d.key, label: d.label })),
+    references: (terms.requires?.references ?? []).map((r) => ({ key: r.key })),
   });
 
   application.log({ event: 'application:started', actorId: req.user._id, actorRole: 'applicant' });
@@ -197,7 +201,7 @@ export const update = asyncHandler(async (req, res) => {
     return res.status(409).json({ success: false, message: 'This application can no longer be edited.' });
   }
 
-  const offering = await Offering.findOne({ slug: application.offeringSlug });
+  const offering = await offeringForApplication(application);
 
   if (req.body?.answers && typeof req.body.answers === 'object') {
     const allowed = new Set((offering?.applicationForm ?? []).map((f) => f.key));
@@ -234,9 +238,9 @@ export const update = asyncHandler(async (req, res) => {
         email: String(given.email ?? '').toLowerCase().trim().slice(0, 160),
         phone: String(given.phone ?? '').trim().slice(0, 40),
         relationship: String(given.relationship ?? r.relationship ?? '').trim().slice(0, 120),
-        status: prior?.status === 'sent' ? 'sent' : 'pending',
-        token: prior?.token,
-        sentAt: prior?.sentAt,
+        status: prior?.status === 'sent' && prior.email === String(given.email ?? '').toLowerCase().trim() ? 'sent' : 'pending',
+        token: prior?.email === String(given.email ?? '').toLowerCase().trim() ? prior?.token : undefined,
+        sentAt: prior?.email === String(given.email ?? '').toLowerCase().trim() ? prior?.sentAt : undefined,
       };
     });
   }
@@ -244,10 +248,11 @@ export const update = asyncHandler(async (req, res) => {
   // Answering a request for more information clears it.
   if (application.infoRequest?.requestedAt && !application.infoRequest.resolvedAt && req.body?.resolveInfoRequest) {
     application.infoRequest.resolvedAt = new Date();
-    application.log({ event: 'info:answered', actorId: req.user._id, actorRole: 'applicant', visibility: 'both' });
+    application.log({ note: String(req.body?.reply ?? '').trim().slice(0, 4000) || undefined, event: 'info:answered', actorId: req.user._id, actorRole: 'applicant', visibility: 'both' });
   }
 
   await advance(application, { offering });
+  if (application.submittedAt) await sendReferenceRequests(application);
   res.json({ success: true, data: await shape(application) });
 });
 
@@ -305,7 +310,8 @@ export const submit = asyncHandler(async (req, res) => {
     return res.status(409).json({ success: false, message: 'This application has already been submitted.' });
   }
 
-  const offering = await Offering.findOne({ slug: application.offeringSlug });
+  const offering = await offeringForApplication(application);
+  await reserveAdmission(application);
   const fee = offering?.fee?.amount ?? 0;
 
   if (fee > 0 && !application.paymentRef) {
@@ -344,8 +350,9 @@ export const sendReferenceRequests = async (application) => {
     ref.sentAt = new Date();
     changed = true;
 
+    await application.save();
     const holder = await application.populate('userId');
-    await mailer.send({
+    const sent = await mailer.send({
       to: ref.email,
       subject: `A reference request for ${holder.userId?.name ?? 'an applicant'}`,
       text: [
@@ -357,6 +364,7 @@ export const sendReferenceRequests = async (application) => {
         'If you were not expecting this, you can ignore it.',
       ].join('\n'),
     });
+    if (!sent.ok) { ref.status = 'pending'; ref.sentAt = undefined; }
   }
 
   if (changed) await application.save();
@@ -369,6 +377,7 @@ export const withdraw = asyncHandler(async (req, res) => {
     return res.status(409).json({ success: false, message: 'This application is already closed.' });
   }
 
+  await releaseAdmission(application);
   application.status = 'withdrawn';
   application.log({
     event: 'application:withdrawn',
